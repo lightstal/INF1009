@@ -1,11 +1,12 @@
 package io.github.INF1009_P10_Team7.scenes;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
+
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 
 /**
  * MainMenuScene
@@ -28,14 +29,23 @@ public class MainMenuScene extends Scene {
     protected void onLoad() {
         // Log for testing (marker can see lifecycle)
         Gdx.app.log("Scene", "MainMenuScene loaded");
+        
+        InputOutputManager io = sceneManager.getInputOutputManager();
+        io.playMusic("Music_Menu.mp3");
     }
 
     @Override
     protected void onUpdate(float delta) {
-        // Press SPACE to go to GameScene
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+//        // Press SPACE to go to GameScene
+//        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+//            sceneManager.requestScene(new GameScene(sceneManager));
+//        }
+        
+        InputOutputManager io = sceneManager.getInputOutputManager();
+        if (io.isActionJustPressed("START_GAME")) {
             sceneManager.requestScene(new GameScene(sceneManager));
         }
+        
     }
 
     @Override
@@ -54,5 +64,8 @@ public class MainMenuScene extends Scene {
     protected void onUnload() {
         // Log for testing
         Gdx.app.log("Scene", "MainMenuScene unloaded");
+        
+        InputOutputManager io = sceneManager.getInputOutputManager();
+        io.setMusicState("stopped");
     }
 }

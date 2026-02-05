@@ -7,6 +7,8 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
 
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
+
 /**
  * Main (future real game entry point).
  *
@@ -16,10 +18,12 @@ import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
 public class Main extends ApplicationAdapter {
 
     private SceneManager sceneManager;
+    private InputOutputManager inputOutputManager;
 
     @Override
     public void create() {
-        sceneManager = new SceneManager();
+    	inputOutputManager = new InputOutputManager();
+        sceneManager = new SceneManager(inputOutputManager);
         sceneManager.setScene(new MainMenuScene(sceneManager));
     }
 
@@ -28,6 +32,9 @@ public class Main extends ApplicationAdapter {
         ScreenUtils.clear(0, 0, 0, 1);
 
         float dt = Gdx.graphics.getDeltaTime();
+        
+        inputOutputManager.update();
+        
         sceneManager.update(dt);
         sceneManager.render();
     }
@@ -40,5 +47,8 @@ public class Main extends ApplicationAdapter {
     @Override
     public void dispose() {
         sceneManager.dispose();
+        if (inputOutputManager != null) {
+            inputOutputManager.dispose();
+        }
     }
 }

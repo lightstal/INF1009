@@ -1,9 +1,9 @@
 package io.github.INF1009_P10_Team7.scenes;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 
@@ -28,19 +28,35 @@ public class GameScene extends Scene {
     @Override
     protected void onLoad() {
         Gdx.app.log("Scene", "GameScene loaded");
+        
+        InputOutputManager io = sceneManager.getInputOutputManager();
+        io.playMusic("Music_Game.mp3");
     }
 
     @Override
     protected void onUpdate(float delta) {
-        // ESC -> open Settings, return back to this GameScene
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+//        // ESC -> open Settings, return back to this GameScene
+//        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+//            sceneManager.requestScene(new SettingsScene(sceneManager, this));
+//        }
+//
+//        // BACKSPACE -> back to menu
+//        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+//            sceneManager.requestScene(new MainMenuScene(sceneManager));
+//        }
+        
+        
+        InputOutputManager io = sceneManager.getInputOutputManager();
+        if (io.isActionJustPressed("SETTINGS")) {
             sceneManager.requestScene(new SettingsScene(sceneManager, this));
         }
-
-        // BACKSPACE -> back to menu
-        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+        if (io.isActionJustPressed("BACK")) {
             sceneManager.requestScene(new MainMenuScene(sceneManager));
         }
+        if (io.isActionJustPressed("BANG")) {
+            io.playSound("Sound_Boom.mp3");
+        }
+        
     }
 
     @Override

@@ -2,10 +2,13 @@ package io.github.INF1009_P10_Team7.simulation;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
+
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 
 /**
  * Part1SimulationApp
@@ -23,17 +26,25 @@ import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
 public class Part1SimulationApp extends ApplicationAdapter {
 
     private SceneManager sceneManager;
+    private InputOutputManager inputOutputManager;
 
     @Override
     public void create() {
         // Rubric: start without errors
         Gdx.app.log("SIM", "Part1SimulationApp create(): start (engine init)");
 
-        sceneManager = new SceneManager();
-
         // Print instructions for marker/video
         SimulationTestScript.printInstructions();
         SimulationTestScript.printScalingNote();
+        
+        inputOutputManager = new InputOutputManager();
+
+        inputOutputManager.bindKey("START_GAME", Input.Keys.SPACE);
+        inputOutputManager.bindKey("SETTINGS", Input.Keys.ESCAPE);
+        inputOutputManager.bindKey("BACK", Input.Keys.BACKSPACE);
+        inputOutputManager.bindMouseButton("BANG", Input.Buttons.LEFT);
+
+        sceneManager = new SceneManager(inputOutputManager);
 
         // Start with MainMenu scene
         sceneManager.setScene(new MainMenuScene(sceneManager));
@@ -46,6 +57,8 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
         // Standard game loop
         float dt = Gdx.graphics.getDeltaTime();
+        inputOutputManager.update();
+        
         sceneManager.update(dt);
         sceneManager.render();
     }
@@ -61,5 +74,6 @@ public class Part1SimulationApp extends ApplicationAdapter {
         // Rubric: end without errors
         Gdx.app.log("SIM", "Part1SimulationApp dispose(): end (clean shutdown)");
         sceneManager.dispose();
+        inputOutputManager.dispose();
     }
 }
