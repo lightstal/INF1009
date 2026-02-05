@@ -2,13 +2,13 @@ package io.github.INF1009_P10_Team7.lwjgl3;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import io.github.INF1009_P10_Team7.Main;
+import io.github.INF1009_P10_Team7.simulation.Part1SimulationApp;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
     public static void main(String[] args) {
         if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.
-        
+
 
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setTitle("INF1009 P10 Team7_Abstract Engine");
@@ -33,7 +33,7 @@ public class Lwjgl3Launcher {
         //// You can choose to remove the following line and the mentioned dependency if you want; they
         //// are not intended for games that use GL30 (which is compatibility with OpenGL ES 3.0).
         configuration.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.ANGLE_GLES20, 0, 0);
-        
-        new Lwjgl3Application(new Main(), configuration);
+
+        new Lwjgl3Application(new Part1SimulationApp(), configuration);
     }
 }
