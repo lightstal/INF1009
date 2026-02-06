@@ -2,26 +2,63 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
 
 import com.badlogic.gdx.Gdx;
 
+/**
+ * A concrete implementation of {@link DeviceInput} for Mouse handling.
+ * <p>
+ * This class manages:
+ * <ul>
+ * <li><b>Buttons:</b> Standard clicks (Left, Right, Middle, etc.).</li>
+ * <li><b>Axes:</b> The X and Y screen coordinates of the cursor.</li>
+ * </ul>
+ * Like the keyboard, it maintains state history to allow for "Just Pressed" (click) detection.
+ */
 public class MouseDevice extends DeviceInput {
+	
+	/** 
+	 * The number of mouse buttons to track. 
+     * <br>0=Left, 1=Right, 2=Middle, 3=Back, 4=Forward. 
+     */
 	private static final int BUTTON_COUNT = 5;
 	
     private float mouseX;
     private float mouseY;
+    
+    /** 
+     * Stores the state of mouse buttons for the current frame.
+     */
     private boolean[] currentButtons = new boolean[BUTTON_COUNT];
+    
+    /**
+     * Stores the state of mouse buttons from the previous frame. 
+     */
     private boolean[] previousButtons = new boolean[BUTTON_COUNT];
     
+    /**
+     * Initializes the mouse device with ID 1.
+     */
     public MouseDevice() {
         this.deviceID = 1;
         this.deviceName = "Mouse";
     }
 
+    /**
+     * Updates the internal mouse state.
+     * <p>
+     * Logic:
+     * <ol>
+     * <li>Updates {@code mouseX} and {@code mouseY} from Gdx.input.</li>
+     * <li>Copies the current button states to the previous array (snapshot).</li>
+     * <li>Polls the new button states from LibGDX.</li>
+     * </ol>
+     */
     @Override
     public void pollInput() {
         // Get and update current X,Y coordinate of mouse
         mouseX = Gdx.input.getX();
         mouseY = Gdx.input.getY();
 
-        // Update buttons pressed// First, copy current state to previous state (Critical for JustPressed logic)
+        // Update buttons pressed
+        // First, copy current state to previous state (Critical for JustPressed logic)
         System.arraycopy(currentButtons, 0, previousButtons, 0, BUTTON_COUNT);
 
         // Then, read new state from LibGDX hardware
@@ -30,6 +67,11 @@ public class MouseDevice extends DeviceInput {
         }
     }
 
+    /**
+     * Checks if a mouse button is currently held down.
+     * @param id The Button Code (0=Left, 1=Right, 2=Middle).
+     * @return {@code true} if the button is down.
+     */
     @Override
     public boolean getButton(int id) {
     	if (id >= 0 && id < BUTTON_COUNT) {
@@ -38,6 +80,11 @@ public class MouseDevice extends DeviceInput {
         return false;
     }
 
+    /**
+     * Checks if a mouse button was clicked <b>this exact frame</b>.
+     * @param id The Button Code.
+     * @return {@code true} if the button transitioned from UP to DOWN this frame.
+     */
     @Override
     public boolean isButtonJustPressed(int id) {
         if (id >= 0 && id < BUTTON_COUNT) {
@@ -46,6 +93,14 @@ public class MouseDevice extends DeviceInput {
         return false;
     }
 
+    /**
+     * Retrieves the current position of the mouse cursor.
+     * <p>
+     * Coordinates are typically in "Screen Space" (pixels), where (0,0) is usually
+     * the top-left corner of the window.
+     * @param id The Axis ID. <b>0</b> for X-axis, <b>1</b> for Y-axis.
+     * @return The coordinate value.
+     */
     @Override
     public float getAxis(int id) {
         if (id == 0) return mouseX;
