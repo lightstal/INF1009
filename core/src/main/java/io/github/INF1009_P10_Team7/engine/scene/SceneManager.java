@@ -1,6 +1,6 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
 
 /**
  * SceneManager (UML requirement)
@@ -21,14 +21,14 @@ public class SceneManager {
     // Next requested scene (applied at start of update)
     private Scene pendingScene;
     
-    private final InputOutputManager inputOutputManager;
+    private final InputOutput io;
     
-    public SceneManager(InputOutputManager inputOutputManager) {
-        this.inputOutputManager = inputOutputManager;
+    public SceneManager(InputOutput io) {
+        this.io = io;
     }
     
-    public InputOutputManager getInputOutputManager() {
-        return inputOutputManager;
+    public InputOutput getInputOutput() {
+        return io;
     }
 
     /**

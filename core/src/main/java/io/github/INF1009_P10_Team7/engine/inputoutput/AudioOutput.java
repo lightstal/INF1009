@@ -41,12 +41,12 @@ public class AudioOutput {
     }
 	
 	
-	public Sound getSound(String audioPath) {
+	public void playSound(String audioPath) {
 		// Check if sound has not been played before, add to Sound Cache
 		if (!soundCache.containsKey(audioPath)) {
 			soundCache.put(audioPath, Gdx.audio.newSound(Gdx.files.internal(audioPath)));
         }
-	    return soundCache.get(audioPath);
+	    soundCache.get(audioPath).play();
 	}
 	
 	public void setMusicState(MusicState newState) {

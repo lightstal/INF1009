@@ -3,10 +3,10 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InputOutputManager {
+public class InputOutputManager implements InputOutput{
 	private static final int MOUSE_OFFSET = 300;
 	
-	private DeviceOutput deviceOutput;
+	private AudioOutput audioOutput;
 	private KeyboardDevice keyboard;
     private MouseDevice mouse;
     
@@ -14,7 +14,7 @@ public class InputOutputManager {
     private Map<String, Integer> keyBindings;
     
 	public InputOutputManager() {
-		this.deviceOutput = new DeviceOutput();
+		this.audioOutput = new AudioOutput();
 		this.keyboard = new KeyboardDevice();
         this.mouse = new MouseDevice();
         
@@ -66,22 +66,27 @@ public class InputOutputManager {
 	// Methods for device outputs
 	
 	public void playMusic(String audioPath) {
-        deviceOutput.playMusic(audioPath);
+		audioOutput.setMusic(audioPath);
     }
 
     public void playSound(String audioPath) {
-        deviceOutput.playSound(audioPath);
+    	audioOutput.playSound(audioPath);
     }
     
     public void setMusicState(String state) {
-        deviceOutput.setMusicState(state);
+    	try {
+            MusicState musicState = MusicState.valueOf(state.toUpperCase());
+            audioOutput.setMusicState(musicState);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid Music State: " + state);
+        }
     }
     
-    public DeviceOutput getDeviceOutput() {
-        return deviceOutput;
+    public AudioOutput getAudioOutput() {
+        return audioOutput;
     }
     
     public void dispose() {
-        if (deviceOutput != null) deviceOutput.dispose();
+    	audioOutput.dispose();
     }
 }

@@ -28,6 +28,11 @@ public final class SimulationTestScript {
         Gdx.app.log("SIM", "Resize window: logs resize() calls");
         Gdx.app.log("SIM", "Close window: logs dispose() (clean end)");
         Gdx.app.log("SIM", "==============================");
+        Gdx.app.log("Input Output", "Key Controls Binded to Actions:");
+        Gdx.app.log("Input Output", "START_GAME: SPACE");
+        Gdx.app.log("Input Output", "SETTINGS: ESC");
+        Gdx.app.log("Input Output", "BACK: BACKSPACE");
+        Gdx.app.log("Input Output", "SHOOT: Mouse LEFT BUTTON");
     }
 
     public static void printScalingNote() {

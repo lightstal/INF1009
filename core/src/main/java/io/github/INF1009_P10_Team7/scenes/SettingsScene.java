@@ -3,7 +3,7 @@ package io.github.INF1009_P10_Team7.scenes;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 
@@ -32,9 +32,10 @@ public class SettingsScene extends Scene {
     @Override
     protected void onLoad() {
         Gdx.app.log("Scene", "SettingsScene loaded");
-        
-        InputOutputManager io = sceneManager.getInputOutputManager();
+
+        InputOutput io = sceneManager.getInputOutput();
         io.setMusicState("paused");
+        Gdx.app.log("Audio Output", "Game Music State set to 'paused'");
     }
 
     @Override
@@ -44,8 +45,9 @@ public class SettingsScene extends Scene {
 //            sceneManager.requestScene(previousScene);
 //        }
 
-        InputOutputManager io = sceneManager.getInputOutputManager();
+        InputOutput io = sceneManager.getInputOutput();
         if (io.isActionJustPressed("BACK")) {
+            Gdx.app.log("Input", "Key binded to 'BACK' action was pressed");
         	sceneManager.requestScene(previousScene);
         }
     }
@@ -64,8 +66,5 @@ public class SettingsScene extends Scene {
     @Override
     protected void onUnload() {
         Gdx.app.log("Scene", "SettingsScene unloaded");
-        
-        InputOutputManager io = sceneManager.getInputOutputManager();
-        io.setMusicState("playing");
     }
 }
