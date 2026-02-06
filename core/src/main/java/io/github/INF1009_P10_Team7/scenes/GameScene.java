@@ -3,7 +3,6 @@ package io.github.INF1009_P10_Team7.scenes;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 
@@ -19,17 +18,14 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
  */
 public class GameScene extends Scene {
 
-    private final SceneManager sceneManager;
-
     public GameScene(SceneManager sceneManager) {
-        this.sceneManager = sceneManager;
+        super(sceneManager);
     }
 
     @Override
     protected void onLoad() {
         Gdx.app.log("Scene", "GameScene loaded");
         
-        InputOutput io = sceneManager.getInputOutput();
         io.playMusic("Music_Game.mp3");
         Gdx.app.log("Audio Output", "Game Music loaded");
     }
@@ -47,7 +43,6 @@ public class GameScene extends Scene {
 //        }
         
 
-        InputOutput io = sceneManager.getInputOutput();
         if (io.isActionJustPressed("SETTINGS")) {
             Gdx.app.log("Input", "Key binded to 'SETTINGS' action was pressed");
             sceneManager.requestScene(new SettingsScene(sceneManager, this));

@@ -5,7 +5,6 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
 
 /**
  * MainMenuScene
@@ -18,10 +17,8 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
  */
 public class MainMenuScene extends Scene {
 
-    private final SceneManager sceneManager;
-
     public MainMenuScene(SceneManager sceneManager) {
-        this.sceneManager = sceneManager;
+        super(sceneManager);
     }
 
     @Override
@@ -29,7 +26,6 @@ public class MainMenuScene extends Scene {
         // Log for testing (marker can see lifecycle)
         Gdx.app.log("Scene", "MainMenuScene loaded");
 
-        InputOutput io = sceneManager.getInputOutput();
         io.playMusic("Music_Menu.mp3");
         Gdx.app.log("Audio Output", "MainMenu Music loaded");
     }
@@ -41,7 +37,6 @@ public class MainMenuScene extends Scene {
 //            sceneManager.requestScene(new GameScene(sceneManager));
 //        }
 
-        InputOutput io = sceneManager.getInputOutput();
         if (io.isActionJustPressed("START_GAME")) {
             Gdx.app.log("Input", "Key binded to 'START_GAME' action was pressed");
             sceneManager.requestScene(new GameScene(sceneManager));
