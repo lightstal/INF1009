@@ -48,6 +48,19 @@ public interface InputOutput {
      * @return {@code true} only on the frame the input went from UP to DOWN.
      */
     boolean isActionJustPressed(String actionName);
+
+     // --- Mouse Coordinates ---
+     /**
+     * Retrieves the current X coordinate of the mouse.
+     * @return The x-coordinate in screen pixels (0 is left).
+     */
+    float getMouseX();
+
+    /**
+     * Retrieves the current Y coordinate of the mouse.
+     * @return The y-coordinate in screen pixels (0 is top).
+     */
+    float getMouseY();
     
     
     

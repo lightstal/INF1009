@@ -133,6 +133,24 @@ public class InputOutputManager implements InputOutput{
         return false;
     }
 
+     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float getMouseX() {
+        // In MouseDevice, you defined axis 0 as X
+        return mouse.getAxis(0); 
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float getMouseY() {
+        // In MouseDevice, you defined axis 1 as Y
+        return mouse.getAxis(1);
+    }
+
     // --- Audio Implementation ---
 
     /**

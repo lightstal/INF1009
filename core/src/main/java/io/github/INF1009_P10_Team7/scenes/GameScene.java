@@ -479,6 +479,30 @@ public class GameScene extends Scene {
             io.playSound("Sound_Boom.mp3");
             Gdx.app.log("Audio Output", "Boom Sound played");
         }
+
+         // =========== To show mouse coordinates when moving around ==========
+        // =========== This will be commented to prevent log spam ========
+        // Gdx.app.log("MouseTest", "X: " + io.getMouseX() + " Y: " + io.getMouseY());
+
+        // TO IMPLEMENT IO WITH COMPONENT!!
+        // TO REMOVE LOGIC WHEN SUMBITTING
+        PhysicComponent physics = player.getComponent(PhysicComponent.class);
+
+        if (physics != null) {
+            float speed = 200f; // How fast it moves
+            Vector2 velocity = physics.getVelocity();
+
+            if (io.isActionPressed("LEFT")) {
+                // FOR LOGIC
+                velocity.x = -speed; // LEFT
+            } else if (io.isActionPressed("RIGHT")) {
+                // FOR LOGIC
+                velocity.x = speed; // RIGHT
+            } else {
+                // FOR LOGIC
+                physics.setVelocity(0, 0); // STOP
+            }
+        }
     }
 
     /**

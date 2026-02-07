@@ -42,6 +42,8 @@ public class Part1SimulationApp extends ApplicationAdapter {
         inputOutputManager.bindKey("START_GAME", Input.Keys.SPACE);
         inputOutputManager.bindKey("SETTINGS", Input.Keys.ESCAPE);
         inputOutputManager.bindKey("BACK", Input.Keys.BACKSPACE);
+        inputOutputManager.bindKey("LEFT", Input.Keys.A);
+        inputOutputManager.bindKey("RIGHT", Input.Keys.D);
         inputOutputManager.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
         sceneManager = new SceneManager(inputOutputManager);
