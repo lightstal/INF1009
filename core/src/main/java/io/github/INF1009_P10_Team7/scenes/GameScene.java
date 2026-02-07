@@ -34,6 +34,8 @@ public class GameScene extends Scene {
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
 
+    
+
     public GameScene(SceneManager sceneManager) {
         super(sceneManager);
     }

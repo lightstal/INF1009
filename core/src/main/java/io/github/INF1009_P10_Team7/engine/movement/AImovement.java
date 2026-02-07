@@ -4,12 +4,12 @@ import io.github.INF1009_P10_Team7.engine.entity.Entity;
 import io.github.INF1009_P10_Team7.engine.entity.components.TransformComponent;
 import com.badlogic.gdx.math.MathUtils;
 
-public class AImovement implements MovementBehaviour {
+public class AIMovement implements MovementBehaviour {
     private float speed;
     private float timer = 0;
     private float dx = 0, dy = 0;
 
-    public AImovement(float speed) { this.speed = speed; }
+    public AIMovement(float speed) { this.speed = speed; }
 
     @Override
     public void move(Entity entity, float deltaTime) {

@@ -14,36 +14,28 @@ public class FollowMovement implements MovementBehaviour {
     }
 
     @Override
-    public void move(Entity entity, float deltaTime) {
-        // Get the transform of the entity that is moving
-        TransformComponent myTransform = entity.getComponent(TransformComponent.class);
-        // Get the transform of the target entity to follow
-        TransformComponent targetTransform = target.getComponent(TransformComponent.class);
+  
+public void move(Entity entity, float deltaTime) {
+    TransformComponent myTransform = entity.getComponent(TransformComponent.class);
+    TransformComponent targetTransform = target.getComponent(TransformComponent.class);
 
-        if (myTransform != null && targetTransform != null) {
-            Vector2 myPos = myTransform.getPosition();
-            Vector2 targetPos = targetTransform.getPosition();
+    if (myTransform != null && targetTransform != null) {
+        Vector2 myPos = myTransform.getPosition();
+        Vector2 targetPos = targetTransform.getPosition();
 
-            // Calculate the direction vector: (Target - Current)
-            // Using your custom Vector2 constructor
-            Vector2 direction = new Vector2(targetPos.x - myPos.x, targetPos.y - myPos.y);
-            
-            // Only move if we aren't already at the target position
-            // Note: If your custom Vector2 doesn't have .isZero() or .nor(), 
-            // we calculate the length manually to avoid the LibGDX mismatch.
-            float distance = (float) Math.sqrt(direction.x * direction.x + direction.y * direction.y);
-            
-            if (distance > 0) {
-                // Normalize manually: direction / length
-                float dirX = direction.x / distance;
-                float dirY = direction.y / distance;
-                
-                // Update position based on normalized direction, speed, and time
-                myPos.x += dirX * speed * deltaTime;
-                myPos.y += dirY * speed * deltaTime;
-            }
+        // Calculate direction manually
+        float dx = targetPos.x - myPos.x;
+        float dy = targetPos.y - myPos.y;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+
+        // Only move if we aren't already there
+        if (distance > 0) {
+            // Move: Position = Position + (Direction / Distance) * Speed * Time
+            myPos.x += (dx / distance) * speed * deltaTime;
+            myPos.y += (dy / distance) * speed * deltaTime;
         }
     }
+}
 
     // Getters and Setters as shown in your UML
     public Entity getTarget() { return target; }
