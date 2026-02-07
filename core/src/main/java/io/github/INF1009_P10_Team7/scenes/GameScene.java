@@ -15,6 +15,10 @@ import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
+// For Collision
+import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
+import io.github.INF1009_P10_Team7.engine.collision.CollisionResolution;
+
 /**
  * GameScene
  *
@@ -33,8 +37,9 @@ public class GameScene extends Scene {
     private GameEntity staticObject;
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
+    private CollisionManager collisionManager;
 
-    
+
 
     public GameScene(SceneManager sceneManager) {
         super(sceneManager);
@@ -55,12 +60,19 @@ public class GameScene extends Scene {
         // Initialize the Entity-Component System
         entityManager = new EntityManager();
 
+        // Initialize the Collision Manager
+        collisionManager = new CollisionManager(io);
+        collisionManager.setCollisionSound("Sound_Boom.mp3");
+        Gdx.app.log("CollisionManager", "Initialized with collision sound");
+
         // Example 1: Player entity with all components (Transform + Physics + Sprite)
         player = new GameEntity("Player");
         player.addComponent(new TransformComponent(100f, 100f));  // Starting position
         player.addComponent(new PhysicComponent(new Vector2(50f, 0f), 1.0f));  // Moving right at 50 units/sec
         player.addComponent(new SpriteComponent("player_sprite"));  // Placeholder sprite reference
+        player.setCollisionRadius(25f); // coll
         entityManager.addEntity(player);
+        collisionManager.registerCollidable(player, CollisionResolution.ResolutionType.BOUNCE); // coll
         Gdx.app.log("ECS", "Created Player entity at (100, 100) with velocity (50, 0)");
 
         // Example 2: Enemy entity with Transform and Physics (no sprite)
@@ -69,13 +81,17 @@ public class GameScene extends Scene {
         PhysicComponent enemyPhysics = new PhysicComponent(2.0f);  // Heavier mass
         enemyPhysics.setVelocity(-30f, 20f);  // Moving left and up
         enemy.addComponent(enemyPhysics);
+        enemy.setCollisionRadius(20f);
         entityManager.addEntity(enemy);
+        collisionManager.registerCollidable(enemy, CollisionResolution.ResolutionType.BOUNCE);
         Gdx.app.log("ECS", "Created Enemy entity at (400, 200) with velocity (-30, 20)");
 
         // Example 3: Static object with only Transform (no physics, no sprite)
         staticObject = new GameEntity("StaticObject");
         staticObject.addComponent(new TransformComponent(new Vector2(250f, 150f), 45f));  // Position with 45 degree rotation
+        staticObject.setCollisionRadius(21f);
         entityManager.addEntity(staticObject);
+        collisionManager.registerCollidable(staticObject, CollisionResolution.ResolutionType.PASS_THROUGH);
         Gdx.app.log("ECS", "Created StaticObject entity at (250, 150) with rotation 45 degrees");
 
         // Example 4: Inactive entity (wont be updated "SHOULDNT BE LA")
@@ -85,7 +101,7 @@ public class GameScene extends Scene {
         inactiveEntity.setActive(false);  // This entity won't update
         entityManager.addEntity(inactiveEntity);
         Gdx.app.log("ECS", "Created InactiveEntity (won't update because active=false)");
-
+        Gdx.app.log("CollisionManager", "Registered " + collisionManager.getCollidableCount() + " collidable entities");
         Gdx.app.log("ECS", "EntityManager initialized with " + entityManager.getAllEntities().size() + " entities");
     }
 
@@ -100,6 +116,9 @@ public class GameScene extends Scene {
 
         // Apply boundary constraints to keep entities on screen
         applyBoundaries();
+
+        // Update collision detection and resolution
+        collisionManager.update(delta);
 
         // Periodically log entity positions to demonstrate physics updates
         logTimer += delta;
@@ -265,6 +284,12 @@ public class GameScene extends Scene {
         if (entityManager != null) {
             entityManager.clear();
             Gdx.app.log("ECS", "EntityManager cleared");
+        }
+
+        // Clean up the CollisionManager
+        if (collisionManager != null) {
+            collisionManager.clear();
+            Gdx.app.log("CollisionManager", "CollisionManager cleared");
         }
 
         // Dispose of renderer resources
