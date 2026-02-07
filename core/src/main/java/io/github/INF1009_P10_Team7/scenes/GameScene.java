@@ -380,7 +380,7 @@ public class GameScene extends Scene {
 
         // Initialize the Collision Manager
         collisionManager = new CollisionManager(io);
-        collisionManager.setCollisionSound("Sound_Boom.mp3");
+        collisionManager.setCollisionSound("bell.mp3");
         Gdx.app.log("CollisionManager", "Initialized with collision sound");
 
         // ===== ENTITY 1: Player with Physics-based movement =====
