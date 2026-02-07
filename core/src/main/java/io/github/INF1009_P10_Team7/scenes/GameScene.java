@@ -358,6 +358,7 @@ public class GameScene extends Scene {
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
     private CollisionManager collisionManager;
+    
 
     public GameScene(SceneManager sceneManager) {
         super(sceneManager);

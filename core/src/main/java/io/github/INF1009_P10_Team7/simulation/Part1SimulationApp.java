@@ -63,6 +63,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
         
         sceneManager.update(dt);
         sceneManager.render();
+        
     }
 
     @Override
