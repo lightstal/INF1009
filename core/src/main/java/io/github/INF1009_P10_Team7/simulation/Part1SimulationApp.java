@@ -7,6 +7,8 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
+import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
+import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.events.EventType;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioOutput;
@@ -41,7 +43,6 @@ public class Part1SimulationApp extends ApplicationAdapter {
         SimulationTestScript.printScalingNote();
         
         eventBus = new EventBus();
-        
         inputOutputManager = new InputOutputManager();
         
         AudioOutput audio = inputOutputManager.getAudioOutput();
@@ -62,8 +63,12 @@ public class Part1SimulationApp extends ApplicationAdapter {
         inputOutputManager.bindKey("RIGHT", Input.Keys.D);
         inputOutputManager.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
+        GameContext context = new ContextImplementation(
+            eventBus, 
+            inputOutputManager
+        );
         
-        sceneManager = new SceneManager(inputOutputManager, eventBus);
+        sceneManager = new SceneManager(context);
 
         // Start with MainMenu scene
         sceneManager.setScene(new MainMenuScene(sceneManager));

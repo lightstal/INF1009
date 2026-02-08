@@ -36,14 +36,14 @@ public class SettingsScene extends Scene {
     @Override
     protected void onUpdate(float delta) {
         // BACKSPACE -> return
-        if (inputController.isActionJustPressed("BACK")) {
+        if (context.getInputController().isActionJustPressed("BACK")) {
             Gdx.app.log("Input", "Key binded to 'BACK' action was pressed");
         	sceneManager.requestScene(previousScene);
         }
         // R -> restart to new Game Scene
-        if (inputController.isActionJustPressed("RESTART_GAME")) {
+        if (context.getInputController().isActionJustPressed("RESTART_GAME")) {
             Gdx.app.log("Input", "Key binded to 'RESTART_GAME' action was pressed");
-            previousScene.unload();
+            previousScene.dispose();
         	sceneManager.requestScene(new GameScene(sceneManager));
         }
     }
@@ -62,5 +62,10 @@ public class SettingsScene extends Scene {
     @Override
     protected void onUnload() {
         Gdx.app.log("Scene", "SettingsScene unloaded");
+    }
+
+    @Override
+    protected void onDispose() {
+        Gdx.app.log("Scene", "SettingsScene diposed");
     }
 }

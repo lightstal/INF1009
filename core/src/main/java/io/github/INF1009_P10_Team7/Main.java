@@ -6,7 +6,11 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
+import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
+import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
+import io.github.INF1009_P10_Team7.engine.events.EventType;
+import io.github.INF1009_P10_Team7.engine.inputoutput.AudioOutput;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 
 /**
@@ -22,9 +26,29 @@ public class Main extends ApplicationAdapter {
 	private EventBus eventBus;
     @Override
     public void create() {
-    	inputOutputManager = new InputOutputManager();
         eventBus = new EventBus();
-        sceneManager = new SceneManager(inputOutputManager, eventBus);
+        inputOutputManager = new InputOutputManager();
+        
+        AudioOutput audio = inputOutputManager.getAudioOutput();
+        
+        eventBus.subscribe(EventType.PLAY_MUSIC, audio);
+        eventBus.subscribe(EventType.PLAY_SOUND, audio);
+        eventBus.subscribe(EventType.STOP_MUSIC, audio);
+        
+        // Listen for Logic Events (Pause/Resume)
+        eventBus.subscribe(EventType.GAME_PAUSED, audio);
+        eventBus.subscribe(EventType.GAME_RESUMED, audio);
+
+        GameContext context = new ContextImplementation(
+            eventBus, 
+            inputOutputManager
+        );
+        
+        sceneManager = new SceneManager(context);
+        
+//        sceneManager = new SceneManager(inputOutputManager, eventBus);
+
+        // Start with MainMenu scene
         sceneManager.setScene(new MainMenuScene(sceneManager));
     }
 

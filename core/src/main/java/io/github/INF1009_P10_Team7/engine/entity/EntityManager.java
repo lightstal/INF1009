@@ -20,6 +20,8 @@ public class EntityManager implements EventListener{
     private final List<Entity> pendingAdd;
     private final List<UUID> pendingRemove;
     
+    private final EventBus eventBus;
+    
     private boolean isPaused = false;
 
     // Creates a new EntityManager.    
@@ -27,6 +29,8 @@ public class EntityManager implements EventListener{
         this.entities = new HashMap<>();
         this.pendingAdd = new ArrayList<>();
         this.pendingRemove = new ArrayList<>();
+        this.eventBus = eventBus;
+        
         eventBus.subscribe(EventType.GAME_PAUSED, this);
         eventBus.subscribe(EventType.GAME_RESUMED, this);
         eventBus.subscribe(EventType.GAME_START, this);
@@ -106,5 +110,13 @@ public class EntityManager implements EventListener{
         pendingAdd.clear();
         pendingRemove.clear();
         isPaused = false;
+    }
+
+    // Clears all entities from the manager.
+    public void dispose() {
+    	clear();
+    	if (eventBus != null) {
+            eventBus.unsubscribe(this); 
+        }
     }
 }

@@ -19,10 +19,22 @@ public class EventBus {
         if (!listeners.containsKey(type)) listeners.put(type, new ArrayList<>());
         listeners.get(type).add(listener);
     }
+    
+    public void unsubscribe(EventListener listener) {
+        for (List<EventListener> list : listeners.values()) {
+            if (list.contains(listener)) {
+                list.remove(listener);
+            }
+        }
+    }
 
     public void publish(GameEvent event) {
         if (listeners.containsKey(event.type)) {
-            for (EventListener listener : listeners.get(event.type)) {
+        	
+        	// Create a copy of the list to iterate over
+            // This prevents concurrent modification errors if a listener unsubscribe while processing an event
+            List<EventListener> currentListeners = new ArrayList<>(listeners.get(event.type));
+            for (EventListener listener : currentListeners) {
                 listener.onNotify(event);
             }
         }

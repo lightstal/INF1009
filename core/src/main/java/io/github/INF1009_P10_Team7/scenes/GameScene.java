@@ -12,10 +12,8 @@ import io.github.INF1009_P10_Team7.engine.entity.components.MovementComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.SpriteComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.TransformComponent;
-
 import io.github.INF1009_P10_Team7.engine.events.EventType;
 import io.github.INF1009_P10_Team7.engine.events.GameEvent;
-
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 
@@ -77,17 +75,17 @@ public class GameScene extends Scene {
 	        shapeRenderer = new ShapeRenderer();
 	
 	        // Initialize the Entity-Component System
-	        entityManager = new EntityManager(eventBus);
+	        entityManager = new EntityManager(context.getEventBus());
 	        
 	        // Initialize the Collision Manager
-	        collisionManager = new CollisionManager(eventBus);
+	        collisionManager = new CollisionManager(context.getEventBus());
 	        collisionManager.setCollisionSound("bell.mp3");
 	        Gdx.app.log("CollisionManager", "Initialized with collision sound");
 
-	        eventBus.publish(new GameEvent(EventType.GAME_START));
+	        context.getEventBus().publish(new GameEvent(EventType.GAME_START));
 	        
 	        GameEvent musicEvent = new GameEvent(EventType.PLAY_MUSIC).add("file_path", "Music_Game.mp3");
-	        eventBus.publish(musicEvent);
+	        context.getEventBus().publish(musicEvent);
 	        Gdx.app.log("Audio Output", "Game Music loaded");
 	        
 	        createEntities();
@@ -97,9 +95,7 @@ public class GameScene extends Scene {
 	        Gdx.app.log("Movement", "Movement behaviors initialized: Follow, Linear, AI Random");
         } else {
         	Gdx.app.log("Scene", "Resuming existing game state...");
-            if (eventBus != null) {
-                eventBus.publish(new GameEvent(EventType.GAME_RESUMED));
-            }
+        	context.getEventBus().publish(new GameEvent(EventType.GAME_RESUMED));
         }
     }
     
@@ -183,21 +179,21 @@ public class GameScene extends Scene {
         }
 
         // Input handling
-        if (inputController.isActionJustPressed("SETTINGS")) {
+        if (context.getInputController().isActionJustPressed("SETTINGS")) {
             Gdx.app.log("Input", "Key binded to 'SETTINGS' action was pressed");
             isGoingToSettings = true;
             sceneManager.requestScene(new SettingsScene(sceneManager, this));
         }
-        if (inputController.isActionJustPressed("BACK")) {
+        if (context.getInputController().isActionJustPressed("BACK")) {
             Gdx.app.log("Input", "Key binded to 'BACK' action was pressed");
             isGoingToSettings = false;
             sceneManager.requestScene(new MainMenuScene(sceneManager));
         }
-        if (inputController.isActionJustPressed("SHOOT")) {
+        if (context.getInputController().isActionJustPressed("SHOOT")) {
             Gdx.app.log("Input", "Key binded to 'SHOOT' action was pressed");
             // PLAY SOUND
             GameEvent shootEvent = new GameEvent(EventType.PLAY_SOUND).add("file_path", "Sound_Boom.mp3");
-            eventBus.publish(shootEvent);
+            context.getEventBus().publish(shootEvent);
             Gdx.app.log("Audio Output", "Boom Sound played");
         }
 
@@ -213,10 +209,10 @@ public class GameScene extends Scene {
             float speed = 200f; // How fast it moves
             Vector2 velocity = physics.getVelocity();
 
-            if (inputController.isActionPressed("LEFT")) {
+            if (context.getInputController().isActionPressed("LEFT")) {
                 // FOR LOGIC
                 velocity.x = -speed; // LEFT
-            } else if (inputController.isActionPressed("RIGHT")) {
+            } else if (context.getInputController().isActionPressed("RIGHT")) {
                 // FOR LOGIC
                 velocity.x = speed; // RIGHT
             } else {
@@ -426,28 +422,34 @@ public class GameScene extends Scene {
         if (isGoingToSettings) {        	
             // publish Event to notify relevant managers of change in game state
             GameEvent pauseEvent = new GameEvent(EventType.GAME_PAUSED);
-            eventBus.publish(pauseEvent);
+            context.getEventBus().publish(pauseEvent);
             
         	Gdx.app.log("Scene", "GameScene state preserved (Going to Settings)");
         	isGoingToSettings = false;
         } else {
+        	dispose();
+        }
+    }
+    
+    @Override
+    protected void onDispose() {
+        Gdx.app.log("Scene", "GameScene diposed");
+        
+        // Clean up the EntityManager
+        if (entityManager != null) {
+            entityManager.dispose();
+            Gdx.app.log("ECS", "GameScene EntityManager disposed");
+        }
 
-	        // Clean up the EntityManager
-	        if (entityManager != null) {
-	            entityManager.clear();
-	            Gdx.app.log("ECS", "EntityManager cleared");
-	        }
-	
-	        // Clean up the CollisionManager
-	        if (collisionManager != null) {
-	            collisionManager.clear();
-	            Gdx.app.log("CollisionManager", "CollisionManager cleared");
-	        }
-	
-	        // Dispose of renderer resources
-	        if (shapeRenderer != null) {
-	            shapeRenderer.dispose();
-	        }
+        // Clean up the CollisionManager
+        if (collisionManager != null) {
+            collisionManager.clear();
+            Gdx.app.log("CollisionManager", "CollisionManager cleared");
+        }
+
+        // Dispose of renderer resources
+        if (shapeRenderer != null) {
+            shapeRenderer.dispose();
         }
     }
 }

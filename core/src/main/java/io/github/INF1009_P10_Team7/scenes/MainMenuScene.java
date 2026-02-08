@@ -38,36 +38,42 @@ public class MainMenuScene extends Scene {
         Gdx.app.log("Scene", "MainMenuScene loaded");
         
         GameEvent musicEvent = new GameEvent(EventType.PLAY_MUSIC).add("file_path", "Music_Menu.mp3");
-        eventBus.publish(musicEvent);
+        context.getEventBus().publish(musicEvent);
         Gdx.app.log("Audio Output", "MainMenu Music loaded");
 
 
         // =========== Created start button ===============
         // =========== Button created using code composer, might need to design again ============
         stage = new Stage(new ScreenViewport());
-        skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
+        
+        try {
+		    skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
+		
+		    // =================== Button created ===================
+		    TextButton startButton = new TextButton("START GAME", skin, "default");
+		    // =================== Size & Position ==================
+		    startButton.setSize(200, 60);
+		    startButton.setPosition(
+		            (Gdx.graphics.getWidth() - startButton.getWidth()) / 2, // Center X
+		            Gdx.graphics.getHeight() / 2 // Center Y
+		    );
+		
+		    // ======================== Event listener for clicking button ==================
+		    startButton.addListener(new ClickListener() {
+		        @Override
+		        public void clicked(InputEvent event, float x, float y) {
+		            Gdx.app.log("UI", "Start Button Clicked");
+		            // Switch scene
+		            sceneManager.requestScene(new GameScene(sceneManager));
+		        }
+		    });
+		    
+	        // ======= to set the button
+	        stage.addActor(startButton);
+        } catch (Exception e) {
+        	Gdx.app.error("UI", "Failed to load skin: buttons/name2d.json", e);
+        }
 
-        // =================== Button created ===================
-        TextButton startButton = new TextButton("START GAME", skin, "default");
-        // =================== Size & Position ==================
-        startButton.setSize(200, 60);
-        startButton.setPosition(
-                (Gdx.graphics.getWidth() - startButton.getWidth()) / 2, // Center X
-                Gdx.graphics.getHeight() / 2 // Center Y
-        );
-
-        // ======================== Event listener for clicking button ==================
-        startButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.log("UI", "Start Button Clicked");
-                // Switch scene
-                sceneManager.requestScene(new GameScene(sceneManager));
-            }
-        });
-
-        // ======= to set the button
-        stage.addActor(startButton);
         Gdx.input.setInputProcessor(stage); // ==== for user input
     }
 
@@ -76,7 +82,7 @@ public class MainMenuScene extends Scene {
          // Press SPACE to go to GameScene
         stage.act(delta); // ==== handles visuals
 
-        if (inputController.isActionJustPressed("START_GAME")) {
+        if (context.getInputController().isActionJustPressed("START_GAME")) {
             Gdx.app.log("Input", "Key binded to 'START_GAME' action was pressed");
             sceneManager.requestScene(new GameScene(sceneManager));
         }
@@ -103,6 +109,13 @@ public class MainMenuScene extends Scene {
     protected void onUnload() {
         // Log for testing
         Gdx.app.log("Scene", "MainMenuScene unloaded");
+        dispose();
+    }
+
+    @Override
+    protected void onDispose() {
+        // Log for testing
+        Gdx.app.log("Scene", "MainMenuScene disposed");
 
         // =========== dispose ===============
         if (stage != null) stage.dispose();

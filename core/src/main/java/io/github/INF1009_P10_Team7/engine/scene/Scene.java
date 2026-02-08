@@ -1,7 +1,6 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.events.EventBus;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.core.GameContext;
 
 /**
  * Abstract Scene class (UML requirement).
@@ -19,22 +18,14 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
 public abstract class Scene {
 	
 	protected final SceneManager sceneManager;
-    protected final InputController inputController;
-    protected final EventBus eventBus;
-
+    protected final GameContext context;
+    
     // Tracks whether this scene is currently active/loaded
     private boolean loaded = false;
     
     public Scene(SceneManager sceneManager) {
         this.sceneManager = sceneManager;
-        
-        if (sceneManager != null) {
-            this.inputController = sceneManager.getInputController();
-            this.eventBus = sceneManager.getEventBus(); 
-        } else {
-            this.inputController = null;
-            this.eventBus = null;
-        }
+    	this.context = sceneManager.getContext();
     }
 
     // Called once when the scene becomes active
@@ -62,6 +53,14 @@ public abstract class Scene {
         loaded = false;
         onUnload();             // run scene-specific cleanup
     }
+    
+    /**
+     * Forces resource cleanup.
+     * Can be called manually (e.g., when restarting) even if scene is not loaded.
+     */
+    public void dispose() {
+        onDispose();
+    }
 
     // Optional: called when window size changes
     public void resize(int width, int height) {}
@@ -76,4 +75,5 @@ public abstract class Scene {
     protected abstract void onUpdate(float delta);
     protected abstract void onRender();
     protected abstract void onUnload();
+    protected abstract void onDispose();
 }
