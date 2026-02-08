@@ -6,7 +6,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
-
+import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 
 /**
@@ -19,11 +19,12 @@ public class Main extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
-
+	private EventBus eventBus;
     @Override
     public void create() {
     	inputOutputManager = new InputOutputManager();
-        sceneManager = new SceneManager(inputOutputManager);
+        eventBus = new EventBus();
+        sceneManager = new SceneManager(inputOutputManager, eventBus);
         sceneManager.setScene(new MainMenuScene(sceneManager));
     }
 

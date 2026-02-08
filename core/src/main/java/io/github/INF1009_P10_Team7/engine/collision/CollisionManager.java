@@ -10,7 +10,9 @@ import java.util.Set;
 import com.badlogic.gdx.Gdx;
 
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
+import io.github.INF1009_P10_Team7.engine.events.EventBus;
+import io.github.INF1009_P10_Team7.engine.events.EventType;
+import io.github.INF1009_P10_Team7.engine.events.GameEvent;
 
 /**
  * Main collision manager that coordinates collision detection and resolution.
@@ -22,7 +24,7 @@ public class CollisionManager {
     private final Map<String, CollisionResolution.ResolutionType> resolutionTypes;
     private final Map<String, CollisionResolution.CollisionCallback> callbacks;
     private final Set<String> activeCollisions; // Track which pairs are currently colliding
-    private final InputOutput io; // For playing sounds
+    private final EventBus eventBus;
 
     // Sound effect to play on collision
     private String collisionSoundPath = null;
@@ -33,12 +35,12 @@ public class CollisionManager {
      *
      * @param io InputOutputManager for playing collision sounds
      */
-    public CollisionManager(InputOutput io) {
+    public CollisionManager(EventBus eventBus) {
         this.collidableObjects = new ArrayList<>();
         this.resolutionTypes = new HashMap<>();
         this.callbacks = new HashMap<>();
         this.activeCollisions = new HashSet<>();
-        this.io = io;
+        this.eventBus = eventBus;
     }
 
     /**
@@ -149,8 +151,9 @@ public class CollisionManager {
             " <-> " + obj2.getObjectId());
 
         // Play collision sound if enabled
-        if (playSoundOnCollision && collisionSoundPath != null && io != null) {
-            io.playSound(collisionSoundPath);
+        if (playSoundOnCollision && collisionSoundPath != null && eventBus != null) {
+            GameEvent collisionEvent = new GameEvent(EventType.PLAY_SOUND).add("file_path", collisionSoundPath);
+            eventBus.publish(collisionEvent);
         }
 
         // Get resolution types for both objects
@@ -164,7 +167,7 @@ public class CollisionManager {
         // If both objects need to be resolved, use the first one's type
         // (You can implement more complex logic here if needed)
 
-        // Get callbacks
+        // Get callback
         CollisionResolution.CollisionCallback callback1 = callbacks.get(obj1.getObjectId());
         CollisionResolution.CollisionCallback callback2 = callbacks.get(obj2.getObjectId());
 

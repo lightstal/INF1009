@@ -1,6 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
+import io.github.INF1009_P10_Team7.engine.events.EventBus;
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
 
 /**
  * Abstract Scene class (UML requirement).
@@ -18,7 +19,8 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
 public abstract class Scene {
 	
 	protected final SceneManager sceneManager;
-    protected final InputOutput io;
+    protected final InputController inputController;
+    protected final EventBus eventBus;
 
     // Tracks whether this scene is currently active/loaded
     private boolean loaded = false;
@@ -27,9 +29,11 @@ public abstract class Scene {
         this.sceneManager = sceneManager;
         
         if (sceneManager != null) {
-            this.io = sceneManager.getInputOutput();
+            this.inputController = sceneManager.getInputController();
+            this.eventBus = sceneManager.getEventBus(); 
         } else {
-            this.io = null;
+            this.inputController = null;
+            this.eventBus = null;
         }
     }
 

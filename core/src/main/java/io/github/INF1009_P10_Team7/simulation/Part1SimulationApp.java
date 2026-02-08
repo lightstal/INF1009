@@ -7,7 +7,9 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
-
+import io.github.INF1009_P10_Team7.engine.events.EventBus;
+import io.github.INF1009_P10_Team7.engine.events.EventType;
+import io.github.INF1009_P10_Team7.engine.inputoutput.AudioOutput;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 
 /**
@@ -27,6 +29,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
+	private EventBus eventBus;
 
     @Override
     public void create() {
@@ -37,16 +40,30 @@ public class Part1SimulationApp extends ApplicationAdapter {
         SimulationTestScript.printInstructions();
         SimulationTestScript.printScalingNote();
         
+        eventBus = new EventBus();
+        
         inputOutputManager = new InputOutputManager();
+        
+        AudioOutput audio = inputOutputManager.getAudioOutput();
+        
+        eventBus.subscribe(EventType.PLAY_MUSIC, audio);
+        eventBus.subscribe(EventType.PLAY_SOUND, audio);
+        eventBus.subscribe(EventType.STOP_MUSIC, audio);
+        
+        // Listen for Logic Events (Pause/Resume)
+        eventBus.subscribe(EventType.GAME_PAUSED, audio);
+        eventBus.subscribe(EventType.GAME_RESUMED, audio);
 
         inputOutputManager.bindKey("START_GAME", Input.Keys.SPACE);
+        inputOutputManager.bindKey("RESTART_GAME", Input.Keys.R);
         inputOutputManager.bindKey("SETTINGS", Input.Keys.ESCAPE);
         inputOutputManager.bindKey("BACK", Input.Keys.BACKSPACE);
         inputOutputManager.bindKey("LEFT", Input.Keys.A);
         inputOutputManager.bindKey("RIGHT", Input.Keys.D);
         inputOutputManager.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
-        sceneManager = new SceneManager(inputOutputManager);
+        
+        sceneManager = new SceneManager(inputOutputManager, eventBus);
 
         // Start with MainMenu scene
         sceneManager.setScene(new MainMenuScene(sceneManager));

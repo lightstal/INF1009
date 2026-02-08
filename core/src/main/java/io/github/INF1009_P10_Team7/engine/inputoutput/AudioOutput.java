@@ -7,6 +7,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 
+import io.github.INF1009_P10_Team7.engine.events.EventListener;
+import io.github.INF1009_P10_Team7.engine.events.GameEvent;
+
 /**
  * Handles all audio operations for the game engine.
  * <p>
@@ -17,10 +20,9 @@ import com.badlogic.gdx.audio.Sound;
  * </ul>
  * It ensures resources are disposed of correctly to prevent memory leaks.
  */
-public class AudioOutput {
+public class AudioOutput implements EventListener {
 	private MusicState musicState;
 	private Music currentMusic;
-	private String currentMusicPath;
 	
 	/**
      * Cache for short sound effects to avoid reloading them from disk repeatedly.
@@ -38,7 +40,41 @@ public class AudioOutput {
         this.currentMusic = null;
         this.musicState = MusicState.STOPPED; // Default state
         this.soundCache = new HashMap<>();
-        this.currentMusicPath = "";
+    }
+	
+	@Override
+    public void onNotify(GameEvent event) {
+		Gdx.app.log("AudioOutput - EventBus", "Event received: " + event.type);
+        switch (event.type) {
+        	case GAME_START:
+            case PLAY_MUSIC:
+                if (event.params.containsKey("file_path")) {
+                    setMusic((String) event.params.get("file_path"));
+                }
+                break;
+                
+            case PLAY_SOUND:
+                if (event.params.containsKey("file_path")) {
+                    playSound((String) event.params.get("file_path"));
+                }
+                break;
+                
+            case STOP_MUSIC:
+                stopMusic();
+                break;
+                
+            case GAME_PAUSED:
+                setMusicState(MusicState.PAUSED);
+                break;
+                
+            case GAME_RESUMED:
+                setMusicState(MusicState.PLAYING);
+                break;
+                
+            case GAME_OVER:
+            default: 
+                break; // Do nothing
+        }
     }
 
 	/**
@@ -51,18 +87,11 @@ public class AudioOutput {
      * </ol>
      * @param audioPath The internal file path to the music file (e.g., "music/theme.mp3").
      */
-	public void setMusic(String audioPath) {
-		// Check if the requested music is already the active one
-		if (currentMusic != null && audioPath.equals(currentMusicPath)) {
-            setMusicState(MusicState.PLAYING);
-            return;
-        }
-		
+	public void setMusic(String audioPath) {		
 		// Ensure all music stopped and disposed before set Next Music
 		stopMusic();
 		
         currentMusic = Gdx.audio.newMusic(Gdx.files.internal(audioPath));
-        currentMusicPath = audioPath;
         currentMusic.setVolume(0.4f); // Default volume of 40%
         currentMusic.setLooping(true);
         currentMusic.play();
@@ -115,7 +144,6 @@ public class AudioOutput {
             currentMusic.stop();
             currentMusic.dispose();
             currentMusic = null;
-            currentMusicPath = "";
         }
         this.musicState = MusicState.STOPPED;
     }

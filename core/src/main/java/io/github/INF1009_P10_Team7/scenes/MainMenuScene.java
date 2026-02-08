@@ -1,8 +1,6 @@
 package io.github.INF1009_P10_Team7.scenes;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -11,6 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import io.github.INF1009_P10_Team7.engine.events.EventType;
+import io.github.INF1009_P10_Team7.engine.events.GameEvent;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 
@@ -36,8 +36,9 @@ public class MainMenuScene extends Scene {
     protected void onLoad() {
         // Log for testing (marker can see lifecycle)
         Gdx.app.log("Scene", "MainMenuScene loaded");
-
-        io.playMusic("Music_Menu.mp3");
+        
+        GameEvent musicEvent = new GameEvent(EventType.PLAY_MUSIC).add("file_path", "Music_Menu.mp3");
+        eventBus.publish(musicEvent);
         Gdx.app.log("Audio Output", "MainMenu Music loaded");
 
 
@@ -72,13 +73,10 @@ public class MainMenuScene extends Scene {
 
     @Override
     protected void onUpdate(float delta) {
-        // // Press SPACE to go to GameScene
-        // if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-        // sceneManager.requestScene(new GameScene(sceneManager));
-        // }
+         // Press SPACE to go to GameScene
         stage.act(delta); // ==== handles visuals
 
-        if (io.isActionJustPressed("START_GAME")) {
+        if (inputController.isActionJustPressed("START_GAME")) {
             Gdx.app.log("Input", "Key binded to 'START_GAME' action was pressed");
             sceneManager.requestScene(new GameScene(sceneManager));
         }
