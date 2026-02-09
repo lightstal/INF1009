@@ -1,7 +1,6 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
-import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
+import io.github.INF1009_P10_Team7.engine.core.GameContext;
 
 /**
  * SceneManager (UML requirement)
@@ -22,20 +21,17 @@ public class SceneManager {
     // Next requested scene (applied at start of update)
     private Scene pendingScene;
 
-    private final InputOutput io;
-    private final EntityManager entityManager;
-
-    public SceneManager(InputOutput io, EntityManager entityManager) {
-        this.io = io;
-        this.entityManager = entityManager;
+    private final GameContext context;
+    
+    public SceneManager(GameContext context) {
+    	if (context == null) {
+            throw new IllegalArgumentException("GameContext cannot be null");
+        }
+    	this.context = context;
     }
-
-    public InputOutput getInputOutput() {
-        return io;
-    }
-
-    public EntityManager getEntityManager() {
-        return entityManager;
+    
+    public GameContext getContext() {
+        return context;
     }
 
     /**

@@ -1,10 +1,7 @@
-package io.github.INF1009_P10_Team7.scenes;
+package io.github.INF1009_P10_Team7.engine.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.ScreenUtils;
-
-import io.github.INF1009_P10_Team7.engine.scene.Scene;
-import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 
 /**
  * SettingsScene
@@ -14,6 +11,7 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
  *
  * Controls:
  * - BACKSPACE -> return to previous scene
+ * - R -> restart previous scene
  *
  * Visual:
  * - Green background
@@ -30,21 +28,20 @@ public class SettingsScene extends Scene {
     @Override
     protected void onLoad() {
         Gdx.app.log("Scene", "SettingsScene loaded");
-
-        io.setMusicState("paused");
-        Gdx.app.log("Audio Output", "Game Music State set to 'paused'");
     }
 
     @Override
     protected void onUpdate(float delta) {
-//        // BACKSPACE -> return
-//        if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
-//            sceneManager.requestScene(previousScene);
-//        }
-
-        if (io.isActionJustPressed("BACK")) {
+        // BACKSPACE -> return
+        if (context.getInputController().isActionJustPressed("BACK")) {
             Gdx.app.log("Input", "Key binded to 'BACK' action was pressed");
         	sceneManager.requestScene(previousScene);
+        }
+        // R -> restart to new Game Scene
+        if (context.getInputController().isActionJustPressed("RESTART_GAME")) {
+            Gdx.app.log("Input", "Key binded to 'RESTART_GAME' action was pressed");
+            previousScene.dispose();
+        	sceneManager.requestScene(new GameScene(sceneManager));
         }
     }
 
@@ -62,5 +59,10 @@ public class SettingsScene extends Scene {
     @Override
     protected void onUnload() {
         Gdx.app.log("Scene", "SettingsScene unloaded");
+    }
+
+    @Override
+    protected void onDispose() {
+        Gdx.app.log("Scene", "SettingsScene diposed");
     }
 }

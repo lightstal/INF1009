@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The concrete implementation of the {@link InputOutput} interface.
+ * The concrete implementation of the {@link InputController} interface.
  * <p>
  * This class serves as the <b>Central Manager</b> for all engine input and output.
  * It is responsible for:
@@ -15,7 +15,7 @@ import java.util.Map;
  * <li>Delegating audio requests to the {@link AudioOutput} system.</li>
  * </ul>
  */
-public class InputOutputManager implements InputOutput{
+public class InputOutputManager implements InputController{
 	
 	/**
      * An arbitrary offset added to mouse button codes to distinguish them from keyboard key codes.
@@ -47,6 +47,10 @@ public class InputOutputManager implements InputOutput{
         
         this.keyBindings = new HashMap<>();
 	}
+	
+	public AudioOutput getAudioOutput() {
+        return audioOutput;
+    }
 
 	// --- Lifecycle Methods ---
     
@@ -133,34 +137,21 @@ public class InputOutputManager implements InputOutput{
         return false;
     }
 
-    // --- Audio Implementation ---
-
-    /**
+     /**
      * {@inheritDoc}
      */
     @Override
-    public void playMusic(String audioPath) {
-        audioOutput.setMusic(audioPath);
+    public float getMouseX() {
+        // In MouseDevice, you defined axis 0 as X
+        return mouse.getAxis(0); 
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void playSound(String audioPath) {
-        audioOutput.playSound(audioPath);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setMusicState(String state) {
-        try {
-            MusicState musicState = MusicState.valueOf(state.toUpperCase());
-            audioOutput.setMusicState(musicState);
-        } catch (IllegalArgumentException e) {
-            System.err.println("Invalid Music State: " + state);
-        }
+    public float getMouseY() {
+        // In MouseDevice, you defined axis 1 as Y
+        return mouse.getAxis(1);
     }
 }

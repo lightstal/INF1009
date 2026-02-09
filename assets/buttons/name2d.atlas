@@ -1,0 +1,20 @@
+
+name2d.png
+size: 1024, 1024
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+white-pixel
+  rotate: false
+  xy: 1, 2
+  size: 1, 1
+  orig: 1, 1
+  offset: 0, 0
+  index: -1
+Unnamed-3
+  rotate: false
+  xy: 1, 5
+  size: 584, 578
+  orig: 584, 578
+  offset: 0, 0
+  index: -1

@@ -4,7 +4,7 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
  * Interface that defines how Scenes interact with the IO system.
  * This hides the complex implementation details from the game logic.
  */
-public interface InputOutput {
+public interface InputController {
 	
 	// --- Input Binding ---
 	
@@ -48,34 +48,17 @@ public interface InputOutput {
      * @return {@code true} only on the frame the input went from UP to DOWN.
      */
     boolean isActionJustPressed(String actionName);
-    
-    
-    
-    // --- Audio Control ---
-    
-    /**
-     * Starts playing a background music track.
-     * <p>
-     * If music is already playing:
-     * <ul>
-     * <li>If it's the same track, it continues playing (or resumes if paused).</li>
-     * <li>If it's a different track, the old one is stopped/disposed and the new one starts.</li>
-     * </ul>
-     * @param audioPath The internal file path to the music file.
+
+     // --- Mouse Coordinates ---
+     /**
+     * Retrieves the current X coordinate of the mouse.
+     * @return The x-coordinate in screen pixels (0 is left).
      */
-    void playMusic(String audioPath);
+    float getMouseX();
 
     /**
-     * Plays a sound effect.
-     * <p>
-     * Multiple sound effects can play simultaneously.
-     * @param audioPath The internal file path to the sound file.
+     * Retrieves the current Y coordinate of the mouse.
+     * @return The y-coordinate in screen pixels (0 is top).
      */
-    void playSound(String audioPath);
-
-    /**
-     * Controls the playback state of the currently loaded music.
-     * @param state One of: "playing", "paused", or "stopped" (case-insensitive).
-     */
-    void setMusicState(String state);
+    float getMouseY();
 }

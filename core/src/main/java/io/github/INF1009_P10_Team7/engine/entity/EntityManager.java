@@ -7,17 +7,45 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.badlogic.gdx.Gdx;
+
+import io.github.INF1009_P10_Team7.engine.events.EventBus;
+import io.github.INF1009_P10_Team7.engine.events.EventListener;
+import io.github.INF1009_P10_Team7.engine.events.GameEvent;
+import io.github.INF1009_P10_Team7.engine.events.EventType;
+
 // Manages a collection of entities, allowing for creation, addition, removal, and updating.
-public class EntityManager {
+public class EntityManager implements EventListener{
     private final Map<UUID, Entity> entities;
     private final List<Entity> pendingAdd;
     private final List<UUID> pendingRemove;
+    
+    private final EventBus eventBus;
+    
+    private boolean isPaused = false;
 
-    // Creates a new EntityManager.
-    public EntityManager() {
+    // Creates a new EntityManager.    
+    public EntityManager(EventBus eventBus) {
         this.entities = new HashMap<>();
         this.pendingAdd = new ArrayList<>();
         this.pendingRemove = new ArrayList<>();
+        this.eventBus = eventBus;
+        
+        eventBus.subscribe(EventType.GAME_PAUSED, this);
+        eventBus.subscribe(EventType.GAME_RESUMED, this);
+        eventBus.subscribe(EventType.GAME_START, this);
+    }
+    
+    @Override
+    public void onNotify(GameEvent event) {
+		Gdx.app.log("EntityManager - EventBus", "Event received: " + event.type);
+        if (event.type == EventType.GAME_PAUSED) {
+            isPaused = true;
+        } else if (event.type == EventType.GAME_RESUMED) {
+            isPaused = false;
+        } else if (event.type == EventType.GAME_START) {
+        	clear(); 
+        }
     }
 
     // Creates a new entity and schedules it for addition.
@@ -53,6 +81,9 @@ public class EntityManager {
 
     // Updates all active entities. Processes pending additions and removals first.
     public void updateAll(float deltaTime) {
+    	
+    	if(isPaused) return;
+    	
         // Process pending removals first
         for (UUID id : pendingRemove) {
             entities.remove(id);
@@ -78,5 +109,14 @@ public class EntityManager {
         entities.clear();
         pendingAdd.clear();
         pendingRemove.clear();
+        isPaused = false;
+    }
+
+    // Clears all entities from the manager.
+    public void dispose() {
+    	clear();
+    	if (eventBus != null) {
+            eventBus.unsubscribe(this); 
+        }
     }
 }

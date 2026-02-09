@@ -5,10 +5,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
-import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
-
+import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
+import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
+import io.github.INF1009_P10_Team7.engine.core.GameContext;
+import io.github.INF1009_P10_Team7.engine.events.EventBus;
+import io.github.INF1009_P10_Team7.engine.events.EventType;
+import io.github.INF1009_P10_Team7.engine.inputoutput.AudioOutput;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
-import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 
 /**
  * Main (future real game entry point).
@@ -20,13 +23,32 @@ public class Main extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
-    private EntityManager entityManager;
-
+	private EventBus eventBus;
     @Override
     public void create() {
-    	inputOutputManager = new InputOutputManager();
-    	entityManager = new EntityManager();
-        sceneManager = new SceneManager(inputOutputManager, entityManager);
+        eventBus = new EventBus();
+        inputOutputManager = new InputOutputManager();
+
+        AudioOutput audio = inputOutputManager.getAudioOutput();
+
+        eventBus.subscribe(EventType.PLAY_MUSIC, audio);
+        eventBus.subscribe(EventType.PLAY_SOUND, audio);
+        eventBus.subscribe(EventType.STOP_MUSIC, audio);
+
+        // Listen for Logic Events (Pause/Resume)
+        eventBus.subscribe(EventType.GAME_PAUSED, audio);
+        eventBus.subscribe(EventType.GAME_RESUMED, audio);
+
+        GameContext context = new ContextImplementation(
+            eventBus,
+            inputOutputManager
+        );
+
+        sceneManager = new SceneManager(context);
+
+//        sceneManager = new SceneManager(inputOutputManager, eventBus);
+
+        // Start with MainMenu scene
         sceneManager.setScene(new MainMenuScene(sceneManager));
     }
 
@@ -35,9 +57,9 @@ public class Main extends ApplicationAdapter {
         ScreenUtils.clear(0, 0, 0, 1);
 
         float dt = Gdx.graphics.getDeltaTime();
-        
+
         inputOutputManager.update();
-        
+
         sceneManager.update(dt);
         sceneManager.render();
     }
