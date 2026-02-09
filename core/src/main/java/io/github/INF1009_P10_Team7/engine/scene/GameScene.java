@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
-import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
 import io.github.INF1009_P10_Team7.engine.entity.components.MovementComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
@@ -45,7 +44,6 @@ import io.github.INF1009_P10_Team7.engine.movement.AImovement;
  */
 public class GameScene extends Scene {
 
-    private EntityManager entityManager;
     private GameEntity player;
     private GameEntity enemy;
     private GameEntity staticObject;
@@ -65,15 +63,12 @@ public class GameScene extends Scene {
     protected void onLoad() {
         Gdx.app.log("Scene", "GameScene loaded");
 
-        if (entityManager == null) {
+        if (camera == null) {
 
 	        // Initialize camera and renderer for drawing entities
 	        camera = new OrthographicCamera();
 	        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 	        shapeRenderer = new ShapeRenderer();
-
-	        // Initialize the Entity-Component System
-	        entityManager = new EntityManager(context.getEventBus());
 
 	        // Initialize the Collision Manager
 	        collisionManager = new CollisionManager(context.getEventBus());
@@ -89,7 +84,7 @@ public class GameScene extends Scene {
 	        createEntities();
 
 	        Gdx.app.log("CollisionManager", "Registered " + collisionManager.getCollidableCount() + " collidable entities");
-	        Gdx.app.log("ECS", "EntityManager initialized with " + entityManager.getAllEntities().size() + " entities");
+	        Gdx.app.log("ECS", "EntityManager initialized with " + context.getEntityManager().getAllEntities().size() + " entities");
 	        Gdx.app.log("Movement", "Movement behaviors initialized: Follow, Linear, AI Random");
         } else {
         	Gdx.app.log("Scene", "Resuming existing game state...");
@@ -104,7 +99,7 @@ public class GameScene extends Scene {
         player.addComponent(new PhysicComponent(new Vector2(50f, 0f), 1.0f));
         player.addComponent(new SpriteComponent("player_sprite"));
         player.setCollisionRadius(25f);
-        entityManager.addEntity(player);
+        context.getEntityManager().addEntity(player);
         collisionManager.registerCollidable(player, CollisionResolution.ResolutionType.BOUNCE);
         Gdx.app.log("ECS", "Created Player entity at (100, 100) with velocity (50, 0)");
 
@@ -113,7 +108,7 @@ public class GameScene extends Scene {
         enemy.addComponent(new TransformComponent(400f, 200f));
         enemy.addComponent(new MovementComponent(new FollowMovement(player, 80f))); // Follows player at 80 units/sec
         enemy.setCollisionRadius(20f);
-        entityManager.addEntity(enemy);
+        context.getEntityManager().addEntity(enemy);
         collisionManager.registerCollidable(enemy, CollisionResolution.ResolutionType.BOUNCE);
         Gdx.app.log("ECS", "Created Enemy entity at (400, 200) with FollowMovement (chasing Player)");
 
@@ -121,7 +116,7 @@ public class GameScene extends Scene {
         staticObject = new GameEntity("StaticObject");
         staticObject.addComponent(new TransformComponent(new Vector2(250f, 150f), 45f));
         staticObject.setCollisionRadius(21f);
-        entityManager.addEntity(staticObject);
+        context.getEntityManager().addEntity(staticObject);
         collisionManager.registerCollidable(staticObject, CollisionResolution.ResolutionType.PASS_THROUGH);
         Gdx.app.log("ECS", "Created StaticObject entity at (250, 150) with rotation 45 degrees");
 
@@ -132,7 +127,7 @@ public class GameScene extends Scene {
         Vector2 linearDirection = new Vector2(-1f, -0.5f);
         linearEntity.addComponent(new MovementComponent(new LinearMovement(linearDirection, 100f)));
         linearEntity.setCollisionRadius(20f);
-        entityManager.addEntity(linearEntity);
+        context.getEntityManager().addEntity(linearEntity);
         collisionManager.registerCollidable(linearEntity, CollisionResolution.ResolutionType.BOUNCE);
         Gdx.app.log("ECS", "Created LinearEntity at (600, 300) with LinearMovement (diagonal)");
 
@@ -141,7 +136,7 @@ public class GameScene extends Scene {
         aiWanderer.addComponent(new TransformComponent(300f, 400f));
         aiWanderer.addComponent(new MovementComponent(new AImovement(60f))); // Random wandering at 60 units/sec
         aiWanderer.setCollisionRadius(20f);
-        entityManager.addEntity(aiWanderer);
+        context.getEntityManager().addEntity(aiWanderer);
         collisionManager.registerCollidable(aiWanderer, CollisionResolution.ResolutionType.BOUNCE);
         Gdx.app.log("ECS", "Created AIWanderer at (300, 400) with AIMovement (random wandering)");
 
@@ -150,7 +145,7 @@ public class GameScene extends Scene {
         inactiveEntity.addComponent(new TransformComponent(0f, 0f));
         inactiveEntity.addComponent(new PhysicComponent(new Vector2(100f, 100f), 1.0f));
         inactiveEntity.setActive(false);
-        entityManager.addEntity(inactiveEntity);
+        context.getEntityManager().addEntity(inactiveEntity);
         Gdx.app.log("ECS", "Created InactiveEntity (won't update because active=false)");
     }
 
@@ -161,7 +156,7 @@ public class GameScene extends Scene {
     @Override
     protected void onUpdate(float delta) {
         // Update all entities in the ECS (includes movement components)
-        entityManager.updateAll(delta);
+        context.getEntityManager().updateAll(delta);
 
         // Apply boundary constraints to keep entities on screen
         applyBoundaries();
@@ -277,7 +272,7 @@ public class GameScene extends Scene {
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
 
-        for (Entity entity : entityManager.getAllEntities()) {
+        for (Entity entity : context.getEntityManager().getAllEntities()) {
             if (!entity.isActive()) continue;
 
             TransformComponent transform = entity.getComponent(TransformComponent.class);
@@ -361,7 +356,7 @@ public class GameScene extends Scene {
         // Render all entities with TransformComponent
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        for (Entity entity : entityManager.getAllEntities()) {
+        for (Entity entity : context.getEntityManager().getAllEntities()) {
             TransformComponent transform = entity.getComponent(TransformComponent.class);
             if (transform == null) continue;
 
@@ -433,11 +428,9 @@ public class GameScene extends Scene {
     protected void onDispose() {
         Gdx.app.log("Scene", "GameScene diposed");
 
-        // Clean up the EntityManager
-        if (entityManager != null) {
-            entityManager.dispose();
-            Gdx.app.log("ECS", "GameScene EntityManager disposed");
-        }
+        // Clear the EntityManager
+        context.getEntityManager().clear();
+        Gdx.app.log("ECS", "GameScene EntityManager cleared");
 
         // Clean up the CollisionManager
         if (collisionManager != null) {

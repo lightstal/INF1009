@@ -8,6 +8,7 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
 import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
 import io.github.INF1009_P10_Team7.engine.core.GameContext;
+import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.events.EventType;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioOutput;
@@ -23,11 +24,13 @@ public class Main extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
+    private EntityManager entityManager;
 	private EventBus eventBus;
     @Override
     public void create() {
         eventBus = new EventBus();
         inputOutputManager = new InputOutputManager();
+        entityManager = new EntityManager(eventBus);
 
         AudioOutput audio = inputOutputManager.getAudioOutput();
 
@@ -41,7 +44,8 @@ public class Main extends ApplicationAdapter {
 
         GameContext context = new ContextImplementation(
             eventBus,
-            inputOutputManager
+            inputOutputManager,
+            entityManager
         );
 
         sceneManager = new SceneManager(context);
