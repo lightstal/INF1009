@@ -314,6 +314,7 @@ public class SettingsScene extends Scene {
     @Override
     protected void onUnload() {
         Gdx.app.log("Scene", "SettingsScene unloaded");
+        dispose();
     }
 
     @Override
