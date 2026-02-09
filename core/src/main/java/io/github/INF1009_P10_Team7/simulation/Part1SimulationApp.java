@@ -9,6 +9,7 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
+import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 
 /**
  * Part1SimulationApp
@@ -27,6 +28,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
+    private EntityManager entityManager;
 
     @Override
     public void create() {
@@ -44,7 +46,9 @@ public class Part1SimulationApp extends ApplicationAdapter {
         inputOutputManager.bindKey("BACK", Input.Keys.BACKSPACE);
         inputOutputManager.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
-        sceneManager = new SceneManager(inputOutputManager);
+        entityManager = new EntityManager();
+
+        sceneManager = new SceneManager(inputOutputManager, entityManager);
 
         // Start with MainMenu scene
         sceneManager.setScene(new MainMenuScene(sceneManager));

@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
-import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.SpriteComponent;
@@ -27,7 +26,6 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
  */
 public class GameScene extends Scene {
 
-    private EntityManager entityManager;
     private GameEntity player;
     private GameEntity enemy;
     private GameEntity staticObject;
@@ -49,9 +47,6 @@ public class GameScene extends Scene {
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         shapeRenderer = new ShapeRenderer();
-
-        // Initialize the Entity-Component System
-        entityManager = new EntityManager();
 
         // Example 1: Player entity with all components (Transform + Physics + Sprite)
         player = new GameEntity("Player");

@@ -8,6 +8,7 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
+import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 
 /**
  * Main (future real game entry point).
@@ -19,11 +20,13 @@ public class Main extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
+    private EntityManager entityManager;
 
     @Override
     public void create() {
     	inputOutputManager = new InputOutputManager();
-        sceneManager = new SceneManager(inputOutputManager);
+    	entityManager = new EntityManager();
+        sceneManager = new SceneManager(inputOutputManager, entityManager);
         sceneManager.setScene(new MainMenuScene(sceneManager));
     }
 

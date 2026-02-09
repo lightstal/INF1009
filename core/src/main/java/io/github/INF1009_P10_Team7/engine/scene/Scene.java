@@ -1,6 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
+import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 
 /**
  * Abstract Scene class (UML requirement).
@@ -16,20 +17,23 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutput;
  * unload() -> called once when deactivated
  */
 public abstract class Scene {
-	
+
 	protected final SceneManager sceneManager;
     protected final InputOutput io;
+    protected final EntityManager entityManager;
 
     // Tracks whether this scene is currently active/loaded
     private boolean loaded = false;
-    
+
     public Scene(SceneManager sceneManager) {
         this.sceneManager = sceneManager;
-        
+
         if (sceneManager != null) {
             this.io = sceneManager.getInputOutput();
+            this.entityManager = sceneManager.getEntityManager();
         } else {
             this.io = null;
+            this.entityManager = null;
         }
     }
 
