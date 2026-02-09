@@ -11,7 +11,6 @@ import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
 import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.events.EventType;
-import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioOutput;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 
@@ -32,8 +31,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
-    private EntityManager entityManager;
-	private EventBus eventBus;
+    private EventBus eventBus;
 
     @Override
     public void create() {
@@ -46,17 +44,22 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
         eventBus = new EventBus();
         inputOutputManager = new InputOutputManager();
-        entityManager = new EntityManager(eventBus);
 
         AudioOutput audio = inputOutputManager.getAudioOutput();
 
+        // Subscribe to audio events
         eventBus.subscribe(EventType.PLAY_MUSIC, audio);
         eventBus.subscribe(EventType.PLAY_SOUND, audio);
         eventBus.subscribe(EventType.STOP_MUSIC, audio);
 
+        // CRITICAL FIX: Subscribe to volume control events
+        eventBus.subscribe(EventType.SET_MUSIC_VOLUME, audio);
+        eventBus.subscribe(EventType.SET_SFX_VOLUME, audio);
+
         // Listen for Logic Events (Pause/Resume)
         eventBus.subscribe(EventType.GAME_PAUSED, audio);
         eventBus.subscribe(EventType.GAME_RESUMED, audio);
+        eventBus.subscribe(EventType.GAME_START, audio);
 
         inputOutputManager.bindKey("START_GAME", Input.Keys.SPACE);
         inputOutputManager.bindKey("RESTART_GAME", Input.Keys.R);
@@ -68,8 +71,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
         GameContext context = new ContextImplementation(
             eventBus,
-            inputOutputManager,
-            entityManager
+            inputOutputManager
         );
 
         sceneManager = new SceneManager(context);
@@ -95,6 +97,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         // Rubric: show resize forwarding
+        Gdx.app.log("SIM", "Part1SimulationApp resize: " + width + "x" + height);
         sceneManager.resize(width, height);
     }
 

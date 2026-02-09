@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
+import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
+import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
 import io.github.INF1009_P10_Team7.engine.entity.components.MovementComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
@@ -22,8 +24,8 @@ import io.github.INF1009_P10_Team7.engine.collision.CollisionResolution;
 
 // For Movement Behaviors
 import io.github.INF1009_P10_Team7.engine.movement.LinearMovement;
-import io.github.INF1009_P10_Team7.engine.movement.FollowMovement;
-import io.github.INF1009_P10_Team7.engine.movement.AImovement;
+
+import java.util.Map;
 
 /**
  * GameScene with Movement Behaviors
@@ -44,110 +46,126 @@ import io.github.INF1009_P10_Team7.engine.movement.AImovement;
  */
 public class GameScene extends Scene {
 
-    private GameEntity player;
-    private GameEntity enemy;
-    private GameEntity staticObject;
-    private GameEntity linearEntity;
-    private GameEntity aiWanderer;
+    private EntityManager entityManager;
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
     private CollisionManager collisionManager;
+
+    // Store references to created entities (for rendering logic)
+    private Map<String, GameEntity> entities;
 
     private boolean isGoingToSettings = false;
 
     public GameScene(SceneManager sceneManager) {
         super(sceneManager);
+
+        // Populate entity definitions (stored in parent Scene class)
+        initializeEntityDefinitions();
+    }
+
+    /**
+     * Define what entities should exist in this scene.
+     * Populates the entityDefinitions list in parent Scene class.
+     * Scene stores the data - does NOT instantiate entities.
+     */
+    private void initializeEntityDefinitions() {
+        // ENTITY 1: Player with Physics-based movement
+        entityDefinitions.add(new EntityDefinition.Builder(
+            "Player",
+            EntityDefinition.EntityType.PLAYER,
+            new Vector2(100f, 100f))
+            .physics(new Vector2(50f, 0f), 1.0f)
+            .collisionRadius(25f)
+            .resolutionType(CollisionResolution.ResolutionType.BOUNCE)
+            .build());
+
+        // ENTITY 2: Enemy with FollowMovement (chases player)
+        entityDefinitions.add(new EntityDefinition.Builder(
+            "Enemy",
+            EntityDefinition.EntityType.ENEMY,
+            new Vector2(400f, 200f))
+            .aiMovement(80f) // Will be replaced with follow movement in EntityManager
+            .collisionRadius(20f)
+            .resolutionType(CollisionResolution.ResolutionType.BOUNCE)
+            .build());
+
+        // ENTITY 3: Static object (no movement)
+        entityDefinitions.add(new EntityDefinition.Builder(
+            "StaticObject",
+            EntityDefinition.EntityType.STATIC_OBJECT,
+            new Vector2(250f, 150f))
+            .rotation(45f)
+            .collisionRadius(21f)
+            .resolutionType(CollisionResolution.ResolutionType.PASS_THROUGH)
+            .build());
+
+        // ENTITY 4: Linear Movement Entity (moves in straight line)
+        entityDefinitions.add(new EntityDefinition.Builder(
+            "LinearEntity",
+            EntityDefinition.EntityType.LINEAR_ENTITY,
+            new Vector2(600f, 300f))
+            .linearMovement(new Vector2(-1f, -0.5f), 100f)
+            .collisionRadius(20f)
+            .resolutionType(CollisionResolution.ResolutionType.BOUNCE)
+            .build());
+
+        // ENTITY 5: AI Wanderer (random movement)
+        entityDefinitions.add(new EntityDefinition.Builder(
+            "AIWanderer",
+            EntityDefinition.EntityType.AI_WANDERER,
+            new Vector2(300f, 400f))
+            .aiMovement(60f)
+            .collisionRadius(20f)
+            .resolutionType(CollisionResolution.ResolutionType.BOUNCE)
+            .build());
+
+        // ENTITY 6: Inactive entity (won't be updated)
+        entityDefinitions.add(new EntityDefinition.Builder(
+            "InactiveEntity",
+            EntityDefinition.EntityType.INACTIVE_ENTITY,
+            new Vector2(0f, 0f))
+            .physics(new Vector2(100f, 100f), 1.0f)
+            .isActive(false)
+            .build());
     }
 
     @Override
     protected void onLoad() {
         Gdx.app.log("Scene", "GameScene loaded");
 
-        if (camera == null) {
+        if (entityManager == null) {
 
-	        // Initialize camera and renderer for drawing entities
-	        camera = new OrthographicCamera();
-	        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-	        shapeRenderer = new ShapeRenderer();
+            // Initialize camera and renderer for drawing entities
+            camera = new OrthographicCamera();
+            camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            shapeRenderer = new ShapeRenderer();
 
-	        // Initialize the Collision Manager
-	        collisionManager = new CollisionManager(context.getEventBus());
-	        collisionManager.setCollisionSound("bell.mp3");
-	        Gdx.app.log("CollisionManager", "Initialized with collision sound");
+            // Initialize the Entity-Component System
+            entityManager = new EntityManager(context.getEventBus());
 
-	        context.getEventBus().publish(new GameEvent(EventType.GAME_START));
+            // Initialize the Collision Manager
+            collisionManager = new CollisionManager(context.getEventBus());
+            collisionManager.setCollisionSound("bell.mp3");
+            Gdx.app.log("CollisionManager", "Initialized with collision sound");
 
-	        GameEvent musicEvent = new GameEvent(EventType.PLAY_MUSIC).add("file_path", "Music_Game.mp3");
-	        context.getEventBus().publish(musicEvent);
-	        Gdx.app.log("Audio Output", "Game Music loaded");
+            context.getEventBus().publish(new GameEvent(EventType.GAME_START));
 
-	        createEntities();
+            GameEvent musicEvent = new GameEvent(EventType.PLAY_MUSIC).add("file_path", "Music_Game.mp3");
+            context.getEventBus().publish(musicEvent);
+            Gdx.app.log("Audio Output", "Game Music loaded");
 
-	        Gdx.app.log("CollisionManager", "Registered " + collisionManager.getCollidableCount() + " collidable entities");
-	        Gdx.app.log("ECS", "EntityManager initialized with " + context.getEntityManager().getAllEntities().size() + " entities");
-	        Gdx.app.log("Movement", "Movement behaviors initialized: Follow, Linear, AI Random");
+            // Pass entity definitions to EntityManager - it creates the entities
+            entities = entityManager.createEntitiesFromDefinitions(entityDefinitions, collisionManager);
+
+            Gdx.app.log("CollisionManager", "Registered " + collisionManager.getCollidableCount() + " collidable entities");
+            Gdx.app.log("ECS", "EntityManager initialized with " + entityManager.getAllEntities().size() + " entities");
+            Gdx.app.log("Scene", "Entity definitions passed to EntityManager - entities created");
         } else {
-        	Gdx.app.log("Scene", "Resuming existing game state...");
-        	context.getEventBus().publish(new GameEvent(EventType.GAME_RESUMED));
+            Gdx.app.log("Scene", "Resuming existing game state...");
+            context.getEventBus().publish(new GameEvent(EventType.GAME_RESUMED));
         }
     }
 
-    public void createEntities() {
-        // ===== ENTITY 1: Player with Physics-based movement =====
-        player = new GameEntity("Player");
-        player.addComponent(new TransformComponent(100f, 100f));
-        player.addComponent(new PhysicComponent(new Vector2(50f, 0f), 1.0f));
-        player.addComponent(new SpriteComponent("player_sprite"));
-        player.setCollisionRadius(25f);
-        context.getEntityManager().addEntity(player);
-        collisionManager.registerCollidable(player, CollisionResolution.ResolutionType.BOUNCE);
-        Gdx.app.log("ECS", "Created Player entity at (100, 100) with velocity (50, 0)");
-
-        // ===== ENTITY 2: Enemy with FollowMovement (chases player) =====
-        enemy = new GameEntity("Enemy");
-        enemy.addComponent(new TransformComponent(400f, 200f));
-        enemy.addComponent(new MovementComponent(new FollowMovement(player, 80f))); // Follows player at 80 units/sec
-        enemy.setCollisionRadius(20f);
-        context.getEntityManager().addEntity(enemy);
-        collisionManager.registerCollidable(enemy, CollisionResolution.ResolutionType.BOUNCE);
-        Gdx.app.log("ECS", "Created Enemy entity at (400, 200) with FollowMovement (chasing Player)");
-
-        // ===== ENTITY 3: Static object (no movement) =====
-        staticObject = new GameEntity("StaticObject");
-        staticObject.addComponent(new TransformComponent(new Vector2(250f, 150f), 45f));
-        staticObject.setCollisionRadius(21f);
-        context.getEntityManager().addEntity(staticObject);
-        collisionManager.registerCollidable(staticObject, CollisionResolution.ResolutionType.PASS_THROUGH);
-        Gdx.app.log("ECS", "Created StaticObject entity at (250, 150) with rotation 45 degrees");
-
-        // ===== ENTITY 4: Linear Movement Entity (moves in straight line) =====
-        linearEntity = new GameEntity("LinearEntity");
-        linearEntity.addComponent(new TransformComponent(600f, 300f));
-        // Move diagonally down-left at 100 units/sec
-        Vector2 linearDirection = new Vector2(-1f, -0.5f);
-        linearEntity.addComponent(new MovementComponent(new LinearMovement(linearDirection, 100f)));
-        linearEntity.setCollisionRadius(20f);
-        context.getEntityManager().addEntity(linearEntity);
-        collisionManager.registerCollidable(linearEntity, CollisionResolution.ResolutionType.BOUNCE);
-        Gdx.app.log("ECS", "Created LinearEntity at (600, 300) with LinearMovement (diagonal)");
-
-        // ===== ENTITY 5: AI Wanderer (random movement) =====
-        aiWanderer = new GameEntity("AIWanderer");
-        aiWanderer.addComponent(new TransformComponent(300f, 400f));
-        aiWanderer.addComponent(new MovementComponent(new AImovement(60f))); // Random wandering at 60 units/sec
-        aiWanderer.setCollisionRadius(20f);
-        context.getEntityManager().addEntity(aiWanderer);
-        collisionManager.registerCollidable(aiWanderer, CollisionResolution.ResolutionType.BOUNCE);
-        Gdx.app.log("ECS", "Created AIWanderer at (300, 400) with AIMovement (random wandering)");
-
-        // ===== ENTITY 6: Inactive entity (won't be updated) =====
-        GameEntity inactiveEntity = new GameEntity("InactiveEntity");
-        inactiveEntity.addComponent(new TransformComponent(0f, 0f));
-        inactiveEntity.addComponent(new PhysicComponent(new Vector2(100f, 100f), 1.0f));
-        inactiveEntity.setActive(false);
-        context.getEntityManager().addEntity(inactiveEntity);
-        Gdx.app.log("ECS", "Created InactiveEntity (won't update because active=false)");
-    }
 
     // Timer for periodic logging of entity positions
     private float logTimer = 0f;
@@ -156,7 +174,7 @@ public class GameScene extends Scene {
     @Override
     protected void onUpdate(float delta) {
         // Update all entities in the ECS (includes movement components)
-        context.getEntityManager().updateAll(delta);
+        entityManager.updateAll(delta);
 
         // Apply boundary constraints to keep entities on screen
         applyBoundaries();
@@ -190,27 +208,30 @@ public class GameScene extends Scene {
             Gdx.app.log("Audio Output", "Boom Sound played");
         }
 
-         // =========== To show mouse coordinates when moving around ==========
+        // =========== To show mouse coordinates when moving around ==========
         // =========== This will be commented to prevent log spam ========
         // Gdx.app.log("MouseTest", "X: " + inputController.getMouseX() + " Y: " + inputController.getMouseY());
 
         // TO IMPLEMENT IO WITH COMPONENT!!
         // TO REMOVE LOGIC WHEN SUMBITTING
-        PhysicComponent physics = player.getComponent(PhysicComponent.class);
+        GameEntity player = entities.get("Player");
+        if (player != null) {
+            PhysicComponent physics = player.getComponent(PhysicComponent.class);
 
-        if (physics != null) {
-            float speed = 200f; // How fast it moves
-            Vector2 velocity = physics.getVelocity();
+            if (physics != null) {
+                float speed = 200f; // How fast it moves
+                Vector2 velocity = physics.getVelocity();
 
-            if (context.getInputController().isActionPressed("LEFT")) {
-                // FOR LOGIC
-                velocity.x = -speed; // LEFT
-            } else if (context.getInputController().isActionPressed("RIGHT")) {
-                // FOR LOGIC
-                velocity.x = speed; // RIGHT
-            } else {
-                // FOR LOGIC
-                physics.setVelocity(0, 0); // STOP
+                if (context.getInputController().isActionPressed("LEFT")) {
+                    // FOR LOGIC
+                    velocity.x = -speed; // LEFT
+                } else if (context.getInputController().isActionPressed("RIGHT")) {
+                    // FOR LOGIC
+                    velocity.x = speed; // RIGHT
+                } else {
+                    // FOR LOGIC
+                    physics.setVelocity(0, 0); // STOP
+                }
             }
         }
     }
@@ -219,48 +240,58 @@ public class GameScene extends Scene {
      * Logs the current positions of all entities to demonstrate movement.
      */
     private void logEntityPositions() {
-        // Player position (physics-based)
-        TransformComponent playerTransform = player.getComponent(TransformComponent.class);
-        if (playerTransform != null) {
-            Vector2 pos = playerTransform.getPosition();
-            Gdx.app.log("ECS", "Player (Physics) position: (" +
-                String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
+        GameEntity player = entities.get("Player");
+        if (player != null) {
+            TransformComponent playerTransform = player.getComponent(TransformComponent.class);
+            if (playerTransform != null) {
+                Vector2 pos = playerTransform.getPosition();
+                Gdx.app.log("ECS", "Player (Physics) position: (" +
+                    String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
+            }
         }
 
-        // Enemy position (FollowMovement)
-        TransformComponent enemyTransform = enemy.getComponent(TransformComponent.class);
-        if (enemyTransform != null) {
-            Vector2 pos = enemyTransform.getPosition();
-            MovementComponent enemyMovement = enemy.getComponent(MovementComponent.class);
-            String behaviorType = enemyMovement != null ?
-                enemyMovement.getMovementBehaviour().getClass().getSimpleName() : "None";
-            Gdx.app.log("ECS", "Enemy (" + behaviorType + ") position: (" +
-                String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
+        GameEntity enemy = entities.get("Enemy");
+        if (enemy != null) {
+            TransformComponent enemyTransform = enemy.getComponent(TransformComponent.class);
+            if (enemyTransform != null) {
+                Vector2 pos = enemyTransform.getPosition();
+                MovementComponent enemyMovement = enemy.getComponent(MovementComponent.class);
+                String behaviorType = enemyMovement != null ?
+                    enemyMovement.getMovementBehaviour().getClass().getSimpleName() : "None";
+                Gdx.app.log("ECS", "Enemy (" + behaviorType + ") position: (" +
+                    String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
+            }
         }
 
-        // Linear entity position
-        TransformComponent linearTransform = linearEntity.getComponent(TransformComponent.class);
-        if (linearTransform != null) {
-            Vector2 pos = linearTransform.getPosition();
-            Gdx.app.log("ECS", "LinearEntity (LinearMovement) position: (" +
-                String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
+        GameEntity linearEntity = entities.get("LinearEntity");
+        if (linearEntity != null) {
+            TransformComponent linearTransform = linearEntity.getComponent(TransformComponent.class);
+            if (linearTransform != null) {
+                Vector2 pos = linearTransform.getPosition();
+                Gdx.app.log("ECS", "LinearEntity (LinearMovement) position: (" +
+                    String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
+            }
         }
 
-        // AI Wanderer position
-        TransformComponent aiTransform = aiWanderer.getComponent(TransformComponent.class);
-        if (aiTransform != null) {
-            Vector2 pos = aiTransform.getPosition();
-            Gdx.app.log("ECS", "AIWanderer (AIMovement) position: (" +
-                String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
+        GameEntity aiWanderer = entities.get("AIWanderer");
+        if (aiWanderer != null) {
+            TransformComponent aiTransform = aiWanderer.getComponent(TransformComponent.class);
+            if (aiTransform != null) {
+                Vector2 pos = aiTransform.getPosition();
+                Gdx.app.log("ECS", "AIWanderer (AIMovement) position: (" +
+                    String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
+            }
         }
 
-        // Static object (doesn't move)
-        TransformComponent staticTransform = staticObject.getComponent(TransformComponent.class);
-        if (staticTransform != null) {
-            Vector2 pos = staticTransform.getPosition();
-            Gdx.app.log("ECS", "StaticObject position: (" +
-                String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) +
-                ") - unchanged (no movement)");
+        GameEntity staticObject = entities.get("StaticObject");
+        if (staticObject != null) {
+            TransformComponent staticTransform = staticObject.getComponent(TransformComponent.class);
+            if (staticTransform != null) {
+                Vector2 pos = staticTransform.getPosition();
+                Gdx.app.log("ECS", "StaticObject position: (" +
+                    String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) +
+                    ") - unchanged (no movement)");
+            }
         }
     }
 
@@ -272,7 +303,7 @@ public class GameScene extends Scene {
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
 
-        for (Entity entity : context.getEntityManager().getAllEntities()) {
+        for (Entity entity : entityManager.getAllEntities()) {
             if (!entity.isActive()) continue;
 
             TransformComponent transform = entity.getComponent(TransformComponent.class);
@@ -356,7 +387,7 @@ public class GameScene extends Scene {
         // Render all entities with TransformComponent
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        for (Entity entity : context.getEntityManager().getAllEntities()) {
+        for (Entity entity : entityManager.getAllEntities()) {
             TransformComponent transform = entity.getComponent(TransformComponent.class);
             if (transform == null) continue;
 
@@ -371,8 +402,8 @@ public class GameScene extends Scene {
                 // Blue Triangle for Player (physics-based)
                 shapeRenderer.setColor(0.2f, 0.6f, 1f, 1f);
                 shapeRenderer.triangle(pos.x, pos.y + 25f,
-                                       pos.x - 20f, pos.y - 15f,
-                                       pos.x + 20f, pos.y - 15f);
+                    pos.x - 20f, pos.y - 15f,
+                    pos.x + 20f, pos.y - 15f);
             } else if (entity instanceof GameEntity && ((GameEntity) entity).getName().equals("Enemy")) {
                 // Red Circle for Enemy (FollowMovement)
                 shapeRenderer.setColor(1f, 0.3f, 0.3f, 1f);
@@ -394,7 +425,7 @@ public class GameScene extends Scene {
                 shapeRenderer.setColor(0.3f, 1f, 0.3f, 1f);
                 float size = 30f;
                 shapeRenderer.rect(pos.x - size/2, pos.y - size/2, size/2, size/2,
-                                   size, size, 1f, 1f, transform.getRotation());
+                    size, size, 1f, 1f, transform.getRotation());
             }
         }
 
@@ -417,10 +448,10 @@ public class GameScene extends Scene {
             GameEvent pauseEvent = new GameEvent(EventType.GAME_PAUSED);
             context.getEventBus().publish(pauseEvent);
 
-        	Gdx.app.log("Scene", "GameScene state preserved (Going to Settings)");
-        	isGoingToSettings = false;
+            Gdx.app.log("Scene", "GameScene state preserved (Going to Settings)");
+            isGoingToSettings = false;
         } else {
-        	dispose();
+            dispose();
         }
     }
 
@@ -428,9 +459,11 @@ public class GameScene extends Scene {
     protected void onDispose() {
         Gdx.app.log("Scene", "GameScene diposed");
 
-        // Clear the EntityManager
-        context.getEntityManager().clear();
-        Gdx.app.log("ECS", "GameScene EntityManager cleared");
+        // Clean up the EntityManager
+        if (entityManager != null) {
+            entityManager.dispose();
+            Gdx.app.log("ECS", "GameScene EntityManager disposed");
+        }
 
         // Clean up the CollisionManager
         if (collisionManager != null) {
