@@ -1,6 +1,10 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
 import io.github.INF1009_P10_Team7.engine.core.GameContext;
+import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Abstract Scene class (UML requirement).
@@ -8,6 +12,7 @@ import io.github.INF1009_P10_Team7.engine.core.GameContext;
  * Purpose:
  * - Provide a consistent lifecycle that ALL scenes must follow.
  * - Keep engine generic (no game-specific logic here).
+ * - Store entity definitions (WHAT entities should exist in this scene)
  *
  * Lifecycle:
  * load()   -> called once when activated
@@ -16,16 +21,30 @@ import io.github.INF1009_P10_Team7.engine.core.GameContext;
  * unload() -> called once when deactivated
  */
 public abstract class Scene {
-	
-	protected final SceneManager sceneManager;
+
+    protected final SceneManager sceneManager;
     protected final GameContext context;
-    
+
     // Tracks whether this scene is currently active/loaded
     private boolean loaded = false;
-    
+
+    // Stores entity definitions for this scene (data only, no instantiation)
+    protected List<EntityDefinition> entityDefinitions;
+
     public Scene(SceneManager sceneManager) {
         this.sceneManager = sceneManager;
-    	this.context = sceneManager.getContext();
+        this.context = sceneManager.getContext();
+        this.entityDefinitions = new ArrayList<>();
+
+        // Child scenes should populate entityDefinitions in their constructor
+    }
+
+    /**
+     * Get the list of entity definitions for this scene.
+     * EntityManager will use this to create the actual entities.
+     */
+    public List<EntityDefinition> getEntityDefinitions() {
+        return entityDefinitions;
     }
 
     // Called once when the scene becomes active
@@ -53,7 +72,7 @@ public abstract class Scene {
         loaded = false;
         onUnload();             // run scene-specific cleanup
     }
-    
+
     /**
      * Forces resource cleanup.
      * Can be called manually (e.g., when restarting) even if scene is not loaded.

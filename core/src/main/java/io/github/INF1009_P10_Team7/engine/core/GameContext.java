@@ -5,5 +5,6 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
 
 public interface GameContext {
     EventBus getEventBus();
-    InputController getInputController(); 
+    InputController getInputController();
+
 }

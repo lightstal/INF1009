@@ -31,7 +31,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
-	private EventBus eventBus;
+    private EventBus eventBus;
 
     @Override
     public void create() {
@@ -47,13 +47,19 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
         AudioOutput audio = inputOutputManager.getAudioOutput();
 
+        // Subscribe to audio events
         eventBus.subscribe(EventType.PLAY_MUSIC, audio);
         eventBus.subscribe(EventType.PLAY_SOUND, audio);
         eventBus.subscribe(EventType.STOP_MUSIC, audio);
 
+        // CRITICAL FIX: Subscribe to volume control events
+        eventBus.subscribe(EventType.SET_MUSIC_VOLUME, audio);
+        eventBus.subscribe(EventType.SET_SFX_VOLUME, audio);
+
         // Listen for Logic Events (Pause/Resume)
         eventBus.subscribe(EventType.GAME_PAUSED, audio);
         eventBus.subscribe(EventType.GAME_RESUMED, audio);
+        eventBus.subscribe(EventType.GAME_START, audio);
 
         inputOutputManager.bindKey("START_GAME", Input.Keys.SPACE);
         inputOutputManager.bindKey("RESTART_GAME", Input.Keys.R);
@@ -91,6 +97,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         // Rubric: show resize forwarding
+        Gdx.app.log("SIM", "Part1SimulationApp resize: " + width + "x" + height);
         sceneManager.resize(width, height);
     }
 
