@@ -7,7 +7,6 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
-import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
 import io.github.INF1009_P10_Team7.engine.entity.components.MovementComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
@@ -46,7 +45,6 @@ import java.util.Map;
  */
 public class GameScene extends Scene {
 
-    private EntityManager entityManager;
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
     private CollisionManager collisionManager;
@@ -133,15 +131,12 @@ public class GameScene extends Scene {
     protected void onLoad() {
         Gdx.app.log("Scene", "GameScene loaded");
 
-        if (entityManager == null) {
+        if (camera == null) {
 
             // Initialize camera and renderer for drawing entities
             camera = new OrthographicCamera();
             camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             shapeRenderer = new ShapeRenderer();
-
-            // Initialize the Entity-Component System
-            entityManager = new EntityManager(context.getEventBus());
 
             // Initialize the Collision Manager
             collisionManager = new CollisionManager(context.getEventBus());
@@ -155,10 +150,10 @@ public class GameScene extends Scene {
             Gdx.app.log("Audio Output", "Game Music loaded");
 
             // Pass entity definitions to EntityManager - it creates the entities
-            entities = entityManager.createEntitiesFromDefinitions(entityDefinitions, collisionManager);
+            entities = context.getEntityManager().createEntitiesFromDefinitions(entityDefinitions, collisionManager);
 
             Gdx.app.log("CollisionManager", "Registered " + collisionManager.getCollidableCount() + " collidable entities");
-            Gdx.app.log("ECS", "EntityManager initialized with " + entityManager.getAllEntities().size() + " entities");
+            Gdx.app.log("ECS", "EntityManager initialized with " + context.getEntityManager().getAllEntities().size() + " entities");
             Gdx.app.log("Scene", "Entity definitions passed to EntityManager - entities created");
         } else {
             Gdx.app.log("Scene", "Resuming existing game state...");
@@ -174,7 +169,7 @@ public class GameScene extends Scene {
     @Override
     protected void onUpdate(float delta) {
         // Update all entities in the ECS (includes movement components)
-        entityManager.updateAll(delta);
+        context.getEntityManager().updateAll(delta);
 
         // Apply boundary constraints to keep entities on screen
         applyBoundaries();
@@ -303,7 +298,7 @@ public class GameScene extends Scene {
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
 
-        for (Entity entity : entityManager.getAllEntities()) {
+        for (Entity entity : context.getEntityManager().getAllEntities()) {
             if (!entity.isActive()) continue;
 
             TransformComponent transform = entity.getComponent(TransformComponent.class);
@@ -387,7 +382,7 @@ public class GameScene extends Scene {
         // Render all entities with TransformComponent
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        for (Entity entity : entityManager.getAllEntities()) {
+        for (Entity entity : context.getEntityManager().getAllEntities()) {
             TransformComponent transform = entity.getComponent(TransformComponent.class);
             if (transform == null) continue;
 
@@ -459,11 +454,9 @@ public class GameScene extends Scene {
     protected void onDispose() {
         Gdx.app.log("Scene", "GameScene diposed");
 
-        // Clean up the EntityManager
-        if (entityManager != null) {
-            entityManager.dispose();
-            Gdx.app.log("ECS", "GameScene EntityManager disposed");
-        }
+        // Clear the EntityManager (owned by context, so clear instead of dispose)
+        context.getEntityManager().clear();
+        Gdx.app.log("ECS", "GameScene EntityManager cleared");
 
         // Clean up the CollisionManager
         if (collisionManager != null) {
