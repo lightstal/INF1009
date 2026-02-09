@@ -1,4 +1,4 @@
-package io.github.INF1009_P10_Team7.scenes;
+package io.github.INF1009_P10_Team7.engine.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -14,8 +14,6 @@ import io.github.INF1009_P10_Team7.engine.entity.components.SpriteComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.TransformComponent;
 import io.github.INF1009_P10_Team7.engine.events.EventType;
 import io.github.INF1009_P10_Team7.engine.events.GameEvent;
-import io.github.INF1009_P10_Team7.engine.scene.Scene;
-import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
@@ -37,7 +35,7 @@ import io.github.INF1009_P10_Team7.engine.movement.AImovement;
  *
  * Visual:
  * - Dark background
- * 
+ *
  * Entities:
  * - Player (Blue Triangle): Uses physics-based movement
  * - Enemy (Red Circle): Uses FollowMovement to chase the player
@@ -56,7 +54,7 @@ public class GameScene extends Scene {
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
     private CollisionManager collisionManager;
-    
+
     private boolean isGoingToSettings = false;
 
     public GameScene(SceneManager sceneManager) {
@@ -66,30 +64,30 @@ public class GameScene extends Scene {
     @Override
     protected void onLoad() {
         Gdx.app.log("Scene", "GameScene loaded");
-        
+
         if (entityManager == null) {
-	
+
 	        // Initialize camera and renderer for drawing entities
 	        camera = new OrthographicCamera();
 	        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 	        shapeRenderer = new ShapeRenderer();
-	
+
 	        // Initialize the Entity-Component System
 	        entityManager = new EntityManager(context.getEventBus());
-	        
+
 	        // Initialize the Collision Manager
 	        collisionManager = new CollisionManager(context.getEventBus());
 	        collisionManager.setCollisionSound("bell.mp3");
 	        Gdx.app.log("CollisionManager", "Initialized with collision sound");
 
 	        context.getEventBus().publish(new GameEvent(EventType.GAME_START));
-	        
+
 	        GameEvent musicEvent = new GameEvent(EventType.PLAY_MUSIC).add("file_path", "Music_Game.mp3");
 	        context.getEventBus().publish(musicEvent);
 	        Gdx.app.log("Audio Output", "Game Music loaded");
-	        
+
 	        createEntities();
-	        
+
 	        Gdx.app.log("CollisionManager", "Registered " + collisionManager.getCollidableCount() + " collidable entities");
 	        Gdx.app.log("ECS", "EntityManager initialized with " + entityManager.getAllEntities().size() + " entities");
 	        Gdx.app.log("Movement", "Movement behaviors initialized: Follow, Linear, AI Random");
@@ -98,7 +96,7 @@ public class GameScene extends Scene {
         	context.getEventBus().publish(new GameEvent(EventType.GAME_RESUMED));
         }
     }
-    
+
     public void createEntities() {
         // ===== ENTITY 1: Player with Physics-based movement =====
         player = new GameEntity("Player");
@@ -230,7 +228,7 @@ public class GameScene extends Scene {
         TransformComponent playerTransform = player.getComponent(TransformComponent.class);
         if (playerTransform != null) {
             Vector2 pos = playerTransform.getPosition();
-            Gdx.app.log("ECS", "Player (Physics) position: (" + 
+            Gdx.app.log("ECS", "Player (Physics) position: (" +
                 String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
         }
 
@@ -239,9 +237,9 @@ public class GameScene extends Scene {
         if (enemyTransform != null) {
             Vector2 pos = enemyTransform.getPosition();
             MovementComponent enemyMovement = enemy.getComponent(MovementComponent.class);
-            String behaviorType = enemyMovement != null ? 
+            String behaviorType = enemyMovement != null ?
                 enemyMovement.getMovementBehaviour().getClass().getSimpleName() : "None";
-            Gdx.app.log("ECS", "Enemy (" + behaviorType + ") position: (" + 
+            Gdx.app.log("ECS", "Enemy (" + behaviorType + ") position: (" +
                 String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
         }
 
@@ -249,7 +247,7 @@ public class GameScene extends Scene {
         TransformComponent linearTransform = linearEntity.getComponent(TransformComponent.class);
         if (linearTransform != null) {
             Vector2 pos = linearTransform.getPosition();
-            Gdx.app.log("ECS", "LinearEntity (LinearMovement) position: (" + 
+            Gdx.app.log("ECS", "LinearEntity (LinearMovement) position: (" +
                 String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
         }
 
@@ -257,7 +255,7 @@ public class GameScene extends Scene {
         TransformComponent aiTransform = aiWanderer.getComponent(TransformComponent.class);
         if (aiTransform != null) {
             Vector2 pos = aiTransform.getPosition();
-            Gdx.app.log("ECS", "AIWanderer (AIMovement) position: (" + 
+            Gdx.app.log("ECS", "AIWanderer (AIMovement) position: (" +
                 String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
         }
 
@@ -265,8 +263,8 @@ public class GameScene extends Scene {
         TransformComponent staticTransform = staticObject.getComponent(TransformComponent.class);
         if (staticTransform != null) {
             Vector2 pos = staticTransform.getPosition();
-            Gdx.app.log("ECS", "StaticObject position: (" + 
-                String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + 
+            Gdx.app.log("ECS", "StaticObject position: (" +
+                String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) +
                 ") - unchanged (no movement)");
         }
     }
@@ -297,7 +295,7 @@ public class GameScene extends Scene {
             PhysicComponent physics = entity.getComponent(PhysicComponent.class);
             if (physics != null) {
                 Vector2 vel = physics.getVelocity();
-                
+
                 // Bounce off left/right boundaries
                 if (pos.x - radius < 0) {
                     pos.x = radius;
@@ -322,7 +320,7 @@ public class GameScene extends Scene {
                 MovementComponent movement = entity.getComponent(MovementComponent.class);
                 if (movement != null) {
                     boolean hitBoundary = false;
-                    
+
                     // Clamp position to screen boundaries
                     if (pos.x - radius < 0) {
                         pos.x = radius;
@@ -340,7 +338,7 @@ public class GameScene extends Scene {
                         pos.y = screenHeight - radius;
                         hitBoundary = true;
                     }
-                    
+
                     // For LinearMovement, reverse direction when hitting boundary
                     if (hitBoundary && movement.getMovementBehaviour() instanceof LinearMovement) {
                         LinearMovement linear = (LinearMovement) movement.getMovementBehaviour();
@@ -418,23 +416,23 @@ public class GameScene extends Scene {
     @Override
     protected void onUnload() {
         Gdx.app.log("Scene", "GameScene unloading...");
-        
-        if (isGoingToSettings) {        	
+
+        if (isGoingToSettings) {
             // publish Event to notify relevant managers of change in game state
             GameEvent pauseEvent = new GameEvent(EventType.GAME_PAUSED);
             context.getEventBus().publish(pauseEvent);
-            
+
         	Gdx.app.log("Scene", "GameScene state preserved (Going to Settings)");
         	isGoingToSettings = false;
         } else {
         	dispose();
         }
     }
-    
+
     @Override
     protected void onDispose() {
         Gdx.app.log("Scene", "GameScene diposed");
-        
+
         // Clean up the EntityManager
         if (entityManager != null) {
             entityManager.dispose();

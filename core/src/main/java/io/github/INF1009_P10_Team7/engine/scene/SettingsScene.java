@@ -1,10 +1,7 @@
-package io.github.INF1009_P10_Team7.scenes;
+package io.github.INF1009_P10_Team7.engine.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.ScreenUtils;
-
-import io.github.INF1009_P10_Team7.engine.scene.Scene;
-import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 
 /**
  * SettingsScene

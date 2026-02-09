@@ -1,4 +1,4 @@
-package io.github.INF1009_P10_Team7.scenes;
+package io.github.INF1009_P10_Team7.engine.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -11,8 +11,6 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.INF1009_P10_Team7.engine.events.EventType;
 import io.github.INF1009_P10_Team7.engine.events.GameEvent;
-import io.github.INF1009_P10_Team7.engine.scene.Scene;
-import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 
 /**
  * MainMenuScene
@@ -36,7 +34,7 @@ public class MainMenuScene extends Scene {
     protected void onLoad() {
         // Log for testing (marker can see lifecycle)
         Gdx.app.log("Scene", "MainMenuScene loaded");
-        
+
         GameEvent musicEvent = new GameEvent(EventType.PLAY_MUSIC).add("file_path", "Music_Menu.mp3");
         context.getEventBus().publish(musicEvent);
         Gdx.app.log("Audio Output", "MainMenu Music loaded");
@@ -45,10 +43,10 @@ public class MainMenuScene extends Scene {
         // =========== Created start button ===============
         // =========== Button created using code composer, might need to design again ============
         stage = new Stage(new ScreenViewport());
-        
+
         try {
 		    skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
-		
+
 		    // =================== Button created ===================
 		    TextButton startButton = new TextButton("START GAME", skin, "default");
 		    // =================== Size & Position ==================
@@ -57,7 +55,7 @@ public class MainMenuScene extends Scene {
 		            (Gdx.graphics.getWidth() - startButton.getWidth()) / 2, // Center X
 		            Gdx.graphics.getHeight() / 2 // Center Y
 		    );
-		
+
 		    // ======================== Event listener for clicking button ==================
 		    startButton.addListener(new ClickListener() {
 		        @Override
@@ -67,7 +65,7 @@ public class MainMenuScene extends Scene {
 		            sceneManager.requestScene(new GameScene(sceneManager));
 		        }
 		    });
-		    
+
 	        // ======= to set the button
 	        stage.addActor(startButton);
         } catch (Exception e) {

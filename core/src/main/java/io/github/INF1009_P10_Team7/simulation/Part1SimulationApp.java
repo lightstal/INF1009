@@ -6,7 +6,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
-import io.github.INF1009_P10_Team7.scenes.MainMenuScene;
+import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
 import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
 import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
@@ -41,16 +41,16 @@ public class Part1SimulationApp extends ApplicationAdapter {
         // Print instructions for marker/video
         SimulationTestScript.printInstructions();
         SimulationTestScript.printScalingNote();
-        
+
         eventBus = new EventBus();
         inputOutputManager = new InputOutputManager();
-        
+
         AudioOutput audio = inputOutputManager.getAudioOutput();
-        
+
         eventBus.subscribe(EventType.PLAY_MUSIC, audio);
         eventBus.subscribe(EventType.PLAY_SOUND, audio);
         eventBus.subscribe(EventType.STOP_MUSIC, audio);
-        
+
         // Listen for Logic Events (Pause/Resume)
         eventBus.subscribe(EventType.GAME_PAUSED, audio);
         eventBus.subscribe(EventType.GAME_RESUMED, audio);
@@ -64,10 +64,10 @@ public class Part1SimulationApp extends ApplicationAdapter {
         inputOutputManager.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
         GameContext context = new ContextImplementation(
-            eventBus, 
+            eventBus,
             inputOutputManager
         );
-        
+
         sceneManager = new SceneManager(context);
 
         // Start with MainMenu scene
@@ -82,10 +82,10 @@ public class Part1SimulationApp extends ApplicationAdapter {
         // Standard game loop
         float dt = Gdx.graphics.getDeltaTime();
         inputOutputManager.update();
-        
+
         sceneManager.update(dt);
         sceneManager.render();
-        
+
     }
 
     @Override
