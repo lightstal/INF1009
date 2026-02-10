@@ -139,14 +139,13 @@ public class GameScene extends Scene {
             shapeRenderer = new ShapeRenderer();
 
             // Initialize the Collision Manager
-            collisionManager = new CollisionManager(context.getEventBus());
+            collisionManager = new CollisionManager(context.getAudioController());
             collisionManager.setCollisionSound("bell.mp3");
             Gdx.app.log("CollisionManager", "Initialized with collision sound");
 
             context.getEventBus().publish(new GameEvent(EventType.GAME_START));
 
-            GameEvent musicEvent = new GameEvent(EventType.PLAY_MUSIC).add("file_path", "Music_Game.mp3");
-            context.getEventBus().publish(musicEvent);
+            context.getAudioController().setMusic("Music_Game.mp3");
             Gdx.app.log("Audio Output", "Game Music loaded");
 
             // Pass entity definitions to EntityManager - it creates the entities
@@ -198,8 +197,7 @@ public class GameScene extends Scene {
         if (context.getInputController().isActionJustPressed("SHOOT")) {
             Gdx.app.log("Input", "Key binded to 'SHOOT' action was pressed");
             // PLAY SOUND
-            GameEvent shootEvent = new GameEvent(EventType.PLAY_SOUND).add("file_path", "Sound_Boom.mp3");
-            context.getEventBus().publish(shootEvent);
+            context.getAudioController().playSound("Sound_Boom.mp3");
             Gdx.app.log("Audio Output", "Boom Sound played");
         }
 

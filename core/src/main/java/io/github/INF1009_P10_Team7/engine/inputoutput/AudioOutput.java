@@ -7,7 +7,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 
+import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.events.EventListener;
+import io.github.INF1009_P10_Team7.engine.events.EventType;
 import io.github.INF1009_P10_Team7.engine.events.GameEvent;
 
 /**
@@ -20,7 +22,7 @@ import io.github.INF1009_P10_Team7.engine.events.GameEvent;
  * </ul>
  * It ensures resources are disposed of correctly to prevent memory leaks.
  */
-public class AudioOutput implements EventListener {
+public class AudioOutput implements AudioController, EventListener {
     private MusicState musicState;
     private Music currentMusic;
 
@@ -40,55 +42,21 @@ public class AudioOutput implements EventListener {
      * Initializes the audio system.
      * Sets the default music state to STOPPED and prepares the sound cache.
      */
-    public AudioOutput() {
+    public AudioOutput(EventBus eventBus) {
         this.currentMusic = null;
         this.musicState = MusicState.STOPPED; // Default state
         this.soundCache = new HashMap<>();
+
+        // Listen for Logic Events (Pause/Resume)
+        eventBus.subscribe(EventType.GAME_PAUSED, this);
+        eventBus.subscribe(EventType.GAME_RESUMED, this);
+        eventBus.subscribe(EventType.GAME_START, this);
     }
 
     @Override
     public void onNotify(GameEvent event) {
         Gdx.app.log("AudioOutput - EventBus", "Event received: " + event.type);
         switch (event.type) {
-            case GAME_START:
-            case PLAY_MUSIC:
-                if (event.params.containsKey("file_path")) {
-                    setMusic((String) event.params.get("file_path"));
-                }
-                break;
-
-            case PLAY_SOUND:
-                if (event.params.containsKey("file_path")) {
-                    playSound((String) event.params.get("file_path"));
-                }
-                break;
-
-            case STOP_MUSIC:
-                stopMusic();
-                break;
-
-            case SET_MUSIC_VOLUME:
-                if (event.params.containsKey("volume")) {
-                    Object volumeObj = event.params.get("volume");
-                    if (volumeObj instanceof Float) {
-                        setMusicVolume((Float) volumeObj);
-                    } else if (volumeObj instanceof Double) {
-                        setMusicVolume(((Double) volumeObj).floatValue());
-                    }
-                }
-                break;
-
-            case SET_SFX_VOLUME:
-                if (event.params.containsKey("volume")) {
-                    Object volumeObj = event.params.get("volume");
-                    if (volumeObj instanceof Float) {
-                        setSfxVolume((Float) volumeObj);
-                    } else if (volumeObj instanceof Double) {
-                        setSfxVolume(((Double) volumeObj).floatValue());
-                    }
-                }
-                break;
-
             case GAME_PAUSED:
                 setMusicState(MusicState.PAUSED);
                 break;
@@ -97,6 +65,7 @@ public class AudioOutput implements EventListener {
                 setMusicState(MusicState.PLAYING);
                 break;
 
+            case GAME_START:
             case GAME_OVER:
             default:
                 break; // Do nothing
@@ -126,6 +95,14 @@ public class AudioOutput implements EventListener {
     }
 
     /**
+     * Gets the current music volume
+     * @return Current music volume (0.0 to 1.0)
+     */
+    public float getMusicVolume() {
+        return musicVolume;
+    }
+
+    /**
      * Sets the music volume (0.0 to 1.0)
      * @param volume Volume level from 0.0 (mute) to 1.0 (full volume)
      */
@@ -138,28 +115,20 @@ public class AudioOutput implements EventListener {
     }
 
     /**
-     * Gets the current music volume
-     * @return Current music volume (0.0 to 1.0)
+     * Gets the current Sound Effects volume
+     * @return Current Sound Effects volume (0.0 to 1.0)
      */
-    public float getMusicVolume() {
-        return musicVolume;
+    public float getSoundVolume() {
+        return sfxVolume;
     }
 
     /**
-     * Sets the sound effects volume (0.0 to 1.0)
+     * Sets the Sound Effects volume (0.0 to 1.0)
      * @param volume Volume level from 0.0 (mute) to 1.0 (full volume)
      */
-    public void setSfxVolume(float volume) {
+    public void setSoundVolume(float volume) {
         this.sfxVolume = Math.max(0f, Math.min(1f, volume)); // Clamp between 0 and 1
         Gdx.app.log("AudioOutput", "SFX volume set to: " + (int)(this.sfxVolume * 100) + "%");
-    }
-
-    /**
-     * Gets the current SFX volume
-     * @return Current SFX volume (0.0 to 1.0)
-     */
-    public float getSfxVolume() {
-        return sfxVolume;
     }
 
     /**

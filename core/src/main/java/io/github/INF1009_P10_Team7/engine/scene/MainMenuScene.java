@@ -9,9 +9,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
-import io.github.INF1009_P10_Team7.engine.events.EventType;
-import io.github.INF1009_P10_Team7.engine.events.GameEvent;
-
 /**
  * MainMenuScene
  *
@@ -36,8 +33,7 @@ public class MainMenuScene extends Scene {
         // Log for testing (marker can see lifecycle)
         Gdx.app.log("Scene", "MainMenuScene loaded");
 
-        GameEvent musicEvent = new GameEvent(EventType.PLAY_MUSIC).add("file_path", "Music_Menu.mp3");
-        context.getEventBus().publish(musicEvent);
+        context.getAudioController().setMusic("Music_Menu.mp3");
         Gdx.app.log("Audio Output", "MainMenu Music loaded");
 
 

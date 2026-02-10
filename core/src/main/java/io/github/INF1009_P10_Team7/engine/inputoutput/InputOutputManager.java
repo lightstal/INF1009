@@ -3,6 +3,8 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.github.INF1009_P10_Team7.engine.events.EventBus;
+
 /**
  * The concrete implementation of the {@link InputController} interface.
  * <p>
@@ -40,8 +42,8 @@ public class InputOutputManager implements InputController{
     /**
      * Initializes the InputOutputManager and its sub-components (Audio, Keyboard, Mouse).
      */
-	public InputOutputManager() {
-		this.audioOutput = new AudioOutput();
+	public InputOutputManager(EventBus eventBus) {
+		this.audioOutput = new AudioOutput(eventBus);
 		this.keyboard = new KeyboardDevice();
         this.mouse = new MouseDevice();
         

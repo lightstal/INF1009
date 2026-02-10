@@ -10,9 +10,7 @@ import java.util.Set;
 import com.badlogic.gdx.Gdx;
 
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
-import io.github.INF1009_P10_Team7.engine.events.EventBus;
-import io.github.INF1009_P10_Team7.engine.events.EventType;
-import io.github.INF1009_P10_Team7.engine.events.GameEvent;
+import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 
 /**
  * Main collision manager that coordinates collision detection and resolution.
@@ -24,7 +22,7 @@ public class CollisionManager {
     private final Map<String, CollisionResolution.ResolutionType> resolutionTypes;
     private final Map<String, CollisionResolution.CollisionCallback> callbacks;
     private final Set<String> activeCollisions; // Track which pairs are currently colliding
-    private final EventBus eventBus;
+    private final AudioController audioController;
 
     // Sound effect to play on collision
     private String collisionSoundPath = null;
@@ -35,12 +33,12 @@ public class CollisionManager {
      *
      * @param io InputOutputManager for playing collision sounds
      */
-    public CollisionManager(EventBus eventBus) {
+    public CollisionManager(AudioController audioController) {
         this.collidableObjects = new ArrayList<>();
         this.resolutionTypes = new HashMap<>();
         this.callbacks = new HashMap<>();
         this.activeCollisions = new HashSet<>();
-        this.eventBus = eventBus;
+        this.audioController = audioController;
     }
 
     /**
@@ -151,9 +149,8 @@ public class CollisionManager {
             " <-> " + obj2.getObjectId());
 
         // Play collision sound if enabled
-        if (playSoundOnCollision && collisionSoundPath != null && eventBus != null) {
-            GameEvent collisionEvent = new GameEvent(EventType.PLAY_SOUND).add("file_path", collisionSoundPath);
-            eventBus.publish(collisionEvent);
+        if (playSoundOnCollision && collisionSoundPath != null && audioController != null) {
+        	audioController.playSound(collisionSoundPath);
         }
 
         // Get resolution types for both objects

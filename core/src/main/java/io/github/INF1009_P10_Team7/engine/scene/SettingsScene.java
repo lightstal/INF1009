@@ -18,8 +18,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
-import io.github.INF1009_P10_Team7.engine.events.EventType;
-import io.github.INF1009_P10_Team7.engine.events.GameEvent;
 
 /**
  * SettingsScene (clean UI + stable resize + clickable button + working volume control)
@@ -42,7 +40,7 @@ public class SettingsScene extends Scene {
     private Map<String, GameEntity> entities;
 
     // "volume" demo (0..1) - matches AudioOutput default of 0.4 (40%)
-    private float volume01 = 0.40f;
+    private float volume01;
 
     // UI rects (world coords)
     private float panelX, panelY, panelW, panelH;
@@ -101,17 +99,8 @@ public class SettingsScene extends Scene {
             entities = entityManager.createEntitiesFromDefinitions(entityDefinitions, null);
         }
 
-        // CRITICAL FIX: Get current volume from AudioOutput instead of using hardcoded value
-        try {
-            if (context.getInputController() instanceof io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager) {
-                io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager iom =
-                    (io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager) context.getInputController();
-                volume01 = iom.getAudioOutput().getMusicVolume();
-                Gdx.app.log("SettingsScene", "Loaded current volume: " + (int)(volume01 * 100) + "%");
-            }
-        } catch (Exception e) {
-            Gdx.app.log("SettingsScene", "Could not get current volume, using default: " + (int)(volume01 * 100) + "%");
-        }
+        volume01 = context.getAudioController().getMusicVolume();
+        Gdx.app.log("SettingsScene", "Loaded current volume: " + (int)(volume01 * 100) + "%");
 
         recalcUI(); // compute positions once
 
@@ -186,14 +175,9 @@ public class SettingsScene extends Scene {
      * Sends volume change event to the audio system
      */
     private void updateGameVolume() {
-        GameEvent volumeEvent = new GameEvent(EventType.SET_MUSIC_VOLUME)
-            .add("volume", volume01);
-        context.getEventBus().publish(volumeEvent);
-
-        // Also update SFX volume
-        GameEvent sfxEvent = new GameEvent(EventType.SET_SFX_VOLUME)
-            .add("volume", volume01);
-        context.getEventBus().publish(sfxEvent);
+    	
+    	context.getAudioController().setMusicVolume(volume01);
+        context.getAudioController().setSoundVolume(volume01);
 
         Gdx.app.log("SettingsScene", "Volume updated to: " + (int)(volume01 * 100) + "%");
     }

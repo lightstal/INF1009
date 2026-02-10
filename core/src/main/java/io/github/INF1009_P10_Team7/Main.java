@@ -10,8 +10,6 @@ import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
 import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
-import io.github.INF1009_P10_Team7.engine.events.EventType;
-import io.github.INF1009_P10_Team7.engine.inputoutput.AudioOutput;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 
 /**
@@ -29,18 +27,8 @@ public class Main extends ApplicationAdapter {
     @Override
     public void create() {
         eventBus = new EventBus();
-        inputOutputManager = new InputOutputManager();
+        inputOutputManager = new InputOutputManager(eventBus);
         entityManager = new EntityManager(eventBus);
-
-        AudioOutput audio = inputOutputManager.getAudioOutput();
-
-        eventBus.subscribe(EventType.PLAY_MUSIC, audio);
-        eventBus.subscribe(EventType.PLAY_SOUND, audio);
-        eventBus.subscribe(EventType.STOP_MUSIC, audio);
-
-        // Listen for Logic Events (Pause/Resume)
-        eventBus.subscribe(EventType.GAME_PAUSED, audio);
-        eventBus.subscribe(EventType.GAME_RESUMED, audio);
 
         GameContext context = new ContextImplementation(
             eventBus,
@@ -49,8 +37,6 @@ public class Main extends ApplicationAdapter {
         );
 
         sceneManager = new SceneManager(context);
-
-//        sceneManager = new SceneManager(inputOutputManager, eventBus);
 
         // Start with MainMenu scene
         sceneManager.setScene(new MainMenuScene(sceneManager));
