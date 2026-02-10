@@ -28,6 +28,7 @@ public class EntityManager implements EventListener{
     private final Map<UUID, Entity> entities;
     private final List<Entity> pendingAdd;
     private final List<UUID> pendingRemove;
+    private Map<EventType, Runnable> eventActions = new HashMap<>();
 
     private final EventBus eventBus;
 
@@ -39,7 +40,13 @@ public class EntityManager implements EventListener{
         this.pendingAdd = new ArrayList<>();
         this.pendingRemove = new ArrayList<>();
         this.eventBus = eventBus;
-
+        
+        // Register logic specific to entities
+        eventActions.put(EventType.GAME_PAUSED, () -> this.isPaused = true);
+        eventActions.put(EventType.GAME_RESUMED, () -> this.isPaused = false);
+        eventActions.put(EventType.GAME_START, () -> this.clear());
+        
+        // Subscribe and Listen to specified Event Types
         eventBus.subscribe(EventType.GAME_PAUSED, this);
         eventBus.subscribe(EventType.GAME_RESUMED, this);
         eventBus.subscribe(EventType.GAME_START, this);
@@ -48,12 +55,8 @@ public class EntityManager implements EventListener{
     @Override
     public void onNotify(GameEvent event) {
         Gdx.app.log("EntityManager - EventBus", "Event received: " + event.type);
-        if (event.type == EventType.GAME_PAUSED) {
-            isPaused = true;
-        } else if (event.type == EventType.GAME_RESUMED) {
-            isPaused = false;
-        } else if (event.type == EventType.GAME_START) {
-            clear();
+        if (eventActions.containsKey(event.type)) {
+            eventActions.get(event.type).run();
         }
     }
 

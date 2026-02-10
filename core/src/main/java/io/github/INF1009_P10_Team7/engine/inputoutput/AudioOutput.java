@@ -25,6 +25,9 @@ import io.github.INF1009_P10_Team7.engine.events.GameEvent;
 public class AudioOutput implements AudioController, EventListener {
     private MusicState musicState;
     private Music currentMusic;
+    private EventBus eventBus;
+    
+    private Map<EventType, Runnable> eventActions = new HashMap<>();
 
     // Volume controls (0.0 to 1.0)
     private float musicVolume = 0.4f; // Default music volume
@@ -46,29 +49,22 @@ public class AudioOutput implements AudioController, EventListener {
         this.currentMusic = null;
         this.musicState = MusicState.STOPPED; // Default state
         this.soundCache = new HashMap<>();
+        this.eventBus = eventBus;
+
+        // Register logic specific to musicState
+        eventActions.put(EventType.GAME_PAUSED, () -> this.setMusicState(MusicState.PAUSED));
+        eventActions.put(EventType.GAME_RESUMED, () -> this.setMusicState(MusicState.PLAYING));
 
         // Listen for Logic Events (Pause/Resume)
         eventBus.subscribe(EventType.GAME_PAUSED, this);
         eventBus.subscribe(EventType.GAME_RESUMED, this);
-        eventBus.subscribe(EventType.GAME_START, this);
     }
 
     @Override
     public void onNotify(GameEvent event) {
         Gdx.app.log("AudioOutput - EventBus", "Event received: " + event.type);
-        switch (event.type) {
-            case GAME_PAUSED:
-                setMusicState(MusicState.PAUSED);
-                break;
-
-            case GAME_RESUMED:
-                setMusicState(MusicState.PLAYING);
-                break;
-
-            case GAME_START:
-            case GAME_OVER:
-            default:
-                break; // Do nothing
+        if (eventActions.containsKey(event.type)) {
+            eventActions.get(event.type).run();
         }
     }
 
@@ -189,5 +185,8 @@ public class AudioOutput implements AudioController, EventListener {
     public void dispose() {
         stopMusic();
         for (Sound s : soundCache.values()) s.dispose();
+        if (eventBus != null) {
+            eventBus.unsubscribe(this);
+        }
     }
 }
