@@ -143,6 +143,7 @@ public class GameScene extends Scene {
             collisionManager.setCollisionSound("bell.mp3");
             Gdx.app.log("CollisionManager", "Initialized with collision sound");
 
+            Gdx.app.log("Scene", "GameScene Publishing 'GAME_START' Event");
             context.getEventBus().publish(new GameEvent(EventType.GAME_START));
 
             context.getAudioController().setMusic("Music_Game.mp3");
@@ -155,7 +156,7 @@ public class GameScene extends Scene {
             Gdx.app.log("ECS", "EntityManager initialized with " + context.getEntityManager().getAllEntities().size() + " entities");
             Gdx.app.log("Scene", "Entity definitions passed to EntityManager - entities created");
         } else {
-            Gdx.app.log("Scene", "Resuming existing game state...");
+            Gdx.app.log("Scene", "GameScene Publishing 'GAME_RESUMED' Event");
             context.getEventBus().publish(new GameEvent(EventType.GAME_RESUMED));
         }
     }
@@ -185,20 +186,20 @@ public class GameScene extends Scene {
 
         // Input handling
         if (context.getInputController().isActionJustPressed("SETTINGS")) {
-            Gdx.app.log("Input", "Key binded to 'SETTINGS' action was pressed");
+            Gdx.app.log("InputController", "Key binded to 'SETTINGS' action was pressed");
             isGoingToSettings = true;
             sceneManager.requestScene(new SettingsScene(sceneManager, this));
         }
         if (context.getInputController().isActionJustPressed("BACK")) {
-            Gdx.app.log("Input", "Key binded to 'BACK' action was pressed");
+            Gdx.app.log("InputController", "Key binded to 'BACK' action was pressed");
             isGoingToSettings = false;
             sceneManager.requestScene(new MainMenuScene(sceneManager));
         }
         if (context.getInputController().isActionJustPressed("SHOOT")) {
-            Gdx.app.log("Input", "Key binded to 'SHOOT' action was pressed");
+            Gdx.app.log("InputController", "Key binded to 'SHOOT' action was pressed");
             // PLAY SOUND
             context.getAudioController().playSound("Sound_Boom.mp3");
-            Gdx.app.log("Audio Output", "Boom Sound played");
+            Gdx.app.log("AudioController", "Boom Sound played");
         }
 
         // =========== To show mouse coordinates when moving around ==========
@@ -438,8 +439,8 @@ public class GameScene extends Scene {
 
         if (isGoingToSettings) {
             // publish Event to notify relevant managers of change in game state
-            GameEvent pauseEvent = new GameEvent(EventType.GAME_PAUSED);
-            context.getEventBus().publish(pauseEvent);
+            Gdx.app.log("Scene", "GameScene Publishing 'GAME_PAUSED' Event");
+            context.getEventBus().publish(new GameEvent(EventType.GAME_PAUSED));
 
             Gdx.app.log("Scene", "GameScene state preserved (Going to Settings)");
             isGoingToSettings = false;
@@ -450,8 +451,6 @@ public class GameScene extends Scene {
 
     @Override
     protected void onDispose() {
-        Gdx.app.log("Scene", "GameScene diposed");
-
         // Clear the EntityManager (owned by context, so clear instead of dispose)
         context.getEntityManager().clear();
         Gdx.app.log("ECS", "GameScene EntityManager cleared");
@@ -466,5 +465,7 @@ public class GameScene extends Scene {
         if (shapeRenderer != null) {
             shapeRenderer.dispose();
         }
+        
+        Gdx.app.log("Scene", "GameScene diposed");
     }
 }

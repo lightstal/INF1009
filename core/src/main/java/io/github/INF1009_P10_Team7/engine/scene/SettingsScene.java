@@ -100,7 +100,7 @@ public class SettingsScene extends Scene {
         }
 
         volume01 = context.getAudioController().getMusicVolume();
-        Gdx.app.log("SettingsScene", "Loaded current volume: " + (int)(volume01 * 100) + "%");
+        Gdx.app.log("AudioController", "SettingScene Loaded current volume: " + (int)(volume01 * 100) + "%");
 
         recalcUI(); // compute positions once
 
@@ -133,6 +133,7 @@ public class SettingsScene extends Scene {
 
         // Keyboard return (your existing action)
         if (context.getInputController().isActionJustPressed("BACK")) {
+            Gdx.app.log("InputController", "Key binded to 'BACK' action was pressed");
             sceneManager.requestScene(previousScene);
             return;
         }
@@ -165,7 +166,6 @@ public class SettingsScene extends Scene {
             }
         }
 
-        // CRITICAL FIX: Send volume change event when volume changes
         if (Math.abs(volume01 - previousVolume) > 0.001f) {
             updateGameVolume();
         }
@@ -297,7 +297,7 @@ public class SettingsScene extends Scene {
 
     @Override
     protected void onUnload() {
-        Gdx.app.log("Scene", "SettingsScene unloaded");
+        Gdx.app.log("Scene", "SettingsScene unloading...");
         dispose();
     }
 
@@ -307,5 +307,6 @@ public class SettingsScene extends Scene {
         if (batch != null) { batch.dispose(); batch = null; }
         if (font != null) { font.dispose(); font = null; }
         if (entityManager != null) { entityManager.dispose(); entityManager = null; }
+        Gdx.app.log("Scene", "SettingsScene diposed");
     }
 }

@@ -34,7 +34,7 @@ public class MainMenuScene extends Scene {
         Gdx.app.log("Scene", "MainMenuScene loaded");
 
         context.getAudioController().setMusic("Music_Menu.mp3");
-        Gdx.app.log("Audio Output", "MainMenu Music loaded");
+        Gdx.app.log("AudioController", "MainMenu Music loaded");
 
 
         // =========== Created start button ===============
@@ -87,7 +87,7 @@ public class MainMenuScene extends Scene {
         stage.act(delta); // ==== handles visuals
 
         if (context.getInputController().isActionJustPressed("START_GAME")) {
-            Gdx.app.log("Input", "Key binded to 'START_GAME' action was pressed");
+            Gdx.app.log("InputController", "Key binded to 'START_GAME' action was pressed");
             sceneManager.requestScene(new GameScene(sceneManager));
         }
 
@@ -118,7 +118,7 @@ public class MainMenuScene extends Scene {
     @Override
     protected void onUnload() {
         // Log for testing
-        Gdx.app.log("Scene", "MainMenuScene unloaded");
+        Gdx.app.log("Scene", "MainMenuScene unloading...");
         dispose();
     }
 
