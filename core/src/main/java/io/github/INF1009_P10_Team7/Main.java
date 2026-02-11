@@ -33,7 +33,7 @@ public class Main extends ApplicationAdapter {
         entityManager = new EntityManager(eventBus);
 
         // Initialize CollisionManager
-        collisionManager = new CollisionManager(inputOutputManager.getAudioOutput());
+        collisionManager = new CollisionManager(inputOutputManager);
         collisionManager.setCollisionSound("bell.mp3");
         Gdx.app.log("Main", "CollisionManager initialized");
 

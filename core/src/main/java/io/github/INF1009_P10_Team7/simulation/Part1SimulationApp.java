@@ -48,7 +48,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
         inputOutputManager = new InputOutputManager(eventBus);
         entityManager = new EntityManager(eventBus);
 
-        collisionManager = new CollisionManager(inputOutputManager.getAudioOutput());
+        collisionManager = new CollisionManager(inputOutputManager);
         collisionManager.setCollisionSound("bell.mp3");
         Gdx.app.log("SIM", "CollisionManager initialized in SimulationApp");
 
