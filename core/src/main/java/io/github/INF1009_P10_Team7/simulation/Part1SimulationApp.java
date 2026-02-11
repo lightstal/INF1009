@@ -12,6 +12,7 @@ import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
+import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
 
 /**
  * Part1SimulationApp
@@ -32,6 +33,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
     private InputOutputManager inputOutputManager;
     private EntityManager entityManager;
     private EventBus eventBus;
+    private CollisionManager collisionManager;
 
     @Override
     public void create() {
@@ -46,6 +48,10 @@ public class Part1SimulationApp extends ApplicationAdapter {
         inputOutputManager = new InputOutputManager(eventBus);
         entityManager = new EntityManager(eventBus);
 
+        collisionManager = new CollisionManager(inputOutputManager.getAudioOutput());
+        collisionManager.setCollisionSound("bell.mp3");
+        Gdx.app.log("SIM", "CollisionManager initialized in SimulationApp");
+
         inputOutputManager.bindKey("START_GAME", Input.Keys.SPACE);
         inputOutputManager.bindKey("RESTART_GAME", Input.Keys.R);
         inputOutputManager.bindKey("SETTINGS", Input.Keys.ESCAPE);
@@ -57,7 +63,8 @@ public class Part1SimulationApp extends ApplicationAdapter {
         GameContext context = new ContextImplementation(
             eventBus,
             inputOutputManager,
-            entityManager
+            entityManager,
+            collisionManager
         );
 
         sceneManager = new SceneManager(context);
@@ -89,9 +96,12 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
     @Override
     public void dispose() {
-        // Rubric: end without errors
         Gdx.app.log("SIM", "Part1SimulationApp dispose(): end (clean shutdown)");
         sceneManager.dispose();
+        if (collisionManager != null) {
+            collisionManager.clear();
+            Gdx.app.log("SIM", "CollisionManager cleared");
+        }
         inputOutputManager.dispose();
     }
 }

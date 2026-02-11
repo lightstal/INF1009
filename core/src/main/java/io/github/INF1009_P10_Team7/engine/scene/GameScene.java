@@ -47,7 +47,6 @@ public class GameScene extends Scene {
 
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
-    private CollisionManager collisionManager;
 
     // Store references to created entities (for rendering logic)
     private Map<String, GameEntity> entities;
@@ -138,11 +137,6 @@ public class GameScene extends Scene {
             camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             shapeRenderer = new ShapeRenderer();
 
-            // Initialize the Collision Manager
-            collisionManager = new CollisionManager(context.getAudioController());
-            collisionManager.setCollisionSound("bell.mp3");
-            Gdx.app.log("CollisionManager", "Initialized with collision sound");
-
             Gdx.app.log("Scene", "GameScene Publishing 'GAME_START' Event");
             context.getEventBus().publish(new GameEvent(EventType.GAME_START));
 
@@ -150,9 +144,8 @@ public class GameScene extends Scene {
             Gdx.app.log("Audio Output", "Game Music loaded");
 
             // Pass entity definitions to EntityManager - it creates the entities
-            entities = context.getEntityManager().createEntitiesFromDefinitions(entityDefinitions, collisionManager);
-
-            Gdx.app.log("CollisionManager", "Registered " + collisionManager.getCollidableCount() + " collidable entities");
+            entities = context.getEntityManager().createEntitiesFromDefinitions(entityDefinitions, context.getCollisionManager());
+            Gdx.app.log("CollisionManager", "Registered " + context.getCollisionManager().getCollidableCount() + " collidable entities");
             Gdx.app.log("ECS", "EntityManager initialized with " + context.getEntityManager().getAllEntities().size() + " entities");
             Gdx.app.log("Scene", "Entity definitions passed to EntityManager - entities created");
         } else {
@@ -175,7 +168,7 @@ public class GameScene extends Scene {
         applyBoundaries();
 
         // Update collision detection and resolution
-        collisionManager.update(delta);
+        context.getCollisionManager().update(delta);
 
         // Periodically log entity positions to demonstrate movement
         logTimer += delta;
@@ -456,16 +449,16 @@ public class GameScene extends Scene {
         Gdx.app.log("ECS", "GameScene EntityManager cleared");
 
         // Clean up the CollisionManager
-        if (collisionManager != null) {
-            collisionManager.clear();
-            Gdx.app.log("CollisionManager", "CollisionManager cleared");
+        if (context.getCollisionManager() != null) {
+            context.getCollisionManager().clear();
+            Gdx.app.log("CollisionManager", "Scene collision entities cleared");
         }
 
         // Dispose of renderer resources
         if (shapeRenderer != null) {
             shapeRenderer.dispose();
         }
-        
+
         Gdx.app.log("Scene", "GameScene diposed");
     }
 }

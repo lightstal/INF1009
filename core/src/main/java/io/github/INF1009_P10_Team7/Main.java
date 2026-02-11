@@ -11,6 +11,7 @@ import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
+import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
 
 /**
  * Main (future real game entry point).
@@ -23,6 +24,7 @@ public class Main extends ApplicationAdapter {
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
     private EntityManager entityManager;
+    private CollisionManager collisionManager;
 	private EventBus eventBus;
     @Override
     public void create() {
@@ -30,10 +32,16 @@ public class Main extends ApplicationAdapter {
         inputOutputManager = new InputOutputManager(eventBus);
         entityManager = new EntityManager(eventBus);
 
+        // Initialize CollisionManager
+        collisionManager = new CollisionManager(inputOutputManager.getAudioOutput());
+        collisionManager.setCollisionSound("bell.mp3");
+        Gdx.app.log("Main", "CollisionManager initialized");
+
         GameContext context = new ContextImplementation(
             eventBus,
             inputOutputManager,
-            entityManager
+            entityManager,
+            collisionManager  // ADD THIS PARAMETER
         );
 
         sceneManager = new SceneManager(context);
@@ -62,6 +70,10 @@ public class Main extends ApplicationAdapter {
     @Override
     public void dispose() {
         sceneManager.dispose();
+        if (collisionManager != null) {
+            collisionManager.clear();
+            Gdx.app.log("Main", "CollisionManager cleared");
+        }
         if (inputOutputManager != null) {
             inputOutputManager.dispose();
         }
