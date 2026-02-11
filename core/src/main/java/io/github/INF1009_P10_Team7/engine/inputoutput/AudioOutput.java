@@ -22,7 +22,7 @@ import io.github.INF1009_P10_Team7.engine.events.GameEvent;
  * </ul>
  * It ensures resources are disposed of correctly to prevent memory leaks.
  */
-public class AudioOutput implements AudioController, EventListener {
+public class AudioOutput implements EventListener {
     private MusicState musicState;
     private Music currentMusic;
     private EventBus eventBus;

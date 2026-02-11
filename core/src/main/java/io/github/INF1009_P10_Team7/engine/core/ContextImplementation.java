@@ -21,7 +21,7 @@ public class ContextImplementation implements GameContext {
                                  CollisionManager collisionManager) {
         this.eventBus = eventBus;
         this.inputController = inputOutputManager;
-        this.audioController = inputOutputManager.getAudioOutput();
+        this.audioController = inputOutputManager;
         this.entityManager = entityManager;
         this.collisionManager = collisionManager;
     }

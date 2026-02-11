@@ -3,6 +3,8 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.badlogic.gdx.Gdx;
+
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
 
 /**
@@ -17,7 +19,7 @@ import io.github.INF1009_P10_Team7.engine.events.EventBus;
  * <li>Delegating audio requests to the {@link AudioOutput} system.</li>
  * </ul>
  */
-public class InputOutputManager implements InputController{
+public class InputOutputManager implements InputController, AudioController{
 	
 	/**
      * An arbitrary offset added to mouse button codes to distinguish them from keyboard key codes.
@@ -28,8 +30,8 @@ public class InputOutputManager implements InputController{
     private static final int MOUSE_OFFSET = 300;
 	
 	private AudioOutput audioOutput;
-	private KeyboardDevice keyboard;
-    private MouseDevice mouse;
+	private DeviceInput keyboard;
+    private DeviceInput mouse;
 
     /**
      * Stores the current input bindings.
@@ -49,10 +51,6 @@ public class InputOutputManager implements InputController{
         
         this.keyBindings = new HashMap<>();
 	}
-	
-	public AudioOutput getAudioOutput() {
-        return audioOutput;
-    }
 
 	// --- Lifecycle Methods ---
     
@@ -73,6 +71,7 @@ public class InputOutputManager implements InputController{
      */
     public void dispose() {
         audioOutput.dispose();
+        Gdx.app.log("InputOutputManager", "InputOutputManager disposed");
     }
     
     
@@ -156,4 +155,43 @@ public class InputOutputManager implements InputController{
         // In MouseDevice, you defined axis 1 as Y
         return mouse.getAxis(1);
     }
+
+	@Override
+	public float getMusicVolume() {
+		return audioOutput.getMusicVolume();
+	}
+
+	@Override
+	public float getSoundVolume() {
+		return audioOutput.getSoundVolume();
+	}
+
+	@Override
+	public void setMusicVolume(float volume) {
+		audioOutput.setMusicVolume(volume);
+		
+	}
+
+	@Override
+	public void setSoundVolume(float volume) {
+		audioOutput.setSoundVolume(volume);
+		
+	}
+
+	@Override
+	public void setMusic(String filePath) {
+		audioOutput.setMusic(filePath);
+		
+	}
+
+	@Override
+	public void stopMusic() {
+		audioOutput.stopMusic();
+		
+	}
+
+	@Override
+	public void playSound(String filePath) {
+		audioOutput.playSound(filePath);
+	}
 }
