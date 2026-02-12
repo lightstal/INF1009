@@ -8,9 +8,9 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 import java.util.Map;
 
 
-// Create following with SRP and OCP principle.
+// following OOP, SRP and OCP principle
 public class PlayerMovement implements MovementHandler {
-    // This map the keys and vector to their position
+    // using MAP to map out the vector and keys name by list
     private final Map<String, Vector2> moveDirections = new HashMap<>();
 
     public PlayerMovement() {
@@ -24,9 +24,9 @@ public class PlayerMovement implements MovementHandler {
     @Override
     public void handle(PhysicComponent physics, InputController input) {
         Vector2 velocity = physics.getVelocity();
-        velocity.set(0, 0); // Dispose
+        velocity.set(0, 0); // dispose
 
-        // When action is pressed, then move
+        // when action is pressed, then move
         for (String action : moveDirections.keySet()) {
             if (input.isActionPressed(action)) {
                 velocity.add(moveDirections.get(action));

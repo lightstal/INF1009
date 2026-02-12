@@ -63,7 +63,7 @@ public class GameScene extends Scene {
         initializeEntityDefinitions();
     }
 
-    // Declare MovementHandler interface
+    // declare MovementHandler interface
     private MovementHandler movementLogic = new PlayerMovement();
 
     /**
