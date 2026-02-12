@@ -12,6 +12,7 @@ import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
+import io.github.INF1009_P10_Team7.engine.movement.MovementManager;  // ← ADD THIS IMPORT
 
 /**
  * Main (future real game entry point).
@@ -25,7 +26,9 @@ public class Main extends ApplicationAdapter {
     private InputOutputManager inputOutputManager;
     private EntityManager entityManager;
     private CollisionManager collisionManager;
-	private EventBus eventBus;
+    private MovementManager movementManager;  // ← ADD THIS FIELD
+    private EventBus eventBus;
+    
     @Override
     public void create() {
         eventBus = new EventBus();
@@ -37,11 +40,16 @@ public class Main extends ApplicationAdapter {
         collisionManager.setCollisionSound("bell.mp3");
         Gdx.app.log("Main", "CollisionManager initialized");
 
+        // Initialize MovementManager - ADD THESE 2 LINES
+        movementManager = new MovementManager();
+        Gdx.app.log("Main", "MovementManager initialized");
+
         GameContext context = new ContextImplementation(
             eventBus,
             inputOutputManager,
             entityManager,
-            collisionManager  // ADD THIS PARAMETER
+            collisionManager,
+            movementManager  // ← ADD THIS PARAMETER (don't forget comma above!)
         );
 
         sceneManager = new SceneManager(context);
@@ -57,6 +65,9 @@ public class Main extends ApplicationAdapter {
         float dt = Gdx.graphics.getDeltaTime();
 
         inputOutputManager.update();
+        
+        // ADD THIS LINE
+        movementManager.updateAll(dt);
 
         sceneManager.update(dt);
         sceneManager.render();
@@ -73,6 +84,11 @@ public class Main extends ApplicationAdapter {
         if (collisionManager != null) {
             collisionManager.clear();
             Gdx.app.log("Main", "CollisionManager cleared");
+        }
+        // ADD THESE 4 LINES
+        if (movementManager != null) {
+            movementManager.clear();
+            Gdx.app.log("Main", "MovementManager cleared");
         }
         if (inputOutputManager != null) {
             inputOutputManager.dispose();
