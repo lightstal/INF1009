@@ -8,7 +8,6 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
 import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
 import io.github.INF1009_P10_Team7.engine.core.GameContext;
-import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
@@ -24,7 +23,6 @@ public class Main extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
-    private EntityManager entityManager;
     private CollisionManager collisionManager;
     private MovementManager movementManager;  // ← ADD THIS FIELD
     private EventBus eventBus;
@@ -33,7 +31,6 @@ public class Main extends ApplicationAdapter {
     public void create() {
         eventBus = new EventBus();
         inputOutputManager = new InputOutputManager(eventBus);
-        entityManager = new EntityManager(eventBus);
 
         // Initialize CollisionManager
         collisionManager = new CollisionManager(inputOutputManager);
@@ -47,9 +44,8 @@ public class Main extends ApplicationAdapter {
         GameContext context = new ContextImplementation(
             eventBus,
             inputOutputManager,
-            entityManager,
             collisionManager,
-            movementManager  // ← ADD THIS PARAMETER (don't forget comma above!)
+            movementManager
         );
 
         sceneManager = new SceneManager(context);

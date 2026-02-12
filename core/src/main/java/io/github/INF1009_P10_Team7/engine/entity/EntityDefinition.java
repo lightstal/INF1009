@@ -67,7 +67,7 @@ public class EntityDefinition {
         private float movementSpeed = 0f;
         private Entity targetEntity = null;
         private CollisionResolution.ResolutionType resolutionType = CollisionResolution.ResolutionType.BOUNCE;
-
+k
         public Builder(String name, EntityType type, Vector2 position) {
             this.name = name;
             this.type = type;

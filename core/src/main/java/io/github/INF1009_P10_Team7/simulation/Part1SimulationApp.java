@@ -9,7 +9,6 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
 import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
 import io.github.INF1009_P10_Team7.engine.core.GameContext;
-import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
@@ -32,7 +31,6 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
-    private EntityManager entityManager;
     private EventBus eventBus;
     private CollisionManager collisionManager;
     private MovementManager movementManager;  // ← ADD THIS LINE
@@ -48,7 +46,6 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
         eventBus = new EventBus();
         inputOutputManager = new InputOutputManager(eventBus);
-        entityManager = new EntityManager(eventBus);
 
         collisionManager = new CollisionManager(inputOutputManager);
         collisionManager.setCollisionSound("bell.mp3");
@@ -69,9 +66,8 @@ public class Part1SimulationApp extends ApplicationAdapter {
         GameContext context = new ContextImplementation(
             eventBus,
             inputOutputManager,
-            entityManager,
             collisionManager,
-            movementManager  
+            movementManager
         );
 
         sceneManager = new SceneManager(context);

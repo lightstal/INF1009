@@ -35,7 +35,6 @@ public class SettingsScene extends Scene {
     private GlyphLayout layout;
 
     // ECS
-    private EntityManager entityManager;
     @SuppressWarnings("unused")
     private Map<String, GameEntity> entities;
 

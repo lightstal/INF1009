@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
+import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
 import io.github.INF1009_P10_Team7.engine.entity.components.MovementComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
@@ -143,10 +144,13 @@ public class GameScene extends Scene {
             context.getAudioController().setMusic("Music_Game.mp3");
             Gdx.app.log("Audio Output", "Game Music loaded");
 
+            // Scene owns its EntityManager - create it here
+            entityManager = new EntityManager(context.getEventBus());
+
             // Pass entity definitions to EntityManager - it creates the entities
-            entities = context.getEntityManager().createEntitiesFromDefinitions(entityDefinitions, context.getCollisionManager());
+            entities = entityManager.createEntitiesFromDefinitions(entityDefinitions, context.getCollisionManager());
             Gdx.app.log("CollisionManager", "Registered " + context.getCollisionManager().getCollidableCount() + " collidable entities");
-            Gdx.app.log("ECS", "EntityManager initialized with " + context.getEntityManager().getAllEntities().size() + " entities");
+            Gdx.app.log("ECS", "EntityManager initialized with " + entityManager.getAllEntities().size() + " entities");
             Gdx.app.log("Scene", "Entity definitions passed to EntityManager - entities created");
         } else {
             Gdx.app.log("Scene", "GameScene Publishing 'GAME_RESUMED' Event");
@@ -162,7 +166,7 @@ public class GameScene extends Scene {
     @Override
     protected void onUpdate(float delta) {
         // Update all entities in the ECS (includes movement components)
-        context.getEntityManager().updateAll(delta);
+        entityManager.updateAll(delta);
 
         // Apply boundary constraints to keep entities on screen
         applyBoundaries();
@@ -290,7 +294,7 @@ public class GameScene extends Scene {
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
 
-        for (Entity entity : context.getEntityManager().getAllEntities()) {
+        for (Entity entity : entityManager.getAllEntities()) {
             if (!entity.isActive()) continue;
 
             TransformComponent transform = entity.getComponent(TransformComponent.class);
@@ -374,7 +378,7 @@ public class GameScene extends Scene {
         // Render all entities with TransformComponent
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        for (Entity entity : context.getEntityManager().getAllEntities()) {
+        for (Entity entity : entityManager.getAllEntities()) {
             TransformComponent transform = entity.getComponent(TransformComponent.class);
             if (transform == null) continue;
 
@@ -444,9 +448,12 @@ public class GameScene extends Scene {
 
     @Override
     protected void onDispose() {
-        // Clear the EntityManager (owned by context, so clear instead of dispose)
-        context.getEntityManager().clear();
-        Gdx.app.log("ECS", "GameScene EntityManager cleared");
+        // Dispose the EntityManager (owned by this scene)
+        if (entityManager != null) {
+            entityManager.dispose();
+            entityManager = null;
+        }
+        Gdx.app.log("ECS", "GameScene EntityManager disposed");
 
         // Clean up the CollisionManager
         if (context.getCollisionManager() != null) {

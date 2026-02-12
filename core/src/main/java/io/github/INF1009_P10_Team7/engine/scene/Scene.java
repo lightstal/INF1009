@@ -2,6 +2,7 @@ package io.github.INF1009_P10_Team7.engine.scene;
 
 import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
+import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,9 @@ public abstract class Scene {
 
     // Tracks whether this scene is currently active/loaded
     private boolean loaded = false;
+
+    // Scene owns its own EntityManager (created per-scene lifecycle)
+    protected EntityManager entityManager;
 
     // Stores entity definitions for this scene (data only, no instantiation)
     protected List<EntityDefinition> entityDefinitions;
