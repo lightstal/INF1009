@@ -24,6 +24,8 @@ import io.github.INF1009_P10_Team7.engine.collision.CollisionResolution;
 
 // For Movement Behaviors
 import io.github.INF1009_P10_Team7.engine.movement.LinearMovement;
+import io.github.INF1009_P10_Team7.engine.movement.MovementHandler;
+import io.github.INF1009_P10_Team7.engine.movement.PlayerMovement;
 
 import java.util.Map;
 
@@ -60,6 +62,9 @@ public class GameScene extends Scene {
         // Populate entity definitions (stored in parent Scene class)
         initializeEntityDefinitions();
     }
+
+    // Declare MovementHandler interface
+    private MovementHandler movementLogic = new PlayerMovement();
 
     /**
      * Define what entities should exist in this scene.
@@ -156,6 +161,8 @@ public class GameScene extends Scene {
             Gdx.app.log("Scene", "GameScene Publishing 'GAME_RESUMED' Event");
             context.getEventBus().publish(new GameEvent(EventType.GAME_RESUMED));
         }
+
+        movementLogic = new PlayerMovement(); // instance PlayerMovement
     }
 
 
@@ -203,28 +210,15 @@ public class GameScene extends Scene {
         // =========== This will be commented to prevent log spam ========
         // Gdx.app.log("MouseTest", "X: " + inputController.getMouseX() + " Y: " + inputController.getMouseY());
 
-        // TO IMPLEMENT IO WITH COMPONENT!!
-        // TO REMOVE LOGIC WHEN SUMBITTING
+        // For Component and Entity to use MovementHandler interface
         GameEntity player = entities.get("Player");
-        if (player != null) {
-            PhysicComponent physics = player.getComponent(PhysicComponent.class);
+        PhysicComponent physics = player.getComponent(PhysicComponent.class);
 
-            if (physics != null) {
-                float speed = 200f; // How fast it moves
-                Vector2 velocity = physics.getVelocity();
-
-                if (context.getInputController().isActionPressed("LEFT")) {
-                    // FOR LOGIC
-                    velocity.x = -speed; // LEFT
-                } else if (context.getInputController().isActionPressed("RIGHT")) {
-                    // FOR LOGIC
-                    velocity.x = speed; // RIGHT
-                } else {
-                    // FOR LOGIC
-                    physics.setVelocity(0, 0); // STOP
-                }
-            }
+        // To check if Component move
+        if (movementLogic != null) {
+            movementLogic.handle(physics, context.getInputController());
         }
+
     }
 
     /**
