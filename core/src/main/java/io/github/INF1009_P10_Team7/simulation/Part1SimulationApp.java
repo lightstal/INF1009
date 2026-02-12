@@ -61,6 +61,8 @@ public class Part1SimulationApp extends ApplicationAdapter {
         inputOutputManager.bindKey("BACK", Input.Keys.BACKSPACE);
         inputOutputManager.bindKey("LEFT", Input.Keys.A);
         inputOutputManager.bindKey("RIGHT", Input.Keys.D);
+        inputOutputManager.bindKey("UP", Input.Keys.W);
+        inputOutputManager.bindKey("DOWN", Input.Keys.S);
         inputOutputManager.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
         GameContext context = new ContextImplementation(
