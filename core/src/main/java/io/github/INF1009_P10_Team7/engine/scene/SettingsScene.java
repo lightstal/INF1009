@@ -1,6 +1,5 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +11,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -59,8 +57,6 @@ public class SettingsScene extends Scene {
     // For key binding
     private boolean isRebinding = false;
     private String actionToRebind = null;
-    private Rectangle sliderRect;
-    private Rectangle backBtnRect;
     private List<InputBindElement> InputBindElement;
 
     public SettingsScene(SceneManager sceneManager, Scene previousScene) {
@@ -152,9 +148,6 @@ public class SettingsScene extends Scene {
         // initializing from inputbindelement by oop
         InputBindElement = new java.util.ArrayList<>();
 
-        // rectangle for button
-        sliderRect = new Rectangle((VW - 300) / 2, 450, 300, 20);
-        backBtnRect = new Rectangle((VW - 200) / 2, 60, 200, 50);
 
         // row 1 --- left and right
         InputBindElement.add(new InputBindElement("LEFT", startX - btnW - gap, startY, btnW, btnH));

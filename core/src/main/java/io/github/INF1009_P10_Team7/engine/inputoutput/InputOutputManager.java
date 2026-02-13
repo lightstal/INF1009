@@ -46,7 +46,6 @@ public class InputOutputManager implements InputController, AudioController {
      * {@code Action Name (String) -> Key/Button Code (Integer)}.
      */
     private Map<String, Integer> keyBindings;
-    private InputCallback pendingCallback = null;
 
     /**
      * Initializes the InputOutputManager and its sub-components (Audio, Keyboard,
