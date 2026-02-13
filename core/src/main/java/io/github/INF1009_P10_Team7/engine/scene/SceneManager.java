@@ -1,7 +1,5 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.core.GameContext;
-
 /**
  * SceneManager (UML requirement)
  *
@@ -20,18 +18,8 @@ public class SceneManager {
 
     // Next requested scene (applied at start of update)
     private Scene pendingScene;
-
-    private final GameContext context;
     
-    public SceneManager(GameContext context) {
-    	if (context == null) {
-            throw new IllegalArgumentException("GameContext cannot be null");
-        }
-    	this.context = context;
-    }
-    
-    public GameContext getContext() {
-        return context;
+    public SceneManager() {
     }
 
     /**

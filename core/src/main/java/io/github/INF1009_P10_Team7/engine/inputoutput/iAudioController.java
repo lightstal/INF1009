@@ -1,6 +1,6 @@
 package io.github.INF1009_P10_Team7.engine.inputoutput;
 
-public interface AudioController {
+public interface iAudioController {
     // Getters (Retrieve Values)
     float getMusicVolume();
     float getSoundVolume();
@@ -13,4 +13,5 @@ public interface AudioController {
     void setMusic(String filePath);
     void stopMusic();
     void playSound(String filePath);
+    void setMusicState(String newState);
 }

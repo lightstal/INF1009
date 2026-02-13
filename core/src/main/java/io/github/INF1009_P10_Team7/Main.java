@@ -6,9 +6,6 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
-import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
-import io.github.INF1009_P10_Team7.engine.core.GameContext;
-import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
 import io.github.INF1009_P10_Team7.engine.movement.MovementManager;  // ← ADD THIS IMPORT
@@ -25,12 +22,10 @@ public class Main extends ApplicationAdapter {
     private InputOutputManager inputOutputManager;
     private CollisionManager collisionManager;
     private MovementManager movementManager;  // ← ADD THIS FIELD
-    private EventBus eventBus;
     
     @Override
     public void create() {
-        eventBus = new EventBus();
-        inputOutputManager = new InputOutputManager(eventBus);
+        inputOutputManager = new InputOutputManager();
 
         // Initialize CollisionManager
         collisionManager = new CollisionManager(inputOutputManager);
@@ -41,17 +36,10 @@ public class Main extends ApplicationAdapter {
         movementManager = new MovementManager();
         Gdx.app.log("Main", "MovementManager initialized");
 
-        GameContext context = new ContextImplementation(
-            eventBus,
-            inputOutputManager,
-            collisionManager,
-            movementManager
-        );
-
-        sceneManager = new SceneManager(context);
+        sceneManager = new SceneManager();
 
         // Start with MainMenu scene
-        sceneManager.setScene(new MainMenuScene(sceneManager));
+//        sceneManager.setScene(new MainMenuScene(sceneManager));
     }
 
     @Override

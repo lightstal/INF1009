@@ -13,9 +13,8 @@ import io.github.INF1009_P10_Team7.engine.entity.components.MovementComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.SpriteComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.TransformComponent;
-import io.github.INF1009_P10_Team7.engine.events.EventType;
-import io.github.INF1009_P10_Team7.engine.events.GameEvent;
-
+import io.github.INF1009_P10_Team7.engine.inputoutput.iAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.iInputController;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 // For Collision
@@ -50,15 +49,20 @@ public class GameScene extends Scene {
 
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
+    private CollisionManager collisionManager;
+    private final Runnable onBackToMenu;
 
     // Store references to created entities (for rendering logic)
     private Map<String, GameEntity> entities;
 
     private boolean isGoingToSettings = false;
 
-    public GameScene(SceneManager sceneManager) {
-        super(sceneManager);
-
+    public GameScene(SceneManager sceneManager, iAudioController iAudioController, iInputController iInputController, CollisionManager collisionManager, Runnable onBackToMenu) {
+        super(sceneManager, iAudioController, iInputController);
+        this.collisionManager = collisionManager;
+        this.onBackToMenu = onBackToMenu;
+        
+    
         // Populate entity definitions (stored in parent Scene class)
         initializeEntityDefinitions();
     }
@@ -143,23 +147,21 @@ public class GameScene extends Scene {
             camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             shapeRenderer = new ShapeRenderer();
 
-            Gdx.app.log("Scene", "GameScene Publishing 'GAME_START' Event");
-            context.getEventBus().publish(new GameEvent(EventType.GAME_START));
-
-            context.getAudioController().setMusic("Music_Game.mp3");
+            iAudioController.setMusic("Music_Game.mp3");
             Gdx.app.log("Audio Output", "Game Music loaded");
 
             // Scene owns its EntityManager - create it here
-            entityManager = new EntityManager(context.getEventBus());
+            entityManager = new EntityManager();
 
             // Pass entity definitions to EntityManager - it creates the entities
-            entities = entityManager.createEntitiesFromDefinitions(entityDefinitions, context.getCollisionManager());
-            Gdx.app.log("CollisionManager", "Registered " + context.getCollisionManager().getCollidableCount() + " collidable entities");
+            entities = entityManager.createEntitiesFromDefinitions(entityDefinitions, collisionManager);
+            Gdx.app.log("CollisionManager", "Registered " + collisionManager.getCollidableCount() + " collidable entities");
             Gdx.app.log("ECS", "EntityManager initialized with " + entityManager.getAllEntities().size() + " entities");
             Gdx.app.log("Scene", "Entity definitions passed to EntityManager - entities created");
         } else {
-            Gdx.app.log("Scene", "GameScene Publishing 'GAME_RESUMED' Event");
-            context.getEventBus().publish(new GameEvent(EventType.GAME_RESUMED));
+//            Gdx.app.log("Scene", "GameScene Publishing 'GAME_RESUMED' Event");
+//            context.getEventBus().publish(new GameEvent(EventType.GAME_RESUMED));
+        	iAudioController.setMusicState("playing");
         }
 
         movementLogic = new PlayerMovement(); // instance PlayerMovement
@@ -179,7 +181,7 @@ public class GameScene extends Scene {
         applyBoundaries();
 
         // Update collision detection and resolution
-        context.getCollisionManager().update(delta);
+        collisionManager.update(delta);
 
         // Periodically log entity positions to demonstrate movement
         logTimer += delta;
@@ -189,20 +191,22 @@ public class GameScene extends Scene {
         }
 
         // Input handling
-        if (context.getInputController().isActionJustPressed("SETTINGS")) {
+        if (iInputController.isActionJustPressed("SETTINGS")) {
             Gdx.app.log("InputController", "Key binded to 'SETTINGS' action was pressed");
             isGoingToSettings = true;
-            sceneManager.requestScene(new SettingsScene(sceneManager, this));
+            sceneManager.requestScene(new SettingsScene(sceneManager, iAudioController, iInputController, () -> sceneManager.requestScene(this)));
         }
-        if (context.getInputController().isActionJustPressed("BACK")) {
+        if (iInputController.isActionJustPressed("BACK")) {
             Gdx.app.log("InputController", "Key binded to 'BACK' action was pressed");
             isGoingToSettings = false;
-            sceneManager.requestScene(new MainMenuScene(sceneManager));
+//            sceneManager.requestScene(new MainMenuScene(sceneManager));
+            
+            onBackToMenu.run();
         }
-        if (context.getInputController().isActionJustPressed("SHOOT")) {
+        if (iInputController.isActionJustPressed("SHOOT")) {
             Gdx.app.log("InputController", "Key binded to 'SHOOT' action was pressed");
             // PLAY SOUND
-            context.getAudioController().playSound("Sound_Boom.mp3");
+            iAudioController.playSound("Sound_Boom.mp3");
             Gdx.app.log("AudioController", "Boom Sound played");
         }
 
@@ -216,7 +220,7 @@ public class GameScene extends Scene {
 
         // To check if Component move
         if (movementLogic != null) {
-            movementLogic.handle(physics, context.getInputController());
+            movementLogic.handle(physics, iInputController);
         }
 
     }
@@ -430,8 +434,10 @@ public class GameScene extends Scene {
 
         if (isGoingToSettings) {
             // publish Event to notify relevant managers of change in game state
-            Gdx.app.log("Scene", "GameScene Publishing 'GAME_PAUSED' Event");
-            context.getEventBus().publish(new GameEvent(EventType.GAME_PAUSED));
+//            Gdx.app.log("Scene", "GameScene Publishing 'GAME_PAUSED' Event");
+//            context.getEventBus().publish(new GameEvent(EventType.GAME_PAUSED));
+
+        	iAudioController.setMusicState("paused");
 
             Gdx.app.log("Scene", "GameScene state preserved (Going to Settings)");
             isGoingToSettings = false;
@@ -450,8 +456,8 @@ public class GameScene extends Scene {
         Gdx.app.log("ECS", "GameScene EntityManager disposed");
 
         // Clean up the CollisionManager
-        if (context.getCollisionManager() != null) {
-            context.getCollisionManager().clear();
+        if (collisionManager != null) {
+        	collisionManager.clear();
             Gdx.app.log("CollisionManager", "Scene collision entities cleared");
         }
 

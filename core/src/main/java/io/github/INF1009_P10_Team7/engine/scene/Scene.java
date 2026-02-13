@@ -1,8 +1,9 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.iInputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.iAudioController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,9 @@ import java.util.List;
 public abstract class Scene {
 
     protected final SceneManager sceneManager;
-    protected final GameContext context;
+    protected final iAudioController iAudioController;
+    protected final iInputController iInputController;
+    
 
     // Tracks whether this scene is currently active/loaded
     private boolean loaded = false;
@@ -35,9 +38,10 @@ public abstract class Scene {
     // Stores entity definitions for this scene (data only, no instantiation)
     protected List<EntityDefinition> entityDefinitions;
 
-    public Scene(SceneManager sceneManager) {
+    public Scene(SceneManager sceneManager, iAudioController iAudioController, iInputController iInputController) {
         this.sceneManager = sceneManager;
-        this.context = sceneManager.getContext();
+        this.iAudioController = iAudioController;
+        this.iInputController = iInputController;
         this.entityDefinitions = new ArrayList<>();
 
         // Child scenes should populate entityDefinitions in their constructor

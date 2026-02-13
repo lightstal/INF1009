@@ -14,50 +14,23 @@ import io.github.INF1009_P10_Team7.engine.entity.components.MovementComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.SpriteComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.TransformComponent;
-import io.github.INF1009_P10_Team7.engine.events.EventBus;
-import io.github.INF1009_P10_Team7.engine.events.EventListener;
-import io.github.INF1009_P10_Team7.engine.events.GameEvent;
-import io.github.INF1009_P10_Team7.engine.events.EventType;
 import io.github.INF1009_P10_Team7.engine.movement.AImovement;
 import io.github.INF1009_P10_Team7.engine.movement.FollowMovement;
 import io.github.INF1009_P10_Team7.engine.movement.LinearMovement;
-import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 // Manages a collection of entities, allowing for creation, addition, removal, and updating.
-public class EntityManager implements EventListener{
+public class EntityManager{
     private final Map<UUID, Entity> entities;
     private final List<Entity> pendingAdd;
     private final List<UUID> pendingRemove;
-    private Map<EventType, Runnable> eventActions = new HashMap<>();
-
-    private final EventBus eventBus;
 
     private boolean isPaused = false;
 
     // Creates a new EntityManager.
-    public EntityManager(EventBus eventBus) {
+    public EntityManager() {
         this.entities = new HashMap<>();
         this.pendingAdd = new ArrayList<>();
         this.pendingRemove = new ArrayList<>();
-        this.eventBus = eventBus;
-        
-        // Register logic specific to entities
-        eventActions.put(EventType.GAME_PAUSED, () -> this.isPaused = true);
-        eventActions.put(EventType.GAME_RESUMED, () -> this.isPaused = false);
-        eventActions.put(EventType.GAME_START, () -> this.clear());
-        
-        // Subscribe and Listen to specified Event Types
-        eventBus.subscribe(EventType.GAME_PAUSED, this);
-        eventBus.subscribe(EventType.GAME_RESUMED, this);
-        eventBus.subscribe(EventType.GAME_START, this);
-    }
-
-    @Override
-    public void onNotify(GameEvent event) {
-        Gdx.app.log("EntityManager - EventBus", "Event received: " + event.type);
-        if (eventActions.containsKey(event.type)) {
-            eventActions.get(event.type).run();
-        }
     }
 
     // Creates a new entity and schedules it for addition.
@@ -127,9 +100,6 @@ public class EntityManager implements EventListener{
     // Clears all entities from the manager.
     public void dispose() {
         clear();
-        if (eventBus != null) {
-            eventBus.unsubscribe(this);
-        }
     }
 
     /**

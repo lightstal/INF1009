@@ -7,11 +7,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 
-import io.github.INF1009_P10_Team7.engine.events.EventBus;
-import io.github.INF1009_P10_Team7.engine.events.EventListener;
-import io.github.INF1009_P10_Team7.engine.events.EventType;
-import io.github.INF1009_P10_Team7.engine.events.GameEvent;
-
 /**
  * Handles all audio operations for the game engine.
  * <p>
@@ -22,12 +17,9 @@ import io.github.INF1009_P10_Team7.engine.events.GameEvent;
  * </ul>
  * It ensures resources are disposed of correctly to prevent memory leaks.
  */
-public class AudioOutput implements EventListener {
+public class AudioOutput {
     private MusicState musicState;
     private Music currentMusic;
-    private EventBus eventBus;
-    
-    private Map<EventType, Runnable> eventActions = new HashMap<>();
 
     // Volume controls (0.0 to 1.0)
     private float musicVolume = 0.4f; // Default music volume
@@ -45,27 +37,10 @@ public class AudioOutput implements EventListener {
      * Initializes the audio system.
      * Sets the default music state to STOPPED and prepares the sound cache.
      */
-    public AudioOutput(EventBus eventBus) {
+    public AudioOutput() {
         this.currentMusic = null;
         this.musicState = MusicState.STOPPED; // Default state
         this.soundCache = new HashMap<>();
-        this.eventBus = eventBus;
-
-        // Register logic specific to musicState
-        eventActions.put(EventType.GAME_PAUSED, () -> this.setMusicState(MusicState.PAUSED));
-        eventActions.put(EventType.GAME_RESUMED, () -> this.setMusicState(MusicState.PLAYING));
-
-        // Listen for Logic Events (Pause/Resume)
-        eventBus.subscribe(EventType.GAME_PAUSED, this);
-        eventBus.subscribe(EventType.GAME_RESUMED, this);
-    }
-
-    @Override
-    public void onNotify(GameEvent event) {
-        Gdx.app.log("AudioOutput - EventBus", "Event received: " + event.type);
-        if (eventActions.containsKey(event.type)) {
-            eventActions.get(event.type).run();
-        }
     }
 
     /**
@@ -185,8 +160,5 @@ public class AudioOutput implements EventListener {
     public void dispose() {
         stopMusic();
         for (Sound s : soundCache.values()) s.dispose();
-        if (eventBus != null) {
-            eventBus.unsubscribe(this);
-        }
     }
 }

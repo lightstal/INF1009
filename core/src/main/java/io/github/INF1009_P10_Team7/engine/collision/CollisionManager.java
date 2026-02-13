@@ -10,7 +10,7 @@ import java.util.Set;
 import com.badlogic.gdx.Gdx;
 
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
-import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.iAudioController;
 
 /**
  * Main collision manager that coordinates collision detection and resolution.
@@ -22,7 +22,7 @@ public class CollisionManager {
     private final Map<String, CollisionResolution.ResolutionType> resolutionTypes;
     private final Map<String, CollisionResolution.CollisionCallback> callbacks;
     private final Set<String> activeCollisions; // Track which pairs are currently colliding
-    private final AudioController audioController;
+    private final iAudioController audioController;
 
     // Sound effect to play on collision
     private String collisionSoundPath = null;
@@ -33,7 +33,7 @@ public class CollisionManager {
      *
      * @param io InputOutputManager for playing collision sounds
      */
-    public CollisionManager(AudioController audioController) {
+    public CollisionManager(iAudioController audioController) {
         this.collidableObjects = new ArrayList<>();
         this.resolutionTypes = new HashMap<>();
         this.callbacks = new HashMap<>();

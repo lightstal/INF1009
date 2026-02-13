@@ -9,6 +9,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import io.github.INF1009_P10_Team7.engine.inputoutput.iAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.iInputController;
+
 /**
  * MainMenuScene
  *
@@ -23,9 +26,11 @@ public class MainMenuScene extends Scene {
     private Stage stage;
     private Skin skin;
     private TextButton startButton;
+    private final Runnable startButtonCallback;
 
-    public MainMenuScene(SceneManager sceneManager) {
-        super(sceneManager);
+    public MainMenuScene(SceneManager sceneManager, iAudioController iAudioController, iInputController iInputController,  Runnable startButtonCallback) {
+        super(sceneManager, iAudioController, iInputController);
+        this.startButtonCallback = startButtonCallback;
     }
 
     @Override
@@ -33,8 +38,8 @@ public class MainMenuScene extends Scene {
         // Log for testing (marker can see lifecycle)
         Gdx.app.log("Scene", "MainMenuScene loaded");
 
-        context.getAudioController().setMusic("Music_Menu.mp3");
-        Gdx.app.log("AudioController", "MainMenu Music loaded");
+        iAudioController.setMusic("Music_Menu.mp3");
+        Gdx.app.log("iAudioController (interface)", "MainMenu Music loaded");
 
 
         // =========== Created start button ===============
@@ -59,7 +64,10 @@ public class MainMenuScene extends Scene {
                 public void clicked(InputEvent event, float x, float y) {
                     Gdx.app.log("UI", "Start Button Clicked");
                     // Switch scene
-                    sceneManager.requestScene(new GameScene(sceneManager));
+                    
+//                    sceneManager.requestScene(new GameScene(sceneManager, iAudioController, iInputController));
+                    
+                    startButtonCallback.run();
                 }
             });
 
@@ -86,9 +94,11 @@ public class MainMenuScene extends Scene {
         // Press SPACE to go to GameScene
         stage.act(delta); // ==== handles visuals
 
-        if (context.getInputController().isActionJustPressed("START_GAME")) {
+        if (iInputController.isActionJustPressed("START_GAME")) {
             Gdx.app.log("InputController", "Key binded to 'START_GAME' action was pressed");
-            sceneManager.requestScene(new GameScene(sceneManager));
+//            sceneManager.requestScene(new GameScene(sceneManager, iAudioController, iInputController));
+            
+            startButtonCallback.run();
         }
 
     }

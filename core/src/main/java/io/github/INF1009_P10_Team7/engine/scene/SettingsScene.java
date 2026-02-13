@@ -20,7 +20,8 @@ import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputBindElement;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.iAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.iInputController;
 
 /**
  * SettingsScene (clean UI + stable resize + clickable button + working volume
@@ -28,7 +29,7 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
  */
 public class SettingsScene extends Scene {
 
-    private final Scene previousScene;
+//    private final Scene previousScene;
 
     // Render/Camera
     private OrthographicCamera camera;
@@ -58,10 +59,12 @@ public class SettingsScene extends Scene {
     private boolean isRebinding = false;
     private String actionToRebind = null;
     private List<InputBindElement> InputBindElement;
+    private final Runnable onReturn;
 
-    public SettingsScene(SceneManager sceneManager, Scene previousScene) {
-        super(sceneManager);
-        this.previousScene = previousScene;
+    public SettingsScene(SceneManager sceneManager, iAudioController iAudioController, iInputController iInputController, Runnable onReturn) {
+        super(sceneManager, iAudioController, iInputController);
+    
+        this.onReturn = onReturn;
 
         // Scene only DECLARES what exists
         entityDefinitions.add(new EntityDefinition.Builder(
@@ -107,11 +110,11 @@ public class SettingsScene extends Scene {
             layout = new GlyphLayout();
 
         if (entityManager == null) {
-            entityManager = new EntityManager(context.getEventBus());
+            entityManager = new EntityManager();
             entities = entityManager.createEntitiesFromDefinitions(entityDefinitions, null);
         }
 
-        volume01 = context.getAudioController().getMusicVolume();
+        volume01 = iAudioController.getMusicVolume();
         Gdx.app.log("AudioController", "SettingScene Loaded current volume: " + (int) (volume01 * 100) + "%");
 
         recalcUI(); // compute positions once
@@ -170,15 +173,17 @@ public class SettingsScene extends Scene {
             entityManager.updateAll(delta);
 
         // Keyboard return (your existing action)
-        if (context.getInputController().isActionJustPressed("BACK")) {
+        if (iInputController.isActionJustPressed("BACK")) {
             Gdx.app.log("InputController", "Key binded to 'BACK' action was pressed");
-            sceneManager.requestScene(previousScene);
+//            sceneManager.requestScene(previousScene);
+            onReturn.run();
             return;
         }
 
         // Optional: ENTER also returns
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            sceneManager.requestScene(previousScene);
+//            sceneManager.requestScene(previousScene);
+        	onReturn.run();
             return;
         }
 
@@ -196,7 +201,8 @@ public class SettingsScene extends Scene {
         if (Gdx.input.justTouched()) {
             Vector2 world = viewport.unproject(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
             if (contains(world.x, world.y, btnX, btnY, btnW, btnH)) {
-                sceneManager.requestScene(previousScene);
+//                sceneManager.requestScene(previousScene);
+            	onReturn.run();
             }
 
             // Click on slider to set volume
@@ -232,11 +238,11 @@ public class SettingsScene extends Scene {
         actionToRebind = action;
 
         // using listener to bind the next key by oop
-        context.getInputController().listenForNextKey(new InputController.InputCallback() {
+        iInputController.listenForNextKey(new iInputController.InputCallback() {
             @Override
             public void onInputReceived(int keycode) {
                 // binding the key here
-                context.getInputController().bindKey(actionToRebind, keycode);
+                iInputController.bindKey(actionToRebind, keycode);
                 Gdx.app.log("Settings", "Rebound " + actionToRebind);
 
                 // reset state, so that key change can show immediately
@@ -251,8 +257,8 @@ public class SettingsScene extends Scene {
      */
     private void updateGameVolume() {
 
-        context.getAudioController().setMusicVolume(volume01);
-        context.getAudioController().setSoundVolume(volume01);
+        iAudioController.setMusicVolume(volume01);
+        iAudioController.setSoundVolume(volume01);
 
         Gdx.app.log("SettingsScene", "Volume updated to: " + (int) (volume01 * 100) + "%");
     }
@@ -334,7 +340,7 @@ public class SettingsScene extends Scene {
         // draw key text for keybind
         for (InputBindElement element : InputBindElement) {
             boolean waiting = isRebinding && element.getActionName().equals(actionToRebind);
-            element.drawText(batch, font, context.getInputController(), waiting);
+            element.drawText(batch, font, iInputController, waiting);
         }
 
         // Title

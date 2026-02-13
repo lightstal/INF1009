@@ -7,10 +7,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 
-import io.github.INF1009_P10_Team7.engine.events.EventBus;
-
 /**
- * The concrete implementation of the {@link InputController} interface.
+ * The concrete implementation of the {@link iInputController} interface.
  * <p>
  * This class serves as the <b>Central Manager</b> for all engine input and
  * output.
@@ -23,7 +21,7 @@ import io.github.INF1009_P10_Team7.engine.events.EventBus;
  * <li>Delegating audio requests to the {@link AudioOutput} system.</li>
  * </ul>
  */
-public class InputOutputManager implements InputController, AudioController {
+public class InputOutputManager implements iInputController, iAudioController {
 
     /**
      * An arbitrary offset added to mouse button codes to distinguish them from
@@ -51,8 +49,8 @@ public class InputOutputManager implements InputController, AudioController {
      * Initializes the InputOutputManager and its sub-components (Audio, Keyboard,
      * Mouse).
      */
-    public InputOutputManager(EventBus eventBus) {
-        this.audioOutput = new AudioOutput(eventBus);
+    public InputOutputManager() {
+        this.audioOutput = new AudioOutput();
         this.keyboard = new KeyboardDevice();
         this.mouse = new MouseDevice();
 
@@ -192,7 +190,7 @@ public class InputOutputManager implements InputController, AudioController {
 
     // add listener for next key press
     @Override
-    public void listenForNextKey(final InputController.InputCallback callback) {
+    public void listenForNextKey(final iInputController.InputCallback callback) {
 
         // set a temporary processor to catch exactly ONE key
         Gdx.input.setInputProcessor(new InputAdapter() {
@@ -247,4 +245,30 @@ public class InputOutputManager implements InputController, AudioController {
     public void playSound(String filePath) {
         audioOutput.playSound(filePath);
     }
+
+	@Override
+	public void setMusicState(String newState) {
+		// TODO Auto-generated method stub
+
+    	if (newState == null) {
+    		Gdx.app.error("Audio", "MusicState string cannot be null");
+    		return;
+    	}
+    	
+        try {
+            // .toUpperCase() allows "playing", "Playing", or "PLAYING" to work
+            MusicState state = MusicState.valueOf(newState.toUpperCase());
+            
+            // Logic to actually apply the state
+            audioOutput.setMusicState(state);
+            
+            Gdx.app.log("Audio", "Music state updated to: " + state);
+        } 
+        catch (IllegalArgumentException e) {
+            Gdx.app.error("Audio", "Invalid MusicState: " + newState + 
+                ". Must be STOPPED, PLAYING, or PAUSED.");
+        }
+        
+		
+	}
 }

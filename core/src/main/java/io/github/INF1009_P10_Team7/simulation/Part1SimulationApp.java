@@ -6,11 +6,11 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.ScreenUtils;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
+import io.github.INF1009_P10_Team7.engine.scene.GameScene;
 import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
-import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
-import io.github.INF1009_P10_Team7.engine.core.GameContext;
-import io.github.INF1009_P10_Team7.engine.events.EventBus;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.iAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.iInputController;
 import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
 import io.github.INF1009_P10_Team7.engine.movement.MovementManager;
 
@@ -31,7 +31,6 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
     private SceneManager sceneManager;
     private InputOutputManager inputOutputManager;
-    private EventBus eventBus;
     private CollisionManager collisionManager;
     private MovementManager movementManager;  // ← ADD THIS LINE
 
@@ -44,8 +43,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
         SimulationTestScript.printInstructions();
         SimulationTestScript.printScalingNote();
 
-        eventBus = new EventBus();
-        inputOutputManager = new InputOutputManager(eventBus);
+        inputOutputManager = new InputOutputManager();
 
         collisionManager = new CollisionManager(inputOutputManager);
         collisionManager.setCollisionSound("bell.mp3");
@@ -65,17 +63,11 @@ public class Part1SimulationApp extends ApplicationAdapter {
         inputOutputManager.bindKey("DOWN", Input.Keys.S);
         inputOutputManager.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
-        GameContext context = new ContextImplementation(
-            eventBus,
-            inputOutputManager,
-            collisionManager,
-            movementManager
-        );
-
-        sceneManager = new SceneManager(context);
+        sceneManager = new SceneManager();
 
         // Start with MainMenu scene
-        sceneManager.setScene(new MainMenuScene(sceneManager));
+        showMainMenu();
+//        sceneManager.setScene(new MainMenuScene(sceneManager, (iAudioController) inputOutputManager, (iInputController) inputOutputManager));
     }
 
     @Override
@@ -115,5 +107,26 @@ public class Part1SimulationApp extends ApplicationAdapter {
             Gdx.app.log("SIM", "MovementManager cleared");
         }
         inputOutputManager.dispose();
+    }
+    
+    private void showMainMenu() {
+        // We pass a Lambda () -> ... that defines what happens when the button is clicked
+        sceneManager.setScene(new MainMenuScene(
+            sceneManager, 
+            (iAudioController) inputOutputManager, 
+            (iInputController) inputOutputManager,
+            () -> showGameScene() // This is the Runnable
+        ));
+    }
+    
+    private void showGameScene() {
+        // ONLY GameScene gets the collisionManager here
+        sceneManager.requestScene(new GameScene(
+            sceneManager, 
+            (iAudioController) inputOutputManager, 
+            (iInputController) inputOutputManager,
+            collisionManager,
+            () -> showMainMenu()
+        ));
     }
 }
