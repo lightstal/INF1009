@@ -7,6 +7,7 @@ import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
+import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.MovementComponent;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
@@ -117,11 +118,16 @@ public class GameEngine {
             }
 
             MovementComponent mc = e.getComponent(MovementComponent.class);
+            MovementBehaviour behaviour = null;
+
             if (mc != null) {
-                MovementBehaviour behaviour = mc.getMovementBehaviour();
-                if (behaviour != null) {
-                    movement.addEntity(e, behaviour);
-                }
+                behaviour = mc.getMovementBehaviour();
+            }
+
+            // Register entity to movement manager if it has
+            // either behaviour OR physics component
+            if (behaviour != null || e.getComponent(PhysicComponent.class) != null) {
+                movement.addEntity(e, behaviour);
             }
         }
 

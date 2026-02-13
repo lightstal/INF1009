@@ -2,6 +2,9 @@ package io.github.INF1009_P10_Team7.engine.movement;
 
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 import com.badlogic.gdx.Gdx;
+import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
+import io.github.INF1009_P10_Team7.engine.entity.components.TransformComponent;
+import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +24,8 @@ public class MovementManager {
      */
     public void addEntity(Entity entity, MovementBehaviour behavior) {
         entityBehaviors.put(entity, behavior);
-        Gdx.app.log("MovementManager", "Added entity with " + behavior.getClass().getSimpleName());
+        String name = (behavior == null) ? "PhysicsOnly" : behavior.getClass().getSimpleName();
+        Gdx.app.log("MovementManager", "Added entity with " + name);
     }
 
     /**
@@ -39,8 +43,23 @@ public class MovementManager {
         for (Map.Entry<Entity, MovementBehaviour> entry : entityBehaviors.entrySet()) {
             Entity entity = entry.getKey();
             MovementBehaviour behavior = entry.getValue();
-            
-            if (entity.isActive() && behavior != null) {
+
+            if (!entity.isActive()) continue;
+
+            // ---- A) Physics Integration ----
+            PhysicComponent pc = entity.getComponent(PhysicComponent.class);
+            TransformComponent tc = entity.getComponent(TransformComponent.class);
+
+            if (pc != null && tc != null) {
+                Vector2 pos = tc.getPosition();
+                Vector2 vel = pc.getVelocity();
+
+                pos.x += vel.x * deltaTime;
+                pos.y += vel.y * deltaTime;
+            }
+
+            // ---- B) Behaviour Movement ----
+            if (behavior != null) {
                 behavior.move(entity, deltaTime);
             }
         }

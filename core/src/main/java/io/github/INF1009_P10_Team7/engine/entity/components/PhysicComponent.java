@@ -46,17 +46,8 @@ public class PhysicComponent implements Component {
 
     @Override
     public void update(float deltaTime) {
-        if (owner == null) {
-            return;
-        }
-
-        // Update position based on velocity
-        TransformComponent transform = owner.getComponent(TransformComponent.class);
-        if (transform != null) {
-            Vector2 position = transform.getPosition();
-            position.x += velocity.x * deltaTime;
-            position.y += velocity.y * deltaTime;
-        }
+        // Data-only component.
+        // Physics integration is handled by MovementManager.
     }
 
     // Gets the velocity.
