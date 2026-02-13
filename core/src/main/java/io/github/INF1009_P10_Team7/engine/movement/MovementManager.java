@@ -24,7 +24,11 @@ public class MovementManager {
      */
     public void addEntity(Entity entity, MovementBehaviour behavior) {
         entityBehaviors.put(entity, behavior);
-        String name = (behavior == null) ? "PhysicsOnly" : behavior.getClass().getSimpleName();
+
+        String name = (behavior == null)
+            ? "PhysicsOnly"
+            : behavior.getClass().getSimpleName();
+
         Gdx.app.log("MovementManager", "Added entity with " + name);
     }
 
