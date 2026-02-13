@@ -2,6 +2,7 @@ package io.github.INF1009_P10_Team7.engine.scene;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -9,8 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
@@ -40,7 +40,7 @@ public class SettingsScene extends Scene {
     private float sliderX, sliderY, sliderW, sliderH;
     private float btnX, btnY, btnW, btnH;
 
-    // Virtual resolution for stable layout
+    // FIXED virtual resolution - NEVER CHANGES!
     private static final float VW = 800f;
     private static final float VH = 600f;
 
@@ -50,46 +50,49 @@ public class SettingsScene extends Scene {
 
         // Scene only DECLARES what exists (blueprints for Part 1 rubric)
         entityDefinitions.add(new EntityDefinition.Builder(
-                "SettingsTitle",
-                EntityDefinition.EntityType.STATIC_OBJECT,
-                new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
-                .collisionRadius(0f)
-                .build());
+            "SettingsTitle",
+            EntityDefinition.EntityType.STATIC_OBJECT,
+            new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
+            .collisionRadius(0f)
+            .build());
 
         entityDefinitions.add(new EntityDefinition.Builder(
-                "VolumeSlider",
-                EntityDefinition.EntityType.STATIC_OBJECT,
-                new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
-                .collisionRadius(0f)
-                .build());
+            "VolumeSlider",
+            EntityDefinition.EntityType.STATIC_OBJECT,
+            new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
+            .collisionRadius(0f)
+            .build());
 
         entityDefinitions.add(new EntityDefinition.Builder(
-                "BackButton",
-                EntityDefinition.EntityType.STATIC_OBJECT,
-                new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
-                .collisionRadius(0f)
-                .build());
+            "BackButton",
+            EntityDefinition.EntityType.STATIC_OBJECT,
+            new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
+            .collisionRadius(0f)
+            .build());
     }
 
     @Override
     protected void onLoad() {
-        if (camera == null) {
-            camera = new OrthographicCamera();
-            viewport = new FitViewport(VW, VH, camera);
-            viewport.apply(true);
-            viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+        camera = new OrthographicCamera();
+        viewport = new StretchViewport(VW, VH, camera);
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+
+        if (shape == null) {
+            shape = new ShapeRenderer();
+            batch = new SpriteBatch();
+            font = new BitmapFont();
+            layout = new GlyphLayout();
         }
 
-        if (shape == null) shape = new ShapeRenderer();
-        if (batch == null) batch = new SpriteBatch();
-        if (font == null) font = new BitmapFont();
-        if (layout == null) layout = new GlyphLayout();
+        camera.position.set(VW / 2f, VH / 2f, 0);
+        camera.update();
 
         volume01 = audio.getMusicVolume();
         Gdx.app.log("AudioController", "SettingsScene current music volume: " + (int)(volume01 * 100) + "%");
 
         recalcUI();
         Gdx.app.log("Scene", "SettingsScene loaded");
+        Gdx.app.log("SettingsScene", "World locked at: " + VW + "x" + VH);
     }
 
     private void recalcUI() {
@@ -113,7 +116,6 @@ public class SettingsScene extends Scene {
     protected void onUpdate(float delta) {
         // Use action binding for BACK
         if (input.isActionJustPressed("BACK")) {
-            // Return to a fresh GameScene instance (never reuse disposed scenes)
             nav.popScene();
             return;
         }
@@ -136,7 +138,7 @@ public class SettingsScene extends Scene {
 
             if (contains(world.x, world.y, btnX, btnY, btnW, btnH)) {
                 nav.popScene();
-            return;
+                return;
             }
 
             if (contains(world.x, world.y, sliderX, sliderY - 12f, sliderW, sliderH + 24f)) {
@@ -158,10 +160,14 @@ public class SettingsScene extends Scene {
 
     @Override
     protected void onRender() {
-        ScreenUtils.clear(0.08f, 0.09f, 0.11f, 1f);
+        if (camera == null || viewport == null) return;
 
+        // CRITICAL ORDER: Apply viewport FIRST, then clear, then draw!
         viewport.apply();
         camera.update();
+
+        Gdx.gl.glClearColor(0.08f, 0.09f, 0.11f, 1f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         shape.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(camera.combined);
@@ -201,8 +207,8 @@ public class SettingsScene extends Scene {
         font.getData().setScale(2.0f);
         layout.setText(font, "SETTINGS");
         font.draw(batch, layout,
-                panelX + (panelW - layout.width) / 2f,
-                panelY + panelH - 28f);
+            panelX + (panelW - layout.width) / 2f,
+            panelY + panelH - 28f);
 
         // Volume label
         font.getData().setScale(1.3f);
@@ -219,8 +225,8 @@ public class SettingsScene extends Scene {
         font.getData().setScale(1.2f);
         layout.setText(font, "BACK");
         font.draw(batch, layout,
-                btnX + (btnW - layout.width) / 2f,
-                btnY + (btnH + layout.height) / 2f);
+            btnX + (btnW - layout.width) / 2f,
+            btnY + (btnH + layout.height) / 2f);
 
         batch.end();
     }
@@ -228,8 +234,13 @@ public class SettingsScene extends Scene {
     @Override
     public void resize(int width, int height) {
         Gdx.app.log("Scene", "SettingsScene resize: " + width + "x" + height);
-        if (viewport != null) viewport.update(width, height, true);
+
+        if (viewport != null) {
+            viewport.update(width, height, true);
+        }
+
         recalcUI();
+        Gdx.app.log("Scene", "World size locked at: " + VW + "x" + VH);
     }
 
     @Override

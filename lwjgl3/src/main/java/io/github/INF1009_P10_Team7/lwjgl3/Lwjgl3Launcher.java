@@ -12,6 +12,7 @@ public class Lwjgl3Launcher {
 
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setTitle("INF1009 P10 Team7_Abstract Engine");
+
         //// Vsync limits the frames per second to what your hardware can display, and helps eliminate
         //// screen tearing. This setting doesn't always work on Linux, so the line after is a safeguard.
         configuration.useVsync(true);
@@ -22,7 +23,11 @@ public class Lwjgl3Launcher {
         //// useful for testing performance, but can also be very stressful to some hardware.
         //// You may also need to configure GPU drivers to fully disable Vsync; this can cause screen tearing.
 
-        configuration.setWindowedMode(640, 480);
+        // Window starts at 800x480 to match the virtual world size (1:1 at startup)
+        // Resize the window to see entities scale proportionally (Option 3 - Viewport)
+        configuration.setWindowedMode(800, 480);
+        configuration.setResizable(true);  // Window CAN be resized
+
         //// You can change these files; they are in lwjgl3/src/main/resources/ .
         //// They can also be loaded from the root of assets/ .
         configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");

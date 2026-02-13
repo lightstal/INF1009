@@ -51,9 +51,17 @@ public abstract class Scene {
         }
     }
 
-    /** Called once per frame by SceneManager. */
+    /** Called once per frame by SceneManager (before movement/collision). */
     public final void update(float delta) {
         onUpdate(delta);
+    }
+
+    /**
+     * Called once per frame by SceneManager AFTER movement and collision.
+     * Use this for boundary clamping so it runs after entities have been moved.
+     */
+    public final void lateUpdate(float delta) {
+        onLateUpdate(delta);
     }
 
     /** Called once per frame by SceneManager. */
@@ -89,4 +97,7 @@ public abstract class Scene {
     protected abstract void onRender();
     protected abstract void onUnload();
     protected abstract void onDispose();
+
+    /** Override this for post-movement logic like boundary clamping. Default: no-op. */
+    protected void onLateUpdate(float delta) { }
 }

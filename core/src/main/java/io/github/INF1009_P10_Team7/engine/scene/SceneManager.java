@@ -71,6 +71,15 @@ public class SceneManager implements SceneNavigator {
         if (current != null) current.update(delta);
     }
 
+    /**
+     * Called AFTER movement and collision in GameEngine.
+     * Allows scenes to do post-movement work like boundary clamping.
+     */
+    public void lateUpdate(float delta) {
+        Scene current = getCurrentScene();
+        if (current != null) current.lateUpdate(delta);
+    }
+
     public void render() {
         Scene current = getCurrentScene();
         if (current != null) current.render();

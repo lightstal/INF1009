@@ -3,7 +3,6 @@ package io.github.INF1009_P10_Team7.simulation;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.INF1009_P10_Team7.engine.core.GameEngine;
 import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
@@ -65,7 +64,9 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
     @Override
     public void render() {
-        ScreenUtils.clear(0, 0, 0, 1);
+        // DO NOT call ScreenUtils.clear() here!
+        // Each scene handles its own clearing AFTER viewport.apply()
+        // This is critical for Option 3 (Viewport/Camera) scaling to work.
         float dt = Gdx.graphics.getDeltaTime();
         engine.update(dt);
         engine.render();

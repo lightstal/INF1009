@@ -1,13 +1,13 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
@@ -15,11 +15,7 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
 /**
  * MainMenuScene
  *
- * Dependencies (minimal):
- * - InputController: read keybind actions
- * - AudioController: play menu music / click SFX
- * - SceneNavigator: request scene switches
- * - SceneFactory: create target scenes without leaking extra dependencies
+ * Uses StretchViewport so the menu UI scales with the window.
  */
 public class MainMenuScene extends Scene {
 
@@ -28,6 +24,10 @@ public class MainMenuScene extends Scene {
     private Stage stage;
     private Skin skin;
     private TextButton startButton;
+
+    // FIXED WORLD SIZE - matches GameScene
+    private static final float WORLD_W = 800f;
+    private static final float WORLD_H = 480f;
 
     public MainMenuScene(InputController input, AudioController audio, SceneNavigator nav, SceneFactory factory) {
         super(input, audio, nav);
@@ -41,7 +41,7 @@ public class MainMenuScene extends Scene {
         audio.setMusic("Music_Menu.mp3");
         Gdx.app.log("AudioController", "MainMenu music loaded");
 
-        stage = new Stage(new ScreenViewport());
+        stage = new Stage(new StretchViewport(WORLD_W, WORLD_H));
         stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         try {
@@ -70,8 +70,8 @@ public class MainMenuScene extends Scene {
     private void updateButtonPosition() {
         if (startButton != null && stage != null) {
             startButton.setPosition(
-                (stage.getViewport().getWorldWidth() - startButton.getWidth()) / 2f,
-                stage.getViewport().getWorldHeight() / 2f
+                (WORLD_W - startButton.getWidth()) / 2f,
+                WORLD_H / 2f
             );
         }
     }
@@ -88,7 +88,14 @@ public class MainMenuScene extends Scene {
 
     @Override
     protected void onRender() {
-        ScreenUtils.clear(0.2f, 0.2f, 0.8f, 1f);
+        // CRITICAL ORDER: Apply viewport FIRST, then clear, then draw!
+        if (stage != null) {
+            stage.getViewport().apply();
+        }
+
+        Gdx.gl.glClearColor(0.2f, 0.2f, 0.8f, 1f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
         if (stage != null) stage.draw();
     }
 
