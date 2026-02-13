@@ -1,115 +1,120 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.core.GameContext;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
- * SceneManager (UML requirement)
+ * SceneManager (engine layer)
  *
- * Purpose:
- * - Holds ONE current scene (active).
- * - Holds ONE pending scene (requested next).
- * - Switches scenes safely at the start of update().
+ * Stack-based scene system:
+ * - requestScene(): REPLACES the whole stack (disposes previous scenes).
+ * - pushScene(): overlays a new scene (keeps previous scene instance alive).
+ * - popScene(): returns to the previous scene instance.
  *
- * Why pendingScene?
- * - Avoid switching scenes in the middle of update/render (can be unstable).
+ * Only REPLACE operations trigger a world rebuild in GameEngine.
  */
-public class SceneManager {
+public class SceneManager implements SceneNavigator {
 
-    // Current running scene
-    private Scene currentScene;
+    private final Deque<Scene> stack = new ArrayDeque<>();
 
-    // Next requested scene (applied at start of update)
-    private Scene pendingScene;
+    // Full replace requested at safe frame boundary
+    private Scene pendingReplace;
 
-    private final GameContext context;
-    
-    public SceneManager(GameContext context) {
-    	if (context == null) {
-            throw new IllegalArgumentException("GameContext cannot be null");
-        }
-    	this.context = context;
-    }
-    
-    public GameContext getContext() {
-        return context;
-    }
+    // Set true only when a REPLACE happens. Consumed by GameEngine.
+    private boolean sceneReplaced = false;
 
-    /**
-     * Immediately set a scene (good for starting scene).
-     */
+    @Override
     public void setScene(Scene scene) {
         if (scene == null) throw new IllegalArgumentException("scene cannot be null");
-        pendingScene = scene;
-        applyPendingScene(); // apply immediately
+        // treat as immediate replace
+        replaceNow(scene);
     }
 
-    /**
-     * Request a scene switch (applied on next update()).
-     */
+    @Override
     public void requestScene(Scene scene) {
         if (scene == null) throw new IllegalArgumentException("scene cannot be null");
-        pendingScene = scene;
+        pendingReplace = scene;
     }
 
-    /**
-     * Called every frame:
-     * 1) apply pending scene if any
-     * 2) update current scene
-     */
+    @Override
+    public void pushScene(Scene scene) {
+        if (scene == null) throw new IllegalArgumentException("scene cannot be null");
+
+        Scene current = getCurrentScene();
+        if (current != null) {
+            current.onPause();
+        }
+
+        stack.push(scene);
+        scene.load();
+        // DO NOT set sceneReplaced; pushing should NOT rebuild the world.
+    }
+
+    @Override
+    public void popScene() {
+        if (stack.isEmpty()) return;
+
+        Scene top = stack.pop();
+        top.unload();
+        top.dispose();
+
+        Scene nowTop = getCurrentScene();
+        if (nowTop != null) {
+            nowTop.onResume();
+        }
+        // DO NOT set sceneReplaced; popping should NOT rebuild the world.
+    }
+
     public void update(float delta) {
-        applyPendingScene();
-        if (currentScene != null) {
-            currentScene.update(delta);
-        }
+        applyPendingReplace();
+        Scene current = getCurrentScene();
+        if (current != null) current.update(delta);
     }
 
-    /**
-     * Called every frame to render current scene.
-     */
     public void render() {
-        if (currentScene != null) {
-            currentScene.render();
-        }
+        Scene current = getCurrentScene();
+        if (current != null) current.render();
     }
 
-    /**
-     * Forward window resize to current scene.
-     */
     public void resize(int width, int height) {
-        if (currentScene != null) {
-            currentScene.resize(width, height);
-        }
+        Scene current = getCurrentScene();
+        if (current != null) current.resize(width, height);
     }
 
-    /**
-     * Clean shutdown:
-     * unload current scene and clear references.
-     */
     public void dispose() {
-        if (currentScene != null) {
-            currentScene.unload();
-            currentScene = null;
-        }
-        pendingScene = null;
+        clearAll();
+        pendingReplace = null;
     }
 
-    /**
-     * Internal helper:
-     * unload current -> switch -> load new
-     */
-    private void applyPendingScene() {
-        if (pendingScene == null) return;
+    public Scene getCurrentScene() {
+        return stack.peek();
+    }
 
-        // Unload old scene
-        if (currentScene != null) {
-            currentScene.unload();
+    /** Consumed by GameEngine to know when to rebuild entities for the NEW base scene. */
+    public boolean consumeSceneReplacedFlag() {
+        boolean v = sceneReplaced;
+        sceneReplaced = false;
+        return v;
+    }
+
+    private void applyPendingReplace() {
+        if (pendingReplace == null) return;
+        replaceNow(pendingReplace);
+        pendingReplace = null;
+    }
+
+    private void replaceNow(Scene newScene) {
+        clearAll();
+        stack.push(newScene);
+        newScene.load();
+        sceneReplaced = true;
+    }
+
+    private void clearAll() {
+        while (!stack.isEmpty()) {
+            Scene s = stack.pop();
+            s.unload();
+            s.dispose();
         }
-
-        // Switch reference
-        currentScene = pendingScene;
-        pendingScene = null;
-
-        // Load new scene
-        currentScene.load();
     }
 }

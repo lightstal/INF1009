@@ -1,99 +1,89 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.core.GameContext;
 import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
-import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Abstract Scene class (UML requirement).
+ * Abstract Scene (engine layer)
  *
- * Purpose:
- * - Provide a consistent lifecycle that ALL scenes must follow.
- * - Keep engine generic (no game-specific logic here).
- * - Store entity definitions (WHAT entities should exist in this scene)
+ * Scenes receive ONLY the interfaces they need (InputController/AudioController/SceneNavigator),
+ * and they only DECLARE entity blueprints via EntityDefinition (they do not instantiate entities).
  *
- * Lifecycle:
- * load()   -> called once when activated
- * update() -> called every frame
- * render() -> called every frame
- * unload() -> called once when deactivated
+ * No GameContext. No EventBus.
  */
 public abstract class Scene {
 
-    protected final SceneManager sceneManager;
-    protected final GameContext context;
+    protected final InputController input;
+    protected final AudioController audio;
+    protected final SceneNavigator nav;
 
-    // Tracks whether this scene is currently active/loaded
+    // Part 1 rubric: scene stores the list of what entities exist + initial data.
+    protected final List<EntityDefinition> entityDefinitions = new ArrayList<>();
+
     private boolean loaded = false;
 
-    // Scene owns its own EntityManager (created per-scene lifecycle)
-    protected EntityManager entityManager;
-
-    // Stores entity definitions for this scene (data only, no instantiation)
-    protected List<EntityDefinition> entityDefinitions;
-
-    public Scene(SceneManager sceneManager) {
-        this.sceneManager = sceneManager;
-        this.context = sceneManager.getContext();
-        this.entityDefinitions = new ArrayList<>();
-
-        // Child scenes should populate entityDefinitions in their constructor
+    protected Scene(InputController input, AudioController audio, SceneNavigator nav) {
+        if (input == null || audio == null || nav == null) {
+            throw new IllegalArgumentException("Scene dependencies cannot be null");
+        }
+        this.input = input;
+        this.audio = audio;
+        this.nav = nav;
     }
 
-    /**
-     * Get the list of entity definitions for this scene.
-     * EntityManager will use this to create the actual entities.
-     */
-    public List<EntityDefinition> getEntityDefinitions() {
-        return entityDefinitions;
-    }
-
-    // Called once when the scene becomes active
+    /** Called by SceneManager exactly once when the scene becomes active. */
     public final void load() {
-        if (loaded) return;     // prevent double-load
-        loaded = true;
-        onLoad();               // run scene-specific setup
+        if (!loaded) {
+            loaded = true;
+            onLoad();
+        }
     }
 
-    // Called every frame
+    /** Called by SceneManager when the scene is removed/replaced. */
+    public final void unload() {
+        if (loaded) {
+            loaded = false;
+            onUnload();
+        }
+    }
+
+    /** Called once per frame by SceneManager. */
     public final void update(float delta) {
-        if (!loaded) return;    // don't update if not active
         onUpdate(delta);
     }
 
-    // Called every frame
+    /** Called once per frame by SceneManager. */
     public final void render() {
-        if (!loaded) return;    // don't render if not active
         onRender();
     }
 
-    // Called once when the scene is replaced / deactivated
-    public final void unload() {
-        if (!loaded) return;    // prevent double-unload
-        loaded = false;
-        onUnload();             // run scene-specific cleanup
-    }
+    /** Optional resize hook. */
+    public void resize(int width, int height) { }
 
-    /**
-     * Forces resource cleanup.
-     * Can be called manually (e.g., when restarting) even if scene is not loaded.
-     */
-    public void dispose() {
+    /** Called by SceneManager when the scene is permanently destroyed. */
+    public final void dispose() {
         onDispose();
     }
 
-    // Optional: called when window size changes
-    public void resize(int width, int height) {}
+    /** Stack-based navigation hooks (default no-op). */
+    protected void onPause() { }
+    protected void onResume() { }
 
-    // Debug helper
-    public final boolean isLoaded() {
-        return loaded;
+    /**
+     * If true, the engine should pause world updates (movement/collision/entities) while this scene is on top.
+     * Useful for Settings/Pause menus.
+     */
+    public boolean blocksWorldUpdate() { return false; }
+
+    public final List<EntityDefinition> getEntityDefinitions() {
+        return entityDefinitions;
     }
 
-    // ---- Hooks (child scenes MUST implement these) ----
+    // ===== Hooks implemented by concrete scenes =====
     protected abstract void onLoad();
     protected abstract void onUpdate(float delta);
     protected abstract void onRender();

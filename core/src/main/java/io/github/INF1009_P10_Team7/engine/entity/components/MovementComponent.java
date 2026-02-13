@@ -28,9 +28,9 @@ public class MovementComponent implements Component {
 
     @Override
     public void update(float deltaTime) {
-        if (movementBehaviour != null && owner != null) {
-            movementBehaviour.move(owner, deltaTime);
-        }
+        // Intentionally empty.
+        // Movement is executed centrally by MovementManager to keep engine systems consistent
+        // and avoid double-applying movement (component + manager).
     }
 
     // Allows changing movement behavior at runtime

@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
 
-import io.github.INF1009_P10_Team7.engine.events.EventBus;
 
 /**
  * The concrete implementation of the {@link InputController} interface.
@@ -44,8 +43,8 @@ public class InputOutputManager implements InputController, AudioController{
     /**
      * Initializes the InputOutputManager and its sub-components (Audio, Keyboard, Mouse).
      */
-	public InputOutputManager(EventBus eventBus) {
-		this.audioOutput = new AudioOutput(eventBus);
+	public InputOutputManager() {
+		this.audioOutput = new AudioOutput();
 		this.keyboard = new KeyboardDevice();
         this.mouse = new MouseDevice();
         

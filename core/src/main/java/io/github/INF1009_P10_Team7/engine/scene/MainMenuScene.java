@@ -9,125 +9,106 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+
 /**
  * MainMenuScene
  *
- * Controls:
- * - SPACE -> switch to GameScene
- *
- * Visual:
- * - Blue background
+ * Dependencies (minimal):
+ * - InputController: read keybind actions
+ * - AudioController: play menu music / click SFX
+ * - SceneNavigator: request scene switches
+ * - SceneFactory: create target scenes without leaking extra dependencies
  */
 public class MainMenuScene extends Scene {
+
+    private final SceneFactory factory;
 
     private Stage stage;
     private Skin skin;
     private TextButton startButton;
 
-    public MainMenuScene(SceneManager sceneManager) {
-        super(sceneManager);
+    public MainMenuScene(InputController input, AudioController audio, SceneNavigator nav, SceneFactory factory) {
+        super(input, audio, nav);
+        this.factory = factory;
     }
 
     @Override
     protected void onLoad() {
-        // Log for testing (marker can see lifecycle)
         Gdx.app.log("Scene", "MainMenuScene loaded");
 
-        context.getAudioController().setMusic("Music_Menu.mp3");
-        Gdx.app.log("AudioController", "MainMenu Music loaded");
+        audio.setMusic("Music_Menu.mp3");
+        Gdx.app.log("AudioController", "MainMenu music loaded");
 
-
-        // =========== Created start button ===============
-        // =========== Button created using code composer, might need to design again ============
         stage = new Stage(new ScreenViewport());
-
-        // CRITICAL FIX: Force initial viewport update to prevent black screen
         stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         try {
             skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
 
-            // =================== Button created ===================
             startButton = new TextButton("START GAME", skin, "default");
-            // =================== Size & Position ==================
             startButton.setSize(200, 60);
-            updateButtonPosition(); // Use helper method to center button
+            updateButtonPosition();
 
-            // ======================== Event listener for clicking button ==================
             startButton.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
                     Gdx.app.log("UI", "Start Button Clicked");
-                    // Switch scene
-                    sceneManager.requestScene(new GameScene(sceneManager));
+                    nav.requestScene(factory.createGameScene());
                 }
             });
 
-            // ======= to set the button
             stage.addActor(startButton);
         } catch (Exception e) {
             Gdx.app.error("UI", "Failed to load skin: buttons/name2d.json", e);
         }
 
-        Gdx.input.setInputProcessor(stage); // ==== for user input
+        Gdx.input.setInputProcessor(stage);
     }
 
     private void updateButtonPosition() {
-        if (startButton != null) {
+        if (startButton != null && stage != null) {
             startButton.setPosition(
-                (stage.getViewport().getWorldWidth() - startButton.getWidth()) / 2,
-                stage.getViewport().getWorldHeight() / 2
+                (stage.getViewport().getWorldWidth() - startButton.getWidth()) / 2f,
+                stage.getViewport().getWorldHeight() / 2f
             );
         }
     }
 
     @Override
     protected void onUpdate(float delta) {
-        // Press SPACE to go to GameScene
-        stage.act(delta); // ==== handles visuals
+        if (stage != null) stage.act(delta);
 
-        if (context.getInputController().isActionJustPressed("START_GAME")) {
-            Gdx.app.log("InputController", "Key binded to 'START_GAME' action was pressed");
-            sceneManager.requestScene(new GameScene(sceneManager));
+        if (input.isActionJustPressed("START_GAME")) {
+            Gdx.app.log("InputController", "Action 'START_GAME' was pressed");
+            nav.requestScene(factory.createGameScene());
         }
-
     }
 
     @Override
     protected void onRender() {
-        // Blue screen
         ScreenUtils.clear(0.2f, 0.2f, 0.8f, 1f);
-
-        // ========== draw the button ======
-        stage.draw();
-
+        if (stage != null) stage.draw();
     }
 
     @Override
     public void resize(int width, int height) {
-        // Resize log to show resize forwarding works
         Gdx.app.log("Scene", "MainMenuScene resize: " + width + "x" + height);
-
-        // CRITICAL FIX: Update the stage's viewport when window is resized
         if (stage != null) {
             stage.getViewport().update(width, height, true);
-            updateButtonPosition(); // Recenter button after resize
+            updateButtonPosition();
         }
     }
 
     @Override
     protected void onUnload() {
-        // Log for testing
         Gdx.app.log("Scene", "MainMenuScene unloading...");
-        dispose();
     }
 
     @Override
     protected void onDispose() {
-        // Log for testing
         Gdx.app.log("Scene", "MainMenuScene disposed");
-
-        // =========== dispose ===============
         if (stage != null) stage.dispose();
         if (skin != null) skin.dispose();
         Gdx.input.setInputProcessor(null);

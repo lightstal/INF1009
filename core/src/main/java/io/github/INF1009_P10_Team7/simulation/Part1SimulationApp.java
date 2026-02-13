@@ -1,119 +1,115 @@
-
 package io.github.INF1009_P10_Team7.simulation;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.ScreenUtils;
-import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
+
+import io.github.INF1009_P10_Team7.engine.core.GameEngine;
+import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
+import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.scene.Scene;
+import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
+import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
-import io.github.INF1009_P10_Team7.engine.core.ContextImplementation;
-import io.github.INF1009_P10_Team7.engine.core.GameContext;
-import io.github.INF1009_P10_Team7.engine.events.EventBus;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
-import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
-import io.github.INF1009_P10_Team7.engine.movement.MovementManager;
+import io.github.INF1009_P10_Team7.engine.scene.GameScene;
+import io.github.INF1009_P10_Team7.engine.scene.SettingsScene;
 
 /**
- * Part1SimulationApp
+ * Part1SimulationApp (composition root)
  *
- * Runs your engine + scenes specifically to satisfy the Part 1 rubric:
- * - Initializes without error (create)
- * - Shows scene switching with logs (load/unload)
- * - Shows resize forwarding
- * - Ends without error (dispose)
- *
- * IMPORTANT:
- * - This is only for Part 1 demo.
- * - Your actual game can later run Main.java instead.
+ * - Creates GameEngine
+ * - Configures keybinds / demo options
+ * - Wires scenes using ONLY interfaces
+ * - Starts the initial scene
  */
 public class Part1SimulationApp extends ApplicationAdapter {
 
-    private SceneManager sceneManager;
-    private InputOutputManager inputOutputManager;
-    private EventBus eventBus;
-    private CollisionManager collisionManager;
-    private MovementManager movementManager;  // ← ADD THIS LINE
+    private GameEngine engine;
 
     @Override
     public void create() {
-        // Rubric: start without errors
         Gdx.app.log("SIM", "Part1SimulationApp create(): start (engine init)");
 
-        // Print instructions for marker/video
         SimulationTestScript.printInstructions();
         SimulationTestScript.printScalingNote();
 
-        eventBus = new EventBus();
-        inputOutputManager = new InputOutputManager(eventBus);
+        engine = new GameEngine();
 
-        collisionManager = new CollisionManager(inputOutputManager);
-        collisionManager.setCollisionSound("bell.mp3");
-        Gdx.app.log("SIM", "CollisionManager initialized in SimulationApp");
+        // ===== Simulation-only configuration =====
+        engine.setCollisionSound("bell.mp3");
 
-        
-        movementManager = new MovementManager();
-        Gdx.app.log("SIM", "MovementManager initialized");
+        InputController input = engine.getInput();
+        AudioController audio = engine.getAudio();
+        SceneNavigator nav = engine.getNavigator();
+        EntityQuery entities = engine.getEntities();
 
-        inputOutputManager.bindKey("START_GAME", Input.Keys.SPACE);
-        inputOutputManager.bindKey("RESTART_GAME", Input.Keys.R);
-        inputOutputManager.bindKey("SETTINGS", Input.Keys.ESCAPE);
-        inputOutputManager.bindKey("BACK", Input.Keys.BACKSPACE);
-        inputOutputManager.bindKey("LEFT", Input.Keys.A);
-        inputOutputManager.bindKey("RIGHT", Input.Keys.D);
-        inputOutputManager.bindKey("UP", Input.Keys.W);
-        inputOutputManager.bindKey("DOWN", Input.Keys.S);
-        inputOutputManager.bindMouseButton("SHOOT", Input.Buttons.LEFT);
+        // Keybinds
+        input.bindKey("START_GAME", Input.Keys.SPACE);
+        input.bindKey("RESTART_GAME", Input.Keys.R);
+        input.bindKey("SETTINGS", Input.Keys.ESCAPE);
+        input.bindKey("BACK", Input.Keys.BACKSPACE);
+        input.bindKey("LEFT", Input.Keys.A);
+        input.bindKey("RIGHT", Input.Keys.D);
+        input.bindKey("UP", Input.Keys.W);
+        input.bindKey("DOWN", Input.Keys.S);
+        input.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
-        GameContext context = new ContextImplementation(
-            eventBus,
-            inputOutputManager,
-            collisionManager,
-            movementManager
-        );
-
-        sceneManager = new SceneManager(context);
+        // Scene factory to keep scene constructors minimal
+        SceneFactory factory = new Part1SceneFactory(input, audio, nav, entities);
 
         // Start with MainMenu scene
-        sceneManager.setScene(new MainMenuScene(sceneManager));
+        nav.setScene(factory.createMainMenuScene());
     }
 
     @Override
     public void render() {
-        // Clear frame (scenes also clear; this is safe)
         ScreenUtils.clear(0, 0, 0, 1);
-
-        // Standard game loop
         float dt = Gdx.graphics.getDeltaTime();
-        inputOutputManager.update();
-
-        // movement
-        movementManager.updateAll(dt);
-
-        sceneManager.update(dt);
-        sceneManager.render();
+        engine.update(dt);
+        engine.render();
     }
 
     @Override
     public void resize(int width, int height) {
-        // Rubric: show resize forwarding
         Gdx.app.log("SIM", "Part1SimulationApp resize: " + width + "x" + height);
-        sceneManager.resize(width, height);
+        engine.resize(width, height);
     }
 
     @Override
     public void dispose() {
         Gdx.app.log("SIM", "Part1SimulationApp dispose(): end (clean shutdown)");
-        sceneManager.dispose();
-        if (collisionManager != null) {
-            collisionManager.clear();
-            Gdx.app.log("SIM", "CollisionManager cleared");
+        if (engine != null) engine.dispose();
+    }
+
+    /** Concrete factory implementation for Part 1 scenes. */
+    private static final class Part1SceneFactory implements SceneFactory {
+        private final InputController input;
+        private final AudioController audio;
+        private final SceneNavigator nav;
+        private final EntityQuery entities;
+
+        private Part1SceneFactory(InputController input, AudioController audio, SceneNavigator nav, EntityQuery entities) {
+            this.input = input;
+            this.audio = audio;
+            this.nav = nav;
+            this.entities = entities;
         }
-        // movement manager
-        if (movementManager != null) {
-            movementManager.clear();
-            Gdx.app.log("SIM", "MovementManager cleared");
+
+        @Override
+        public Scene createMainMenuScene() {
+            return new MainMenuScene(input, audio, nav, this);
         }
-        inputOutputManager.dispose();
+
+        @Override
+        public Scene createGameScene() {
+            return new GameScene(input, audio, nav, entities, this);
+        }
+
+        @Override
+        public Scene createSettingsScene() {
+            return new SettingsScene(input, audio, nav, this);
+        }
     }
 }
