@@ -1,4 +1,4 @@
-package io.github.INF1009_P10_Team7.engine.scene;
+package io.github.INF1009_P10_Team7.simulation;
 
 import java.util.List;
 
@@ -22,6 +22,9 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputBindElement;
 import io.github.INF1009_P10_Team7.engine.inputoutput.UIElement;
+import io.github.INF1009_P10_Team7.engine.scene.Scene;
+import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
+import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
  * SettingsScene (UI-only)

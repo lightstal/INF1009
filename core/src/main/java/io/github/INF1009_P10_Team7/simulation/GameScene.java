@@ -1,4 +1,4 @@
-package io.github.INF1009_P10_Team7.engine.scene;
+package io.github.INF1009_P10_Team7.simulation;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -19,6 +19,9 @@ import io.github.INF1009_P10_Team7.engine.entity.components.*;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.movement.*;
+import io.github.INF1009_P10_Team7.engine.scene.Scene;
+import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
+import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 import java.util.Map;

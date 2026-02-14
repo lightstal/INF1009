@@ -1,17 +1,18 @@
-package io.github.INF1009_P10_Team7.engine.scene;
+package io.github.INF1009_P10_Team7.simulation;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.UIElement;
+import io.github.INF1009_P10_Team7.engine.scene.Scene;
+import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
+import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
  * MainMenuScene

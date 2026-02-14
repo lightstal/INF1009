@@ -6,12 +6,9 @@ import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
-import io.github.INF1009_P10_Team7.engine.scene.GameScene;
-import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
-import io.github.INF1009_P10_Team7.engine.scene.SettingsScene;
 
 /** Concrete factory implementation for Part 1 scenes. */
 public class Part1SceneFactory implements SceneFactory {
