@@ -58,11 +58,13 @@ public class SettingsScene extends Scene {
     private String actionToRebind = null;
     private List<InputBindElement> inputBindElements;
 
+    // create for button ui
     private Skin skin;
     private TextButton backButton;
     private Stage stage;
     private UIElement uiElement;;
 
+    // encapsulate for keybind position
     private static final float KEY_BINDING_WIDTH = 140f;
     private static final float KEY_BINDING_HEIGHT = 35f;
     private static final float KEY_BINDING_START_Y = 350f;
@@ -96,6 +98,7 @@ public class SettingsScene extends Scene {
 
         recalcUI();
 
+        // initalize the key binding
         initializeKeyBindings();
 
         Gdx.app.log("Scene", "SettingsScene loaded");
@@ -107,7 +110,7 @@ public class SettingsScene extends Scene {
         // handling for button event
         Gdx.input.setInputProcessor(stage);
 
-        // ADD: Load skin
+        // loading skin
         try {
             skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
 
@@ -148,10 +151,7 @@ public class SettingsScene extends Scene {
         btnY = panelY + 90f;
     }
 
-    /**
-     * Initializes key binding UI elements.
-     * Following SRP and OCP principles.
-     */
+    // Initializes key binding UI elements.
     private void initializeKeyBindings() {
         inputBindElements = new java.util.ArrayList<>();
 
@@ -173,10 +173,7 @@ public class SettingsScene extends Scene {
         addKeyBinding("SHOOT", centerX - (KEY_BINDING_WIDTH / 2f), row3Y);
     }
 
-    /**
-     * Helper method to add a key binding element.
-     * Following SRP and DRY principles.
-     */
+    // add a key binding element.
     private void addKeyBinding(String action, float x, float y) {
         inputBindElements.add(new InputBindElement(
                 action,
@@ -187,10 +184,7 @@ public class SettingsScene extends Scene {
     }
 
 
-     /**
-     * Checks if a specific action is currently being rebound.
-     * Following SRP and encapsulation principles.
-     */
+    //  Checks if a specific action on rebind
     private boolean isRebindingAction(String actionName) {
         return isRebinding &&
                 actionToRebind != null &&

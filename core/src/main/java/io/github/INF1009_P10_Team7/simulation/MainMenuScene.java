@@ -23,6 +23,7 @@ public class MainMenuScene extends Scene {
 
     private final SceneFactory factory;
 
+    // create for buttion ui
     private Stage stage;
     private Skin skin;
     private TextButton startButton;

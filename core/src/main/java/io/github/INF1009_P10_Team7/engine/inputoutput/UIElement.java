@@ -6,17 +6,20 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
+// Create ui components
 public class UIElement {
-    // private static Skin skin;
-
+    
+    // encapsulated variable
     private final Skin skin;
     private final boolean debugLogging;
 
+    // constructor
     public UIElement(Skin skin, boolean debugLogging) {
         this.skin = skin;
         this.debugLogging = debugLogging;
     }
 
+    // create textbutton for text inside button
     public TextButton createButton(String text, float width, float height, iUIElement action) {
         if (text == null) {
             throw new IllegalArgumentException("Button text cannot be null");
@@ -25,9 +28,11 @@ public class UIElement {
             throw new IllegalArgumentException("Button dimensions must be positive");
         }
         
+        // add skin side the button
         TextButton button = new TextButton(text, skin, "default");
         button.setSize(width, height);
 
+        // listener for onclick
         button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
