@@ -31,4 +31,24 @@ public interface ICollidable {
      * @return true if active, false otherwise
      */
     boolean isCollidable();
+
+    /**
+     * Returns true if this object is movable (has physics/velocity).
+     * Movable objects get their velocity reflected on bounce.
+     * Fixed objects (return false) do not move during resolution.
+     */
+    boolean isMovable();
+
+    /**
+     * Gets the velocity of this object.
+     * Only meaningful if isMovable() returns true.
+     * @return The velocity vector
+     */
+    Vector2 getVelocity();
+
+    /**
+     * Deactivates this object (e.g. for DESTROY resolution).
+     */
+    void deactivate();
 }
+

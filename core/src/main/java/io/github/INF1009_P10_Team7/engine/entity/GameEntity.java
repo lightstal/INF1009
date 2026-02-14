@@ -2,6 +2,7 @@ package io.github.INF1009_P10_Team7.engine.entity;
 
 // For Collision
 import io.github.INF1009_P10_Team7.engine.collision.ICollidable;
+import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
 import io.github.INF1009_P10_Team7.engine.entity.components.TransformComponent;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
@@ -63,6 +64,25 @@ public class GameEntity extends Entity implements ICollidable {
         return isActive();
     }
 
+    // For ICollidable resolution methods:
+    @Override
+    public boolean isMovable() {
+        return hasComponent(PhysicComponent.class);
+    }
+
+    @Override
+    public Vector2 getVelocity() {
+        PhysicComponent physics = getComponent(PhysicComponent.class);
+        if (physics != null) {
+            return physics.getVelocity();
+        }
+        return new Vector2(0, 0);
+    }
+
+    @Override
+    public void deactivate() {
+        setActive(false);
+    }
 
     @Override
     public String toString() {

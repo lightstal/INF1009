@@ -9,7 +9,6 @@ import java.util.Set;
 
 import com.badlogic.gdx.Gdx;
 
-import io.github.INF1009_P10_Team7.engine.entity.Entity;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 
 /**
@@ -132,16 +131,11 @@ public class CollisionManager {
         CollisionResolution.CollisionCallback callback1 = callbacks.get(obj1.getObjectId());
         CollisionResolution.CollisionCallback callback2 = callbacks.get(obj2.getObjectId());
 
-        // Only resolve if both are Entities (your resolver uses components)
-        if (obj1 instanceof Entity && obj2 instanceof Entity) {
-            Entity entity1 = (Entity) obj1;
-            Entity entity2 = (Entity) obj2;
+        // Resolve using ICollidable interface directly - no casting needed
+        if (callback1 != null) callback1.onCollision(obj1, obj2, collisionInfo);
+        if (callback2 != null) callback2.onCollision(obj2, obj1, collisionInfo);
 
-            if (callback1 != null) callback1.onCollision(entity1, entity2, collisionInfo);
-            if (callback2 != null) callback2.onCollision(entity2, entity1, collisionInfo);
-
-            CollisionResolution.resolve(entity1, entity2, collisionInfo, resolutionType, null);
-        }
+        CollisionResolution.resolve(obj1, obj2, collisionInfo, resolutionType, null);
     }
 
     private String getCollisionKey(String id1, String id2) {
