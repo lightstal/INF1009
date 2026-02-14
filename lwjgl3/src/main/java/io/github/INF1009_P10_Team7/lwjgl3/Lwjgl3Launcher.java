@@ -2,7 +2,8 @@ package io.github.INF1009_P10_Team7.lwjgl3;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import io.github.INF1009_P10_Team7.Main;
+
+import io.github.INF1009_P10_Team7.GameMaster;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
@@ -34,6 +35,6 @@ public class Lwjgl3Launcher {
         //// are not intended for games that use GL30 (which is compatibility with OpenGL ES 3.0).
         configuration.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.ANGLE_GLES20, 0, 0);
         
-        new Lwjgl3Application(new Main(), configuration);
+        new Lwjgl3Application(new GameMaster(), configuration);
     }
 }
