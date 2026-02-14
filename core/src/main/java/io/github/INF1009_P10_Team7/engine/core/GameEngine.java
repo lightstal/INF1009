@@ -3,25 +3,30 @@ package io.github.INF1009_P10_Team7.engine.core;
 import com.badlogic.gdx.Gdx;
 
 import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
-import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
+import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
-import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
-import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
-import io.github.INF1009_P10_Team7.engine.entity.components.MovementComponent;
+import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
-import io.github.INF1009_P10_Team7.engine.movement.MovementBehaviour;
+import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.movement.MovementManager;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneManager;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
-import java.util.List;
-import java.util.Map;
-
-
+/**
+ * GameEngine (engine layer)
+ *
+ * Owns and orchestrates all engine sub-systems.
+ * Exposes ONLY interfaces to the simulation layer (Dependency Inversion).
+ *
+ * CHANGES FROM ORIGINAL V2:
+ * - Removed rebuildForScene() — scenes now register entities with managers directly
+ * - Uses ICollisionSystem, IMovementSystem, IEntitySystem interfaces
+ * - No references to EntityDefinition, MovementComponent, PhysicComponent (no context coupling)
+ */
 public class GameEngine {
 
     private final InputOutputManager io;
@@ -41,34 +46,36 @@ public class GameEngine {
     // Expose ONLY interfaces to simulation/scenes
     public InputController getInput() { return io; }
     public AudioController getAudio() { return io; }
-    public EntityQuery getEntities() { return entities; }
+    public EntityQuery getEntityQuery() { return entities; }
+    public IEntitySystem getEntitySystem() { return entities; }
+    public ICollisionSystem getCollisionSystem() { return collision; }
+    public IMovementSystem getMovementSystem() { return movement; }
     public SceneNavigator getNavigator() { return scenes; }
 
     public SceneManager getSceneManager() { return scenes; }
 
-    public void setCollisionSound(String soundPath) {
-        collision.setCollisionSound(soundPath);
-    }
-
     public void update(float dt) {
         io.update();
 
-        scenes.update(dt);
-
-        if (scenes.consumeSceneReplacedFlag()) {
-            rebuildForScene(scenes.getCurrentScene());
+        // When a scene is about to be replaced, clear all manager state FIRST
+        // so the new scene's onLoad() populates fresh managers.
+        if (scenes.hasPendingReplace()) {
+            collision.clear();
+            movement.clear();
+            entities.clear();
         }
+
+        scenes.update(dt);
+        // Consume the flag (no extra action needed — scene already loaded by SceneManager)
+        scenes.consumeSceneReplacedFlag();
 
         Scene top = scenes.getCurrentScene();
         boolean pauseWorld = top != null && top.blocksWorldUpdate();
 
         if (!pauseWorld) {
             movement.updateAll(dt);
-
             collision.update(dt);
-
             scenes.lateUpdate(dt);
-
             entities.updateAll(dt);
         }
     }
@@ -87,40 +94,5 @@ public class GameEngine {
         movement.clear();
         entities.dispose();
         io.dispose();
-    }
-
-    private void rebuildForScene(Scene scene) {
-        if (scene == null) return;
-
-        collision.clear();
-        movement.clear();
-        entities.clear();
-
-        List<EntityDefinition> defs = scene.getEntityDefinitions();
-        Map<String, GameEntity> created = entities.createEntitiesFromDefinitions(defs);
-
-        for (EntityDefinition def : defs) {
-            GameEntity e = created.get(def.name);
-            if (e == null) continue;
-
-            if (def.resolutionType != null && def.collisionRadius > 0f) {
-                collision.registerCollidable(e, def.resolutionType);
-            }
-
-            MovementComponent mc = e.getComponent(MovementComponent.class);
-            MovementBehaviour behaviour = null;
-
-            if (mc != null) {
-                behaviour = mc.getMovementBehaviour();
-            }
-
-            if (behaviour != null || e.getComponent(PhysicComponent.class) != null) {
-                movement.addEntity(e, behaviour);
-            }
-        }
-
-        Gdx.app.log("GameEngine", "Rebuilt scene state: entities=" + created.size() +
-            ", collidables=" + collision.getCollidableCount() +
-            ", movers=" + movement.getEntityCount());
     }
 }

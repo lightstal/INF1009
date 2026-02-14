@@ -65,6 +65,11 @@ public class SceneManager implements SceneNavigator {
         // DO NOT set sceneReplaced; popping should NOT rebuild the world.
     }
 
+    /** Check if a replace is queued (so GameEngine can clear managers before it happens). */
+    public boolean hasPendingReplace() {
+        return pendingReplace != null;
+    }
+
     public void update(float delta) {
         applyPendingReplace();
         Scene current = getCurrentScene();

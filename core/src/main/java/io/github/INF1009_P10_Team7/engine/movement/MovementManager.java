@@ -10,18 +10,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * MovementManager - Manages movement behaviors for entities
+ * MovementManager - Manages movement behaviors for entities.
+ * Implements IMovementSystem to allow dependency inversion.
  */
-public class MovementManager {
+public class MovementManager implements IMovementSystem {
     private final Map<Entity, MovementBehaviour> entityBehaviors = new HashMap<>();
 
     public MovementManager() {
         Gdx.app.log("MovementManager", "MovementManager initialized");
     }
 
-    /**
-     * Add an entity with its movement behavior
-     */
+    @Override
     public void addEntity(Entity entity, MovementBehaviour behavior) {
         entityBehaviors.put(entity, behavior);
 
@@ -32,17 +31,13 @@ public class MovementManager {
         Gdx.app.log("MovementManager", "Added entity with " + name);
     }
 
-    /**
-     * Remove an entity from movement management
-     */
+    @Override
     public void removeEntity(Entity entity) {
         entityBehaviors.remove(entity);
         Gdx.app.log("MovementManager", "Removed entity from movement management");
     }
 
-    /**
-     * Update all entities with their movement behaviors
-     */
+    @Override
     public void updateAll(float deltaTime) {
         for (Map.Entry<Entity, MovementBehaviour> entry : entityBehaviors.entrySet()) {
             Entity entity = entry.getKey();
@@ -69,38 +64,28 @@ public class MovementManager {
         }
     }
 
-    /**
-     * Clear all entities from movement management
-     */
+    @Override
     public void clear() {
         entityBehaviors.clear();
         Gdx.app.log("MovementManager", "MovementManager cleared");
     }
 
-    /**
-     * Get the number of entities being managed
-     */
+    @Override
     public int getEntityCount() {
         return entityBehaviors.size();
     }
 
-    /**
-     * Check if an entity is registered
-     */
+    @Override
     public boolean hasEntity(Entity entity) {
         return entityBehaviors.containsKey(entity);
     }
 
-    /**
-     * Get the movement behavior for an entity
-     */
+    @Override
     public MovementBehaviour getBehavior(Entity entity) {
         return entityBehaviors.get(entity);
     }
 
-    /**
-     * Set or change the movement behavior for an entity
-     */
+    @Override
     public void setBehavior(Entity entity, MovementBehaviour behavior) {
         entityBehaviors.put(entity, behavior);
         Gdx.app.log("MovementManager", "Updated behavior for entity to " + behavior.getClass().getSimpleName());

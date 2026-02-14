@@ -1,28 +1,19 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Abstract Scene (engine layer)
  *
- * Scenes receive ONLY the interfaces they need (InputController/AudioController/SceneNavigator),
- * and they only DECLARE entity blueprints via EntityDefinition (they do not instantiate entities).
- *
- * No GameContext. No EventBus.
+ * Scenes receive ONLY the interfaces they need (InputController/AudioController/SceneNavigator).
+ * Concrete scenes create and register entities directly with managers in onLoad().
  */
 public abstract class Scene {
 
     protected final InputController input;
     protected final AudioController audio;
     protected final SceneNavigator nav;
-
-    // Part 1 rubric: scene stores the list of what entities exist + initial data.
-    protected final List<EntityDefinition> entityDefinitions = new ArrayList<>();
 
     private boolean loaded = false;
 
@@ -86,10 +77,6 @@ public abstract class Scene {
      * Useful for Settings/Pause menus.
      */
     public boolean blocksWorldUpdate() { return false; }
-
-    public final List<EntityDefinition> getEntityDefinitions() {
-        return entityDefinitions;
-    }
 
     // ===== Hooks implemented by concrete scenes =====
     protected abstract void onLoad();

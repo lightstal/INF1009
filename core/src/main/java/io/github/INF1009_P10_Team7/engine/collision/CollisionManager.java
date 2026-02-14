@@ -12,14 +12,13 @@ import com.badlogic.gdx.Gdx;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 
 
-public class CollisionManager {
+public class CollisionManager implements ICollisionSystem {
 
     private final List<ICollidable> collidableObjects;
     private final Map<String, CollisionResolution.ResolutionType> resolutionTypes;
     private final Map<String, CollisionResolution.CollisionCallback> callbacks;
-    private final Set<String> activeCollisions; // Track which pairs are currently colliding
+    private final Set<String> activeCollisions;
     private final AudioController audioController;
-
 
     private String collisionSoundPath = null;
     private boolean playSoundOnCollision = false;
@@ -32,6 +31,7 @@ public class CollisionManager {
         this.audioController = audioController;
     }
 
+    @Override
     public void registerCollidable(ICollidable collidable, CollisionResolution.ResolutionType resolutionType) {
         if (!collidableObjects.contains(collidable)) {
             collidableObjects.add(collidable);
@@ -41,29 +41,28 @@ public class CollisionManager {
         }
     }
 
+    @Override
     public void unregisterCollidable(ICollidable collidable) {
         collidableObjects.remove(collidable);
         resolutionTypes.remove(collidable.getObjectId());
         callbacks.remove(collidable.getObjectId());
     }
 
+    @Override
     public void setCollisionCallback(String objectId, CollisionResolution.CollisionCallback callback) {
         callbacks.put(objectId, callback);
     }
 
+    @Override
     public void setCollisionSound(String soundPath) {
         this.collisionSoundPath = soundPath;
         this.playSoundOnCollision = true;
     }
 
-    public void setPlaySoundOnCollision(boolean enabled) {
-        this.playSoundOnCollision = enabled;
-    }
-
+    @Override
     public void update(float deltaTime) {
         Set<String> currentCollisions = new HashSet<>();
 
-        // Entity vs Entity ONLY
         for (int i = 0; i < collidableObjects.size(); i++) {
             ICollidable obj1 = collidableObjects.get(i);
             if (obj1 == null || !obj1.isCollidable()) continue;
@@ -79,7 +78,6 @@ public class CollisionManager {
                     String key = getCollisionKey(obj1.getObjectId(), obj2.getObjectId());
                     currentCollisions.add(key);
 
-                    // Only process new collisions
                     if (!activeCollisions.contains(key)) {
                         handleCollision(obj1, obj2, collisionInfo);
                     }
@@ -97,15 +95,12 @@ public class CollisionManager {
         Gdx.app.log("Collision", "Collision detected: " + obj1.getObjectId() +
             " <-> " + obj2.getObjectId());
 
-        // Play collision sound if enabled
         if (playSoundOnCollision && collisionSoundPath != null && audioController != null) {
             audioController.playSound(collisionSoundPath);
         }
 
-
         CollisionResolution.ResolutionType type1 = resolutionTypes.get(obj1.getObjectId());
         CollisionResolution.ResolutionType type2 = resolutionTypes.get(obj2.getObjectId());
-
 
         CollisionResolution.ResolutionType resolutionType;
         if (type1 == CollisionResolution.ResolutionType.PASS_THROUGH ||
@@ -118,11 +113,9 @@ public class CollisionManager {
             resolutionType = CollisionResolution.ResolutionType.BOUNCE;
         }
 
-
         CollisionResolution.CollisionCallback callback1 = callbacks.get(obj1.getObjectId());
         CollisionResolution.CollisionCallback callback2 = callbacks.get(obj2.getObjectId());
 
-        // Resolve using ICollidable interface directly - no casting needed
         if (callback1 != null) callback1.onCollision(obj1, obj2, collisionInfo);
         if (callback2 != null) callback2.onCollision(obj2, obj1, collisionInfo);
 
@@ -137,6 +130,7 @@ public class CollisionManager {
         }
     }
 
+    @Override
     public void clear() {
         collidableObjects.clear();
         resolutionTypes.clear();
@@ -145,6 +139,7 @@ public class CollisionManager {
         Gdx.app.log("CollisionManager", "All collidable objects cleared");
     }
 
+    @Override
     public int getCollidableCount() {
         return collidableObjects.size();
     }

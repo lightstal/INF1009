@@ -1,8 +1,11 @@
 package io.github.INF1009_P10_Team7.simulation;
 
+import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
 import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
+import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.scene.GameScene;
 import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
@@ -15,13 +18,27 @@ public class Part1SceneFactory implements SceneFactory {
     private final InputController input;
     private final AudioController audio;
     private final SceneNavigator nav;
-    private final EntityQuery entities;
+    private final EntityQuery entityQuery;
+    private final IEntitySystem entitySystem;
+    private final ICollisionSystem collisionSystem;
+    private final IMovementSystem movementSystem;
 
-    public Part1SceneFactory(InputController input, AudioController audio, SceneNavigator nav, EntityQuery entities) {
+    public Part1SceneFactory(
+        InputController input,
+        AudioController audio,
+        SceneNavigator nav,
+        EntityQuery entityQuery,
+        IEntitySystem entitySystem,
+        ICollisionSystem collisionSystem,
+        IMovementSystem movementSystem
+    ) {
         this.input = input;
         this.audio = audio;
         this.nav = nav;
-        this.entities = entities;
+        this.entityQuery = entityQuery;
+        this.entitySystem = entitySystem;
+        this.collisionSystem = collisionSystem;
+        this.movementSystem = movementSystem;
     }
 
     @Override
@@ -31,7 +48,7 @@ public class Part1SceneFactory implements SceneFactory {
 
     @Override
     public Scene createGameScene() {
-        return new GameScene(input, audio, nav, entities, this);
+        return new GameScene(input, audio, nav, entityQuery, entitySystem, collisionSystem, movementSystem, this);
     }
 
     @Override

@@ -15,7 +15,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputBindElement;
@@ -56,27 +55,6 @@ public class SettingsScene extends Scene {
         super(input, audio, nav);
         this.factory = factory;
 
-        // Scene only DECLARES what exists (blueprints for Part 1 rubric)
-        entityDefinitions.add(new EntityDefinition.Builder(
-                "SettingsTitle",
-                EntityDefinition.EntityType.STATIC_OBJECT,
-                new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
-                .collisionRadius(0f)
-                .build());
-
-        entityDefinitions.add(new EntityDefinition.Builder(
-                "VolumeSlider",
-                EntityDefinition.EntityType.STATIC_OBJECT,
-                new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
-                .collisionRadius(0f)
-                .build());
-
-        entityDefinitions.add(new EntityDefinition.Builder(
-                "BackButton",
-                EntityDefinition.EntityType.STATIC_OBJECT,
-                new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
-                .collisionRadius(0f)
-                .build());
     }
 
     @Override
