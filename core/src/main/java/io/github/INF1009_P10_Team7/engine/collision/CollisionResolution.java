@@ -2,13 +2,6 @@ package io.github.INF1009_P10_Team7.engine.collision;
 
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
-/**
- * Handles collision resolution - determines what happens when objects collide.
- * Supports different resolution strategies: bounce, destroy, or pass-through.
- *
- * Fully decoupled from Entity/Component classes.
- * Uses only the ICollidable interface.
- */
 public class CollisionResolution {
 
     public enum ResolutionType {
@@ -21,12 +14,7 @@ public class CollisionResolution {
         void onCollision(ICollidable obj1, ICollidable obj2, CollisionInfo info);
     }
 
-    /**
-     * Bounce resolution supporting:
-     * - movable vs movable (both bounce)
-     * - movable vs fixed (only movable bounces)
-     * - fixed vs fixed (do nothing)
-     */
+
     public static void resolveBounce(ICollidable obj1, ICollidable obj2, CollisionInfo info) {
         if (obj1 == null || obj2 == null || info == null) return;
 

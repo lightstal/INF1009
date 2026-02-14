@@ -21,22 +21,7 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import java.util.List;
 import java.util.Map;
 
-/**
- * GameEngine (engine layer)
- *
- * Owns all engine managers and runs the update/render loop.
- *
- * Update order per frame:
- * 1. io.update()           - poll input
- * 2. scenes.update(dt)     - scene logic (input handling, player movement commands)
- * 3. movement.updateAll()  - apply movement (physics, AI, linear, follow)
- * 4. collision.update()    - detect & resolve entity-vs-entity collisions
- * 5. scenes.lateUpdate(dt) - post-movement cleanup (optional scene logic)
- * 6. entities.updateAll()  - component updates
- *
- * NOTE: World boundaries are handled by creating fixed "wall" entities in the scene.
- *       No special boundary collision function is used.
- */
+
 public class GameEngine {
 
     private final InputOutputManager io;

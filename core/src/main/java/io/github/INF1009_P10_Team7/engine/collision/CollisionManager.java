@@ -11,15 +11,7 @@ import com.badlogic.gdx.Gdx;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 
-/**
- * Main collision manager that coordinates collision detection and resolution.
- * Maintains a list of collidable objects and checks for collisions each frame.
- *
- * NOTE:
- * - No boundary function here.
- * - If you want world boundaries, create fixed wall entities and register them.
- * - CollisionManager only checks entity-vs-entity.
- */
+
 public class CollisionManager {
 
     private final List<ICollidable> collidableObjects;
@@ -28,7 +20,7 @@ public class CollisionManager {
     private final Set<String> activeCollisions; // Track which pairs are currently colliding
     private final AudioController audioController;
 
-    // Sound effect to play on collision
+
     private String collisionSoundPath = null;
     private boolean playSoundOnCollision = false;
 
@@ -110,12 +102,11 @@ public class CollisionManager {
             audioController.playSound(collisionSoundPath);
         }
 
-        // Get resolution types for both objects
+
         CollisionResolution.ResolutionType type1 = resolutionTypes.get(obj1.getObjectId());
         CollisionResolution.ResolutionType type2 = resolutionTypes.get(obj2.getObjectId());
 
-        // Resolution priority:
-        // PASS_THROUGH > DESTROY > BOUNCE
+
         CollisionResolution.ResolutionType resolutionType;
         if (type1 == CollisionResolution.ResolutionType.PASS_THROUGH ||
             type2 == CollisionResolution.ResolutionType.PASS_THROUGH) {
@@ -127,7 +118,7 @@ public class CollisionManager {
             resolutionType = CollisionResolution.ResolutionType.BOUNCE;
         }
 
-        // Get callbacks
+
         CollisionResolution.CollisionCallback callback1 = callbacks.get(obj1.getObjectId());
         CollisionResolution.CollisionCallback callback2 = callbacks.get(obj2.getObjectId());
 
