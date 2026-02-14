@@ -130,7 +130,8 @@ public class EntityManager implements EntityQuery {
                 def.type == EntityDefinition.EntityType.STATIC_OBJECT ||
                 def.type == EntityDefinition.EntityType.LINEAR_ENTITY ||
                 def.type == EntityDefinition.EntityType.AI_WANDERER ||
-                def.type == EntityDefinition.EntityType.INACTIVE_ENTITY) {
+                def.type == EntityDefinition.EntityType.INACTIVE_ENTITY ||
+                def.type == EntityDefinition.EntityType.BOUNCING_CIRCLE) {
 
                 GameEntity entity = createEntityFromDefinition(def, null);
                 createdEntities.put(def.name, entity);
@@ -189,6 +190,19 @@ public class EntityManager implements EntityQuery {
                     entity.addComponent(new PhysicComponent(def.initialVelocity, def.mass));
                 }
                 entity.setActive(def.isActive);
+                break;
+
+            case BOUNCING_CIRCLE:
+                // Bouncing circle uses PhysicComponent for velocity-based movement
+                // and collision bouncing (CollisionResolution treats entities with
+                // PhysicComponent as movable and reflects their velocity on collision)
+                if (def.initialVelocity != null) {
+                    entity.addComponent(new PhysicComponent(def.initialVelocity, def.mass));
+                } else {
+                    // Default velocity so the circle always moves
+                    entity.addComponent(new PhysicComponent(
+                        new io.github.INF1009_P10_Team7.engine.utils.Vector2(120f, 80f), def.mass));
+                }
                 break;
 
             case STATIC_OBJECT:

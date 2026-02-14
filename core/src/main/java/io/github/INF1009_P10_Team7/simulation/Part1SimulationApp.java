@@ -84,33 +84,4 @@ public class Part1SimulationApp extends ApplicationAdapter {
         if (engine != null) engine.dispose();
     }
 
-    /** Concrete factory implementation for Part 1 scenes. */
-    private static final class Part1SceneFactory implements SceneFactory {
-        private final InputController input;
-        private final AudioController audio;
-        private final SceneNavigator nav;
-        private final EntityQuery entities;
-
-        private Part1SceneFactory(InputController input, AudioController audio, SceneNavigator nav, EntityQuery entities) {
-            this.input = input;
-            this.audio = audio;
-            this.nav = nav;
-            this.entities = entities;
-        }
-
-        @Override
-        public Scene createMainMenuScene() {
-            return new MainMenuScene(input, audio, nav, this);
-        }
-
-        @Override
-        public Scene createGameScene() {
-            return new GameScene(input, audio, nav, entities, this);
-        }
-
-        @Override
-        public Scene createSettingsScene() {
-            return new SettingsScene(input, audio, nav, this);
-        }
-    }
 }

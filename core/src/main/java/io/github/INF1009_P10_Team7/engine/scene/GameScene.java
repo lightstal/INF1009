@@ -23,6 +23,7 @@ import io.github.INF1009_P10_Team7.engine.movement.PlayerMovement;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 import java.util.Map;
+import java.util.Random;
 
 /**
  * GameScene (demo)
@@ -77,6 +78,24 @@ public class GameScene extends Scene {
             .collisionRadius(25f)
             .resolutionType(CollisionResolution.ResolutionType.BOUNCE)
             .build());
+        // Create 3 green diamonds at random positions
+        // Padding keeps them away from edges so they spawn fully visible
+        Random rand = new Random();
+        float padding = 50f;
+
+        for (int i = 1; i <= 3; i++) {
+            float randomX = padding + rand.nextFloat() * (WORLD_W - 2 * padding);
+            float randomY = padding + rand.nextFloat() * (WORLD_H - 2 * padding);
+
+            entityDefinitions.add(new EntityDefinition.Builder(
+                "Diamond" + i,
+                EntityDefinition.EntityType.STATIC_OBJECT,
+                new Vector2(randomX, randomY))
+                .rotation(45f)
+                .collisionRadius(21f)
+                .resolutionType(CollisionResolution.ResolutionType.PASS_THROUGH)
+                .build());
+        }
 
         entityDefinitions.add(new EntityDefinition.Builder(
             "Enemy",
@@ -120,6 +139,16 @@ public class GameScene extends Scene {
             new Vector2(0f, 0f))
             .physics(new Vector2(100f, 100f), 1.0f)
             .isActive(false)
+            .build());
+
+        // Bouncing circle: moves freely and bounces off all other entities and walls
+        entityDefinitions.add(new EntityDefinition.Builder(
+            "BouncingCircle",
+            EntityDefinition.EntityType.BOUNCING_CIRCLE,
+            new Vector2(500f, 240f))
+            .physics(new Vector2(150f, 100f), 1.0f)
+            .collisionRadius(18f)
+            .resolutionType(CollisionResolution.ResolutionType.BOUNCE)
             .build());
     }
 
@@ -240,14 +269,29 @@ public class GameScene extends Scene {
 
             if (!hitX && !hitY) continue;
 
-            // --- PhysicComponent entities (Player): zero velocity at wall ---
+            // --- PhysicComponent entities: handle wall response ---
             PhysicComponent p = entity.getComponent(PhysicComponent.class);
             if (p != null) {
                 Vector2 vel = p.getVelocity();
-                if (hitLeft && vel.x < 0f) vel.x = 0f;
-                if (hitRight && vel.x > 0f) vel.x = 0f;
-                if (hitBottom && vel.y < 0f) vel.y = 0f;
-                if (hitTop && vel.y > 0f) vel.y = 0f;
+
+                // Determine if this entity should bounce off walls (BouncingCircle)
+                // or stop at walls (Player and other physics entities)
+                boolean isBouncer = (entity instanceof GameEntity)
+                    && "BouncingCircle".equals(((GameEntity) entity).getName());
+
+                if (isBouncer) {
+                    // Reflect velocity at walls (bounce)
+                    if (hitLeft  && vel.x < 0f) vel.x = -vel.x;
+                    if (hitRight && vel.x > 0f) vel.x = -vel.x;
+                    if (hitBottom && vel.y < 0f) vel.y = -vel.y;
+                    if (hitTop    && vel.y > 0f) vel.y = -vel.y;
+                } else {
+                    // Stop at walls (original behaviour for Player etc.)
+                    if (hitLeft && vel.x < 0f) vel.x = 0f;
+                    if (hitRight && vel.x > 0f) vel.x = 0f;
+                    if (hitBottom && vel.y < 0f) vel.y = 0f;
+                    if (hitTop && vel.y > 0f) vel.y = 0f;
+                }
             }
 
             // --- LinearMovement entities (yellow ball): reverse direction axis ---
@@ -333,12 +377,16 @@ public class GameScene extends Scene {
                 // AIWanderer (purple circle)
                 shapeRenderer.setColor(0.8f, 0.2f, 0.8f, 1f);
                 shapeRenderer.circle(pos.x, pos.y, 20f);
+            } else if (entity instanceof GameEntity && ((GameEntity) entity).getName().equals("BouncingCircle")) {
+                // BouncingCircle (cyan circle)
+                shapeRenderer.setColor(0f, 0.9f, 0.9f, 1f);
+                shapeRenderer.circle(pos.x, pos.y, 18f);
             } else if (entity.hasComponent(PhysicComponent.class)) {
                 // Other physics entities (orange circle)
                 shapeRenderer.setColor(1f, 0.6f, 0.2f, 1f);
                 shapeRenderer.circle(pos.x, pos.y, 20f);
             } else {
-                // Static objects (green rotated square)
+                // Green diamonds (static objects, rotated 45° to look like diamonds)
                 shapeRenderer.setColor(0.3f, 1f, 0.3f, 1f);
                 float size = 30f;
                 shapeRenderer.rect(

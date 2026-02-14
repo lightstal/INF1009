@@ -81,7 +81,7 @@ public class CollisionManager {
                 ICollidable obj2 = collidableObjects.get(j);
                 if (obj2 == null || !obj2.isCollidable()) continue;
 
-                CollisionDetection.CollisionInfo collisionInfo =
+                CollisionInfo collisionInfo =
                     CollisionDetection.getCollisionInfo(obj1, obj2);
 
                 if (collisionInfo != null) {
@@ -101,7 +101,7 @@ public class CollisionManager {
     }
 
     private void handleCollision(ICollidable obj1, ICollidable obj2,
-                                 CollisionDetection.CollisionInfo collisionInfo) {
+                                 CollisionInfo collisionInfo) {
 
         Gdx.app.log("Collision", "Collision detected: " + obj1.getObjectId() +
             " <-> " + obj2.getObjectId());

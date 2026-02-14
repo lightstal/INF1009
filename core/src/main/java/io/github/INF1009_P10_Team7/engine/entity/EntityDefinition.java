@@ -14,7 +14,8 @@ public class EntityDefinition {
         STATIC_OBJECT,
         LINEAR_ENTITY,
         AI_WANDERER,
-        INACTIVE_ENTITY
+        INACTIVE_ENTITY,
+        BOUNCING_CIRCLE
     }
 
     public final String name;

@@ -23,7 +23,7 @@ public class CollisionResolution {
     }
 
     public interface CollisionCallback {
-        void onCollision(Entity entity1, Entity entity2, CollisionDetection.CollisionInfo info);
+        void onCollision(Entity entity1, Entity entity2, CollisionInfo info);
     }
 
     /**
@@ -32,7 +32,7 @@ public class CollisionResolution {
      * - movable vs fixed (only movable bounces)
      * - fixed vs fixed (do nothing)
      */
-    public static void resolveBounce(Entity entity1, Entity entity2, CollisionDetection.CollisionInfo info) {
+    public static void resolveBounce(Entity entity1, Entity entity2, CollisionInfo info) {
         if (entity1 == null || entity2 == null || info == null) return;
 
         PhysicComponent p1 = entity1.getComponent(PhysicComponent.class);
@@ -105,7 +105,7 @@ public class CollisionResolution {
     }
 
     public static void resolve(Entity entity1, Entity entity2,
-                               CollisionDetection.CollisionInfo info,
+                               CollisionInfo info,
                                ResolutionType type, CollisionCallback callback) {
 
         if (callback != null) {
