@@ -7,8 +7,8 @@ import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;
 import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
-import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputOutputManager;
 import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.movement.MovementManager;
@@ -44,8 +44,8 @@ public class GameEngine {
     }
 
     // Expose ONLY interfaces to simulation/scenes
-    public InputController getInput() { return io; }
-    public AudioController getAudio() { return io; }
+    public IInputController getInput() { return io; }
+    public IAudioController getAudio() { return io; }
     public EntityQuery getEntityQuery() { return entities; }
     public IEntitySystem getEntitySystem() { return entities; }
     public ICollisionSystem getCollisionSystem() { return collision; }

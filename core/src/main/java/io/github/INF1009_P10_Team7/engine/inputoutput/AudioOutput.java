@@ -16,7 +16,6 @@ import com.badlogic.gdx.audio.Sound;
 public class AudioOutput {
 
     private Music currentMusic;
-    private MusicState musicState;
 
     // Volume controls (0.0 to 1.0)
     private float musicVolume = 0.4f;
@@ -27,7 +26,6 @@ public class AudioOutput {
 
     public AudioOutput() {
         this.currentMusic = null;
-        this.musicState = MusicState.STOPPED;
     }
 
     public void setMusic(String audioPath) {
@@ -36,7 +34,6 @@ public class AudioOutput {
         currentMusic.setVolume(musicVolume);
         currentMusic.setLooping(true);
         currentMusic.play();
-        musicState = MusicState.PLAYING;
     }
 
     public void stopMusic() {
@@ -45,20 +42,17 @@ public class AudioOutput {
             currentMusic.dispose();
             currentMusic = null;
         }
-        musicState = MusicState.STOPPED;
     }
 
     public void pauseMusic() {
-        if (currentMusic != null && musicState == MusicState.PLAYING) {
+        if (currentMusic != null && currentMusic.isPlaying()) {
             currentMusic.pause();
-            musicState = MusicState.PAUSED;
         }
     }
 
     public void resumeMusic() {
-        if (currentMusic != null && musicState == MusicState.PAUSED) {
+        if (currentMusic != null && !currentMusic.isPlaying()) {
             currentMusic.play();
-            musicState = MusicState.PLAYING;
         }
     }
 
@@ -69,12 +63,13 @@ public class AudioOutput {
             soundCache.put(audioPath, sound);
         }
         sound.play(sfxVolume);
+        Gdx.app.log("AudioOutput", audioPath + " Sound played.");
     }
 
     public float getMusicVolume() { return musicVolume; }
 
     public void setMusicVolume(float volume) {
-        musicVolume = clamp01(volume);
+        musicVolume = Math.max(0f, Math.min(1f, volume));
         if (currentMusic != null) {
             currentMusic.setVolume(musicVolume);
         }
@@ -84,7 +79,7 @@ public class AudioOutput {
     public float getSoundVolume() { return sfxVolume; }
 
     public void setSoundVolume(float volume) {
-        sfxVolume = clamp01(volume);
+        sfxVolume = Math.max(0f, Math.min(1f, volume));
         Gdx.app.log("AudioOutput", "SFX volume set to: " + (int)(sfxVolume * 100) + "%");
     }
 
@@ -95,9 +90,5 @@ public class AudioOutput {
         }
         soundCache.clear();
         Gdx.app.log("AudioOutput", "AudioOutput disposed");
-    }
-
-    private static float clamp01(float v) {
-        return Math.max(0f, Math.min(1f, v));
     }
 }

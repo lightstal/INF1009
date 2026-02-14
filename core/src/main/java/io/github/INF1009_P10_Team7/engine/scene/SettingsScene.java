@@ -15,8 +15,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputBindElement;
 
 /**
@@ -51,7 +51,7 @@ public class SettingsScene extends Scene {
     private String actionToRebind = null;
     private List<InputBindElement> inputBindElements;
 
-    public SettingsScene(InputController input, AudioController audio, SceneNavigator nav, SceneFactory factory) {
+    public SettingsScene(IInputController input, IAudioController audio, SceneNavigator nav, SceneFactory factory) {
         super(input, audio, nav);
         this.factory = factory;
 
@@ -334,7 +334,7 @@ public class SettingsScene extends Scene {
      * Implementing SRP and Encapsulation.
      * to hold references and separate by state
      */
-    private class RebindHandler implements InputController.InputCallback {
+    private class RebindHandler implements IInputController.InputCallback {
 
         private final SettingsScene scene;
         private final String action;

@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
-import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 
 /**
  * Abstract Scene (engine layer)
@@ -11,13 +11,13 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
  */
 public abstract class Scene {
 
-    protected final InputController input;
-    protected final AudioController audio;
+    protected final IInputController input;
+    protected final IAudioController audio;
     protected final SceneNavigator nav;
 
     private boolean loaded = false;
 
-    protected Scene(InputController input, AudioController audio, SceneNavigator nav) {
+    protected Scene(IInputController input, IAudioController audio, SceneNavigator nav) {
         if (input == null || audio == null || nav == null) {
             throw new IllegalArgumentException("Scene dependencies cannot be null");
         }

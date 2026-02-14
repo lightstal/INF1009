@@ -8,8 +8,8 @@ import io.github.INF1009_P10_Team7.engine.core.GameEngine;
 import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
 import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
-import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
@@ -36,8 +36,8 @@ public class Part1SimulationApp extends ApplicationAdapter {
         engine = new GameEngine();
 
         // Get interfaces from engine (Dependency Inversion)
-        InputController input = engine.getInput();
-        AudioController audio = engine.getAudio();
+        IInputController input = engine.getInput();
+        IAudioController audio = engine.getAudio();
         SceneNavigator nav = engine.getNavigator();
         EntityQuery entityQuery = engine.getEntityQuery();
         IEntitySystem entitySystem = engine.getEntitySystem();

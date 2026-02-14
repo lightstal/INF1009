@@ -9,8 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
-import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 
 /**
  * MainMenuScene
@@ -29,7 +29,7 @@ public class MainMenuScene extends Scene {
     private static final float WORLD_W = 800f;
     private static final float WORLD_H = 480f;
 
-    public MainMenuScene(InputController input, AudioController audio, SceneNavigator nav, SceneFactory factory) {
+    public MainMenuScene(IInputController input, IAudioController audio, SceneNavigator nav, SceneFactory factory) {
         super(input, audio, nav);
         this.factory = factory;
     }

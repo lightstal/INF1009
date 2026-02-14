@@ -3,7 +3,7 @@ package io.github.INF1009_P10_Team7.engine.movement;
 import java.util.HashMap;
 
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 import java.util.Map;
 
@@ -22,7 +22,7 @@ public class PlayerMovement implements MovementHandler {
     }
 
     @Override
-    public void handle(PhysicComponent physics, InputController input) {
+    public void handle(PhysicComponent physics, IInputController input) {
         Vector2 velocity = physics.getVelocity();
         velocity.set(0, 0); // Dispose
 

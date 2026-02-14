@@ -14,24 +14,18 @@ import com.badlogic.gdx.Gdx;
  */
 public class MouseDevice extends DeviceInput {
 	
-	/** 
-	 * The number of mouse buttons to track. 
-     * <br>0=Left, 1=Right, 2=Middle, 3=Back, 4=Forward. 
-     */
-	private static final int BUTTON_COUNT = 5;
-	
     private float mouseX;
     private float mouseY;
     
     /** 
      * Stores the state of mouse buttons for the current frame.
      */
-    private boolean[] currentButtons = new boolean[BUTTON_COUNT];
+    private boolean[] currentButtons = new boolean[5];
     
     /**
      * Stores the state of mouse buttons from the previous frame. 
      */
-    private boolean[] previousButtons = new boolean[BUTTON_COUNT];
+    private boolean[] previousButtons = new boolean[5];
     
     /**
      * Initializes the mouse device with ID 1.
@@ -59,10 +53,10 @@ public class MouseDevice extends DeviceInput {
 
         // Update buttons pressed
         // First, copy current state to previous state (Critical for JustPressed logic)
-        System.arraycopy(currentButtons, 0, previousButtons, 0, BUTTON_COUNT);
+        System.arraycopy(currentButtons, 0, previousButtons, 0, 5);
 
         // Then, read new state from LibGDX hardware
-        for (int i = 0; i < BUTTON_COUNT; i++) {
+        for (int i = 0; i < 5; i++) {
             currentButtons[i] = Gdx.input.isButtonPressed(i);
         }
     }
@@ -74,7 +68,7 @@ public class MouseDevice extends DeviceInput {
      */
     @Override
     public boolean getButton(int id) {
-    	if (id >= 0 && id < BUTTON_COUNT) {
+    	if (id >= 0 && id < 5) {
             return currentButtons[id];
         }
         return false;
@@ -87,7 +81,7 @@ public class MouseDevice extends DeviceInput {
      */
     @Override
     public boolean isButtonJustPressed(int id) {
-        if (id >= 0 && id < BUTTON_COUNT) {
+        if (id >= 0 && id < 5) {
             return currentButtons[id] && !previousButtons[id];
         }
         return false;

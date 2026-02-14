@@ -9,7 +9,7 @@ import com.badlogic.gdx.InputAdapter;
 
 
 /**
- * The concrete implementation of the {@link InputController} interface.
+ * The concrete implementation of the {@link IInputController} interface.
  * <p>
  * This class serves as the <b>Central Manager</b> for all engine input and output.
  * It is responsible for:
@@ -20,7 +20,7 @@ import com.badlogic.gdx.InputAdapter;
  * <li>Delegating audio requests to the {@link AudioOutput} system.</li>
  * </ul>
  */
-public class InputOutputManager implements InputController, AudioController{
+public class InputOutputManager implements IInputController, IAudioController{
 	
 	/**
      * An arbitrary offset added to mouse button codes to distinguish them from keyboard key codes.
@@ -168,7 +168,7 @@ public class InputOutputManager implements InputController, AudioController{
 
     // add listener for next key press
     @Override
-    public void listenForNextKey(final InputController.InputCallback callback) {
+    public void listenForNextKey(final IInputController.InputCallback callback) {
 
         // set a temporary processor to catch exactly ONE key
         Gdx.input.setInputProcessor(new InputAdapter() {
@@ -215,26 +215,32 @@ public class InputOutputManager implements InputController, AudioController{
 
 	@Override
 	public void setMusicVolume(float volume) {
-		audioOutput.setMusicVolume(volume);
-		
+		audioOutput.setMusicVolume(volume);		
 	}
 
 	@Override
 	public void setSoundVolume(float volume) {
-		audioOutput.setSoundVolume(volume);
-		
+		audioOutput.setSoundVolume(volume);		
 	}
 
 	@Override
 	public void setMusic(String filePath) {
-		audioOutput.setMusic(filePath);
-		
+		audioOutput.setMusic(filePath);		
 	}
 
 	@Override
 	public void stopMusic() {
-		audioOutput.stopMusic();
-		
+		audioOutput.stopMusic();		
+	}
+
+	@Override
+	public void pauseMusic() {
+		audioOutput.pauseMusic();
+	}
+
+	@Override
+	public void resumeMusic() {
+		audioOutput.resumeMusic();
 	}
 
 	@Override

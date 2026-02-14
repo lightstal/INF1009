@@ -15,8 +15,8 @@ import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
 import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.entity.components.*;
-import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.movement.*;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
@@ -55,8 +55,8 @@ public class GameScene extends Scene {
     private static final float LOG_INTERVAL = 2.0f;
 
     public GameScene(
-        InputController input,
-        AudioController audio,
+        IInputController input,
+        IAudioController audio,
         SceneNavigator nav,
         EntityQuery entityQuery,
         IEntitySystem entitySystem,

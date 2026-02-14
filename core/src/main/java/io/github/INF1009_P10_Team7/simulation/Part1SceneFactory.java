@@ -3,8 +3,8 @@ package io.github.INF1009_P10_Team7.simulation;
 import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
 import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
-import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.scene.GameScene;
 import io.github.INF1009_P10_Team7.engine.scene.MainMenuScene;
@@ -15,8 +15,8 @@ import io.github.INF1009_P10_Team7.engine.scene.SettingsScene;
 
 /** Concrete factory implementation for Part 1 scenes. */
 public class Part1SceneFactory implements SceneFactory {
-    private final InputController input;
-    private final AudioController audio;
+    private final IInputController input;
+    private final IAudioController audio;
     private final SceneNavigator nav;
     private final EntityQuery entityQuery;
     private final IEntitySystem entitySystem;
@@ -24,8 +24,8 @@ public class Part1SceneFactory implements SceneFactory {
     private final IMovementSystem movementSystem;
 
     public Part1SceneFactory(
-        InputController input,
-        AudioController audio,
+        IInputController input,
+        IAudioController audio,
         SceneNavigator nav,
         EntityQuery entityQuery,
         IEntitySystem entitySystem,

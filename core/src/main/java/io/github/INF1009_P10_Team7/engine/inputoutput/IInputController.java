@@ -4,7 +4,7 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
  * Interface that defines how Scenes interact with the IO system.
  * This hides the complex implementation details from the game logic.
  */
-public interface InputController {
+public interface IInputController {
 	
 	// --- Input Binding ---
 	

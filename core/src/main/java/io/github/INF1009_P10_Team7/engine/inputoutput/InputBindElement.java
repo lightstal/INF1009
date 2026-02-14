@@ -35,7 +35,7 @@ public class InputBindElement {
     }
 
     // render text in for button
-    public void drawText(SpriteBatch batch, BitmapFont font, InputController input, boolean isWaiting) {
+    public void drawText(SpriteBatch batch, BitmapFont font, IInputController input, boolean isWaiting) {
         // labeling
         font.setColor(0.8f, 0.8f, 0.8f, 1f);
         font.draw(batch, actionName + ":", bounds.x - 75, bounds.y + 24);
