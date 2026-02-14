@@ -10,7 +10,7 @@ public class AImovement implements MovementBehaviour {
     private float dx = 0, dy = 0;
     private Random random;
 
-    public AImovement(float speed) { 
+    public AImovement(float speed) {
         this.speed = speed;
         this.random = new Random();
     }
@@ -22,14 +22,14 @@ public class AImovement implements MovementBehaviour {
         if (timer > 1.0f) { // Change direction every 1 second
             dx = random.nextFloat() * 2f - 1f; // Random between -1 and 1
             dy = random.nextFloat() * 2f - 1f; // Random between -1 and 1
-            
+
             // Normalize to maintain consistent speed
             float length = (float) Math.sqrt(dx * dx + dy * dy);
             if (length > 0) {
                 dx /= length;
                 dy /= length;
             }
-            
+
             timer = 0;
         }
         if (tc != null) {
@@ -37,7 +37,7 @@ public class AImovement implements MovementBehaviour {
             tc.getPosition().y += dy * speed * deltaTime;
         }
     }
-    
+
     // Getters and setters
     public float getSpeed() { return speed; }
     public void setSpeed(float speed) { this.speed = speed; }

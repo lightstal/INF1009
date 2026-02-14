@@ -48,24 +48,24 @@ public class LinearMovement implements MovementBehaviour {
             tc.getPosition().y += direction.y * speed * deltaTime;
         }
     }
-    
+
     // Getters and setters
     public Vector2 getDirection() {
         return direction;
     }
-    
+
     public void setDirection(Vector2 direction) {
         this.direction = direction.nor();
     }
-    
+
     public float getSpeed() {
         return speed;
     }
-    
+
     public void setSpeed(float speed) {
         this.speed = speed;
     }
-    
+
     // Method to reverse direction (useful for bouncing)
     public void reverseDirection() {
         direction.x = -direction.x;

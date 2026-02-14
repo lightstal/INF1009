@@ -30,9 +30,12 @@ import java.util.Map;
  * 1. io.update()           - poll input
  * 2. scenes.update(dt)     - scene logic (input handling, player movement commands)
  * 3. movement.updateAll()  - apply movement (physics, AI, linear, follow)
- * 4. collision.update()    - detect & resolve entity-vs-entity + boundary collisions
- * 5. scenes.lateUpdate(dt) - post-movement cleanup (boundary clamping in scenes)
+ * 4. collision.update()    - detect & resolve entity-vs-entity collisions
+ * 5. scenes.lateUpdate(dt) - post-movement cleanup (optional scene logic)
  * 6. entities.updateAll()  - component updates
+ *
+ * NOTE: World boundaries are handled by creating fixed "wall" entities in the scene.
+ *       No special boundary collision function is used.
  */
 public class GameEngine {
 
@@ -48,9 +51,6 @@ public class GameEngine {
         movement = new MovementManager();
         entities = new EntityManager();
         scenes = new SceneManager();
-
-        // Set default world bounds for boundary collision
-        collision.setWorldBounds(800f, 480f);
     }
 
     // Expose ONLY interfaces to simulation/scenes
@@ -65,14 +65,9 @@ public class GameEngine {
         collision.setCollisionSound(soundPath);
     }
 
-    public void setWorldBounds(float width, float height) {
-        collision.setWorldBounds(width, height);
-    }
-
     public void update(float dt) {
         io.update();
 
-        // 1. Scene logic (input, player commands)
         scenes.update(dt);
 
         if (scenes.consumeSceneReplacedFlag()) {
@@ -83,17 +78,12 @@ public class GameEngine {
         boolean pauseWorld = top != null && top.blocksWorldUpdate();
 
         if (!pauseWorld) {
-            // 2. Movement (physics integration + behaviours)
             movement.updateAll(dt);
 
-            // 3. Collision detection & resolution
             collision.update(dt);
 
-            // 4. Late update - runs AFTER movement+collision
-            //    This is where scenes can clamp boundaries
             scenes.lateUpdate(dt);
 
-            // 5. Component updates
             entities.updateAll(dt);
         }
     }
