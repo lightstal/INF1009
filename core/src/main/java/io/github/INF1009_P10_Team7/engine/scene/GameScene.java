@@ -1,6 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -193,6 +194,10 @@ public class GameScene extends Scene {
             named = entityQuery.getNamedEntities();
         }
 
+        if (Gdx.input.getInputProcessor() != null) {
+            Gdx.input.setInputProcessor(null);
+        }
+
         logTimer += delta;
         if (logTimer >= LOG_INTERVAL) {
             logTimer = 0f;
@@ -219,6 +224,11 @@ public class GameScene extends Scene {
         PhysicComponent physics = player.getComponent(PhysicComponent.class);
         if (movementLogic != null && physics != null) {
             movementLogic.handle(physics, input);
+        }
+
+        // to check esc pressed and freeze the gamescene
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            nav.pushScene(factory.createSettingsScene());
         }
     }
 

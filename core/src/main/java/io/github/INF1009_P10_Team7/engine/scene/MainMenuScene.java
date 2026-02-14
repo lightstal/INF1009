@@ -11,6 +11,7 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.UIElement;
 
 /**
  * MainMenuScene
@@ -24,6 +25,8 @@ public class MainMenuScene extends Scene {
     private Stage stage;
     private Skin skin;
     private TextButton startButton;
+    private TextButton settingButton;
+    private UIElement uiElement;
 
     // FIXED WORLD SIZE - matches GameScene
     private static final float WORLD_W = 800f;
@@ -44,41 +47,57 @@ public class MainMenuScene extends Scene {
         stage = new Stage(new StretchViewport(WORLD_W, WORLD_H));
         stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
+        // for button ui
         try {
             skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
 
-            startButton = new TextButton("START GAME", skin, "default");
-            startButton.setSize(200, 60);
+            uiElement = new UIElement(skin, true); // Create instance
+
+            startButton = uiElement.createButton("START GAME", 200, 60,
+                    () -> nav.requestScene(factory.createGameScene()));
+
+            settingButton = uiElement.createButton("SETTING", 200, 60,
+                    () -> nav.pushScene(factory.createSettingsScene()));
+
             updateButtonPosition();
 
-            startButton.addListener(new ClickListener() {
-                @Override
-                public void clicked(InputEvent event, float x, float y) {
-                    Gdx.app.log("UI", "Start Button Clicked");
-                    nav.requestScene(factory.createGameScene());
-                }
-            });
-
             stage.addActor(startButton);
+            stage.addActor(settingButton);
+
         } catch (Exception e) {
             Gdx.app.error("UI", "Failed to load skin: buttons/name2d.json", e);
         }
 
         Gdx.input.setInputProcessor(stage);
+
     }
 
     private void updateButtonPosition() {
-        if (startButton != null && stage != null) {
-            startButton.setPosition(
-                (WORLD_W - startButton.getWidth()) / 2f,
-                WORLD_H / 2f
-            );
+        if (stage != null) {
+            // Center of the screen horizontally
+            float centerX = (WORLD_W - 200) / 2f;
+
+            // Position Start Button slightly above the center
+            if (startButton != null) {
+                startButton.setPosition(centerX, (WORLD_H / 2f) + 40);
+            }
+
+            // Position Setting Button slightly below the Start Button
+            if (settingButton != null) {
+                settingButton.setPosition(centerX, (WORLD_H / 2f) - 40);
+            }
         }
     }
 
     @Override
     protected void onUpdate(float delta) {
-        if (stage != null) stage.act(delta);
+        if (stage != null)
+            stage.act(delta);
+
+        // for returning another scene to check if stage is null
+        if (Gdx.input.getInputProcessor() != stage) {
+            Gdx.input.setInputProcessor(stage);
+        }
 
         if (input.isActionJustPressed("START_GAME")) {
             Gdx.app.log("InputController", "Action 'START_GAME' was pressed");
@@ -96,7 +115,8 @@ public class MainMenuScene extends Scene {
         Gdx.gl.glClearColor(0.2f, 0.2f, 0.8f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if (stage != null) stage.draw();
+        if (stage != null)
+            stage.draw();
     }
 
     @Override
@@ -116,8 +136,10 @@ public class MainMenuScene extends Scene {
     @Override
     protected void onDispose() {
         Gdx.app.log("Scene", "MainMenuScene disposed");
-        if (stage != null) stage.dispose();
-        if (skin != null) skin.dispose();
+        if (stage != null)
+            stage.dispose();
+        if (skin != null)
+            skin.dispose();
         Gdx.input.setInputProcessor(null);
     }
 }
