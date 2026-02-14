@@ -1,4 +1,4 @@
-package io.github.INF1009_P10_Team7.engine.scene;
+package io.github.INF1009_P10_Team7.simulation;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -18,6 +18,9 @@ import io.github.INF1009_P10_Team7.engine.entity.components.*;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
 import io.github.INF1009_P10_Team7.engine.movement.*;
+import io.github.INF1009_P10_Team7.engine.scene.Scene;
+import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
+import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 import java.util.Map;
