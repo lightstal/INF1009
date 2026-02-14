@@ -1,5 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
@@ -16,6 +18,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import io.github.INF1009_P10_Team7.engine.entity.EntityDefinition;
 import io.github.INF1009_P10_Team7.engine.inputoutput.AudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.InputController;
+import io.github.INF1009_P10_Team7.engine.inputoutput.InputBindElement;
 
 /**
  * SettingsScene (UI-only)
@@ -44,31 +47,36 @@ public class SettingsScene extends Scene {
     private static final float VW = 800f;
     private static final float VH = 600f;
 
+    // For key binding
+    private boolean isRebinding = false;
+    private String actionToRebind = null;
+    private List<InputBindElement> inputBindElements;
+
     public SettingsScene(InputController input, AudioController audio, SceneNavigator nav, SceneFactory factory) {
         super(input, audio, nav);
         this.factory = factory;
 
         // Scene only DECLARES what exists (blueprints for Part 1 rubric)
         entityDefinitions.add(new EntityDefinition.Builder(
-            "SettingsTitle",
-            EntityDefinition.EntityType.STATIC_OBJECT,
-            new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
-            .collisionRadius(0f)
-            .build());
+                "SettingsTitle",
+                EntityDefinition.EntityType.STATIC_OBJECT,
+                new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
+                .collisionRadius(0f)
+                .build());
 
         entityDefinitions.add(new EntityDefinition.Builder(
-            "VolumeSlider",
-            EntityDefinition.EntityType.STATIC_OBJECT,
-            new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
-            .collisionRadius(0f)
-            .build());
+                "VolumeSlider",
+                EntityDefinition.EntityType.STATIC_OBJECT,
+                new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
+                .collisionRadius(0f)
+                .build());
 
         entityDefinitions.add(new EntityDefinition.Builder(
-            "BackButton",
-            EntityDefinition.EntityType.STATIC_OBJECT,
-            new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
-            .collisionRadius(0f)
-            .build());
+                "BackButton",
+                EntityDefinition.EntityType.STATIC_OBJECT,
+                new io.github.INF1009_P10_Team7.engine.utils.Vector2(0f, 0f))
+                .collisionRadius(0f)
+                .build());
     }
 
     @Override
@@ -88,7 +96,7 @@ public class SettingsScene extends Scene {
         camera.update();
 
         volume01 = audio.getMusicVolume();
-        Gdx.app.log("AudioController", "SettingsScene current music volume: " + (int)(volume01 * 100) + "%");
+        Gdx.app.log("AudioController", "SettingsScene current music volume: " + (int) (volume01 * 100) + "%");
 
         recalcUI();
         Gdx.app.log("Scene", "SettingsScene loaded");
@@ -110,6 +118,34 @@ public class SettingsScene extends Scene {
         btnH = 56f;
         btnX = panelX + (panelW - btnW) / 2f;
         btnY = panelY + 90f;
+
+        // Dimensions
+        float startX = VW / 2; // center of screen
+        float startY = 350; // height
+
+        // Local variables specifically for keys
+        float keyW = 140f;
+        float keyH = 35f;
+        float gap = 30f;
+
+        // initializing from inputbindelement by oop
+        inputBindElements = new java.util.ArrayList<>();
+
+        // addKey, to seperate from calling inputBindElements.add(new
+        // InputBindElement()) alot of times
+        // // row 1 --- left and right
+        addKey("LEFT", startX - keyW - gap, startY, keyW, keyH);
+        addKey("RIGHT", startX + gap, startY, keyW, keyH);
+
+        // // row 2 --- up and down
+        float row2Y = startY - 60f;
+        addKey("UP", startX - keyW - gap, row2Y, keyW, keyH);
+        addKey("DOWN", startX + gap, row2Y, keyW, keyH);
+
+        // // row 3 --- shoot
+        float row3Y = row2Y - 60f;
+        addKey("SHOOT", startX - (keyW / 2), row3Y, keyW, keyH);
+
     }
 
     @Override
@@ -129,8 +165,10 @@ public class SettingsScene extends Scene {
         float previousVolume = volume01;
 
         // Optional: slider control with arrows
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) volume01 -= delta * 0.6f;
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) volume01 += delta * 0.6f;
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
+            volume01 -= delta * 0.6f;
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
+            volume01 += delta * 0.6f;
         volume01 = MathUtils.clamp(volume01, 0f, 1f);
 
         if (Gdx.input.justTouched()) {
@@ -150,8 +188,38 @@ public class SettingsScene extends Scene {
         if (Math.abs(volume01 - previousVolume) > 0.001f) {
             audio.setMusicVolume(volume01);
             audio.setSoundVolume(volume01);
-            Gdx.app.log("SettingsScene", "Volume updated to: " + (int)(volume01 * 100) + "%");
+            Gdx.app.log("SettingsScene", "Volume updated to: " + (int) (volume01 * 100) + "%");
         }
+
+        // for key binding, when touch on the binded key
+        if (Gdx.input.justTouched()) {
+            Vector2 mouse = viewport.unproject(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
+
+            // SRP to check by list that wants to bind
+            if (!isRebinding) {
+                for (InputBindElement element : inputBindElements) {
+                    if (element.isClicked(mouse)) {
+                        startRebinding(element.getActionName());
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // for binding
+    private void startRebinding(String action) {
+        isRebinding = true;
+        actionToRebind = action;
+
+        // oop to encapsulate 'this' (the scene instance) to the static handler
+        input.listenForNextKey(new RebindHandler(this, action));
+    }
+
+    // to clean after binding
+    private void stopRebinding() {
+        isRebinding = false;
+        actionToRebind = null;
     }
 
     private boolean contains(float px, float py, float x, float y, float w, float h) {
@@ -160,7 +228,8 @@ public class SettingsScene extends Scene {
 
     @Override
     protected void onRender() {
-        if (camera == null || viewport == null) return;
+        if (camera == null || viewport == null)
+            return;
 
         // CRITICAL ORDER: Apply viewport FIRST, then clear, then draw!
         viewport.apply();
@@ -173,6 +242,12 @@ public class SettingsScene extends Scene {
         batch.setProjectionMatrix(camera.combined);
 
         shape.begin(ShapeRenderer.ShapeType.Filled);
+
+        // draw key background for keybind
+        for (InputBindElement element : inputBindElements) {
+            boolean waiting = isRebinding && element.getActionName().equals(actionToRebind);
+            element.drawShape(shape, waiting);
+        }
 
         // Panel background
         shape.setColor(0.13f, 0.14f, 0.17f, 1f);
@@ -203,12 +278,20 @@ public class SettingsScene extends Scene {
 
         batch.begin();
 
+        // draw key text for keybind
+        for (InputBindElement element : inputBindElements) { // Note: Variable name is same as class (should be
+                                                             // inputBindElements)
+            boolean waiting = isRebinding && element.getActionName().equals(actionToRebind);
+
+            element.drawText(batch, font, input, waiting);
+        }
+
         // Title
         font.getData().setScale(2.0f);
         layout.setText(font, "SETTINGS");
         font.draw(batch, layout,
-            panelX + (panelW - layout.width) / 2f,
-            panelY + panelH - 28f);
+                panelX + (panelW - layout.width) / 2f,
+                panelY + panelH - 28f);
 
         // Volume label
         font.getData().setScale(1.3f);
@@ -217,7 +300,7 @@ public class SettingsScene extends Scene {
 
         // Percentage
         font.getData().setScale(1.1f);
-        String percent = (int)(volume01 * 100) + "%";
+        String percent = (int) (volume01 * 100) + "%";
         layout.setText(font, percent);
         font.draw(batch, layout, sliderX + sliderW - layout.width, sliderY + 60f);
 
@@ -225,8 +308,8 @@ public class SettingsScene extends Scene {
         font.getData().setScale(1.2f);
         layout.setText(font, "BACK");
         font.draw(batch, layout,
-            btnX + (btnW - layout.width) / 2f,
-            btnY + (btnH + layout.height) / 2f);
+                btnX + (btnW - layout.width) / 2f,
+                btnY + (btnH + layout.height) / 2f);
 
         batch.end();
     }
@@ -255,9 +338,43 @@ public class SettingsScene extends Scene {
 
     @Override
     protected void onDispose() {
-        if (shape != null) shape.dispose();
-        if (batch != null) batch.dispose();
-        if (font != null) font.dispose();
+        if (shape != null)
+            shape.dispose();
+        if (batch != null)
+            batch.dispose();
+        if (font != null)
+            font.dispose();
         Gdx.app.log("Scene", "SettingsScene disposed");
+    }
+
+    //
+    private void addKey(String action, float x, float y, float w, float h) {
+        inputBindElements.add(new InputBindElement(action, x, y, w, h));
+    }
+
+    /**
+     * Implementing SRP and Encapsulation.
+     * to hold references and separate by state
+     */
+    private class RebindHandler implements InputController.InputCallback {
+
+        private final SettingsScene scene;
+        private final String action;
+
+        public RebindHandler(SettingsScene scene, String action) {
+            this.scene = scene;
+            this.action = action;
+        }
+
+        @Override
+        public void onInputReceived(int keycode) {
+            // Perform Binding
+            scene.input.bindKey(this.action, keycode);
+
+            Gdx.app.log("Settings", "Rebound " + this.action + " to " + keycode);
+
+            // Reset UI State
+            stopRebinding();
+        }
     }
 }

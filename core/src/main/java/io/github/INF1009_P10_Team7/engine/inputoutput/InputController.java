@@ -61,4 +61,15 @@ public interface InputController {
      * @return The y-coordinate in screen pixels (0 is top).
      */
     float getMouseY();
+
+     // to getkeyname from any keys press
+    String getKeyName(String action);
+
+    // listener for/to get the next key
+    void listenForNextKey(InputCallback callback);
+    
+    // interface for callback for better oop
+    interface InputCallback {
+        void onInputReceived(int keycode);
+    }
 }

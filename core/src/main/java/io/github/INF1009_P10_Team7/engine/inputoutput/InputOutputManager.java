@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 
 
 /**
@@ -135,6 +137,52 @@ public class InputOutputManager implements InputController, AudioController{
             }
         }
         return false;
+    }
+
+     // Get key code when pressed
+    @Override
+    public String getKeyName(String action) {
+        if (keyBindings.containsKey(action)) {
+            int keycode = keyBindings.get(action);
+
+            // get keycode for mouse
+            if (keycode == Input.Keys.LEFT)
+                return "L-CLICK"; // return 0
+            if (keycode == Input.Keys.RIGHT)
+                return "R-CLICK"; // return 1
+
+            // when keycode more than 300, it will crash.
+            if (keycode >= 255) {
+                return "MOUSE";
+            }
+
+            // conversion for keyboard keys
+            if (keycode >= 0 && keycode <= 255) {
+                return Input.Keys.toString(keycode);
+            }
+
+            return "UNKNOWN";
+        }
+        return "NONE";
+    }
+
+    // add listener for next key press
+    @Override
+    public void listenForNextKey(final InputController.InputCallback callback) {
+
+        // set a temporary processor to catch exactly ONE key
+        Gdx.input.setInputProcessor(new InputAdapter() {
+            @Override
+            public boolean keyDown(int keycode) {
+                // send the key back
+                callback.onInputReceived(keycode);
+
+                // stop listening
+                Gdx.input.setInputProcessor(null);
+
+                return true;
+            }
+        });
     }
 
      /**
