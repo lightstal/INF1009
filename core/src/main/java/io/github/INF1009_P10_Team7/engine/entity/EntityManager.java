@@ -87,10 +87,10 @@ public class EntityManager implements IEntitySystem, EntityQuery {
         return entities.values();
     }
 
-
-    public Collection<Entity> getAllEntitiesCollection() {
-        return entities.values();
-    }
+//    commented oout for now since not called
+//    public Collection<Entity> getAllEntitiesCollection() {
+//        return entities.values();
+//    }
 
     @Override
     public Map<String, GameEntity> getNamedEntities() {

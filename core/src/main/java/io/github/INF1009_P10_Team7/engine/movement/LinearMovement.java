@@ -40,9 +40,19 @@ public class LinearMovement implements MovementBehaviour {
         this.speed = speed;
     }
 
-    // Method to reverse direction (useful for bouncing)
-    public void reverseDirection() {
+    // Reverses the X component of direction (for horizontal boundary bouncing).
+    public void reverseX() {
         direction.x = -direction.x;
+    }
+
+    // Reverses the Y component of direction (for vertical boundary bouncing).
+    public void reverseY() {
         direction.y = -direction.y;
+    }
+
+    // Reverses both X and Y direction components.
+    public void reverseDirection() {
+        reverseX();
+        reverseY();
     }
 }

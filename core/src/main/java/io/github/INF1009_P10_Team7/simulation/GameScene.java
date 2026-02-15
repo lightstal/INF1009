@@ -548,10 +548,12 @@ public class GameScene extends Scene {
                 if (behaviour instanceof LinearMovement) {
                     LinearMovement linear = (LinearMovement) behaviour;
                     Vector2 dir = linear.getDirection();
-                    if (hitLeft && dir.x < 0f)   dir.x = -dir.x;
-                    if (hitRight && dir.x > 0f)  dir.x = -dir.x;
-                    if (hitBottom && dir.y < 0f) dir.y = -dir.y;
-                    if (hitTop && dir.y > 0f)    dir.y = -dir.y;
+                    if ((hitLeft && dir.x < 0f) || (hitRight && dir.x > 0f)) {
+                        linear.reverseX();
+                    }
+                    if ((hitBottom && dir.y < 0f) || (hitTop && dir.y > 0f)) {
+                        linear.reverseY();
+                    }
                 }
             }
         }
