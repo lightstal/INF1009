@@ -8,7 +8,7 @@ import java.util.UUID;
 public abstract class Entity {
     private final UUID id;
     private boolean active;
-    private final Map<Class<? extends Component>, Component> components;
+    private final Map<Class<? extends IComponent>, IComponent> components;
 
     // Creates a new entity with a unique ID and initializes its component map.
     public Entity() {
@@ -25,12 +25,12 @@ public abstract class Entity {
     // Adds a component to this entity.
     // If a component of the same type already exists, it is replaced.
     // @param component The component to add
-    public void addComponent(Component component) {
-        Class<? extends Component> type = component.getClass();
+    public void addComponent(IComponent component) {
+        Class<? extends IComponent> type = component.getClass();
 
         // Remove existing component of the same type if present
         if (components.containsKey(type)) {
-            Component existing = components.get(type);
+            IComponent existing = components.get(type);
             existing.onRemoved(this);
         }
 
@@ -39,8 +39,8 @@ public abstract class Entity {
     }
 
     // Removes a component of the specified type from this entity.
-    public void removeComponent(Class<? extends Component> type) {
-        Component component = components.remove(type);
+    public void removeComponent(Class<? extends IComponent> type) {
+        IComponent component = components.remove(type);
         if (component != null) {
             component.onRemoved(this);
         }
@@ -50,14 +50,14 @@ public abstract class Entity {
     // @param type The class type of the component to retrieve
     // @return The component instance, or null if not found
     @SuppressWarnings("unchecked")
-    public <T extends Component> T getComponent(Class<T> type) {
+    public <T extends IComponent> T getComponent(Class<T> type) {
         return (T) components.get(type);
     }
 
     // Checks if this entity has a component of the specified type.
     // @param type The class type of the component to check
     // @return true if the component exists, false otherwise
-    public boolean hasComponent(Class<? extends Component> type) {
+    public boolean hasComponent(Class<? extends IComponent> type) {
         return components.containsKey(type);
     }
 
@@ -80,7 +80,7 @@ public abstract class Entity {
             return;
         }
 
-        for (Component component : components.values()) {
+        for (IComponent component : components.values()) {
             component.update(deltaTime);
         }
     }

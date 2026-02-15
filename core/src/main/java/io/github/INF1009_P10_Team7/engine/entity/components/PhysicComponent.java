@@ -1,6 +1,6 @@
 package io.github.INF1009_P10_Team7.engine.entity.components;
 
-import io.github.INF1009_P10_Team7.engine.entity.Component;
+import io.github.INF1009_P10_Team7.engine.entity.IComponent;
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
@@ -8,7 +8,7 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 // Component that handles physics simulation for an entity.
 // Stores velocity and mass, and updates the entitys transform based on physics.
 
-public class PhysicComponent implements Component {
+public class PhysicComponent implements IComponent {
     private Vector2 velocity;
     private float mass;
     private Entity owner;

@@ -2,14 +2,14 @@ package io.github.INF1009_P10_Team7.engine.entity.components;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import io.github.INF1009_P10_Team7.engine.entity.Component;
+import io.github.INF1009_P10_Team7.engine.entity.IComponent;
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 
 /**
  * Component that holds a render behaviour (Strategy Pattern) and a color.
  * Allows swapping the visual representation of an entity at runtime.
  */
-public class RenderComponent implements Component {
+public class RenderComponent implements IComponent {
 
     private IRenderBehaviour renderBehaviour;
     private Color color;

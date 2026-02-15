@@ -1,6 +1,6 @@
 package io.github.INF1009_P10_Team7.engine.entity.components;
 
-import io.github.INF1009_P10_Team7.engine.entity.Component;
+import io.github.INF1009_P10_Team7.engine.entity.IComponent;
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 import io.github.INF1009_P10_Team7.engine.movement.MovementBehaviour;
 
@@ -8,7 +8,7 @@ import io.github.INF1009_P10_Team7.engine.movement.MovementBehaviour;
  * Component that handles entity movement using the Strategy pattern.
  * Allows switching between different movement behaviors at runtime.
  */
-public class MovementComponent implements Component {
+public class MovementComponent implements IComponent {
     private MovementBehaviour movementBehaviour;
     private Entity owner;
 

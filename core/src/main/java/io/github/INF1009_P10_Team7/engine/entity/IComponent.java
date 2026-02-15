@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.entity;
 
 // Interface for components that can be attached to entities.
-public interface Component {
+public interface IComponent {
 
     // Called when this component is added to an entity.
     // Use this to initialize resources or references.

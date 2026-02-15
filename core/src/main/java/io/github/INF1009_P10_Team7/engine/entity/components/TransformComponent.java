@@ -1,6 +1,6 @@
 package io.github.INF1009_P10_Team7.engine.entity.components;
 
-import io.github.INF1009_P10_Team7.engine.entity.Component;
+import io.github.INF1009_P10_Team7.engine.entity.IComponent;
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
@@ -8,7 +8,7 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
  * Component that stores position and rotation data for an entity.
  * Represents the spatial transform of an entity in 2D space.
  */
-public class TransformComponent implements Component {
+public class TransformComponent implements IComponent {
     private Vector2 position;
     private float rotation;
     private Entity owner;
