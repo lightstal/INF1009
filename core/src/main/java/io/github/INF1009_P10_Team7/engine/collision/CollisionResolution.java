@@ -10,9 +10,6 @@ public class CollisionResolution {
         PASS_THROUGH
     }
 
-    public interface CollisionCallback {
-        void onCollision(ICollidable obj1, ICollidable obj2, CollisionInfo info);
-    }
 
 
     public static void resolveBounce(ICollidable obj1, ICollidable obj2, CollisionInfo info) {
@@ -77,13 +74,7 @@ public class CollisionResolution {
     }
 
     public static void resolve(ICollidable obj1, ICollidable obj2,
-                               CollisionInfo info,
-                               ResolutionType type, CollisionCallback callback) {
-
-        if (callback != null) {
-            callback.onCollision(obj1, obj2, info);
-        }
-
+                               CollisionInfo info, ResolutionType type) {
         switch (type) {
             case BOUNCE:
                 resolveBounce(obj1, obj2, info);

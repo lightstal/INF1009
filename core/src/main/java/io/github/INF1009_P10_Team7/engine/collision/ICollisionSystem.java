@@ -10,8 +10,6 @@ public interface ICollisionSystem {
 
     void unregisterCollidable(ICollidable collidable);
 
-    void setCollisionCallback(String objectId, CollisionResolution.CollisionCallback callback);
-
     void setCollisionSound(String soundPath);
 
     void update(float deltaTime);
@@ -19,4 +17,6 @@ public interface ICollisionSystem {
     void clear();
 
     int getCollidableCount();
+    void onCollision(ICollidable obj1, ICollidable obj2, CollisionInfo info);
+
 }

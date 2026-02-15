@@ -24,17 +24,24 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 /**
  * GameScene (simulation layer demo)
  *
- * CHANGES FROM ORIGINAL V2:
- * - Entities are created directly (no EntityDefinition, no EntityType enum)
- * - Uses RenderComponent with IRenderBehaviour strategy for all rendering
- * - Registers entities with ICollisionSystem and IMovementSystem directly
- * - No context-specific code in the engine — all specifics live HERE in the scene
+ * Features:
+ * 1) 5 static green squares (large) with random spawn positions
+ * 2) 1 blue triangle (player-controlled)
+ * 3) 5 yellow balls (slightly bigger) with linear movement — bounce off green squares and walls,
+ *    but on collision with the blue triangle they grant a speed boost and disappear
+ * 4) 1 orange ball with random (AI) movement to showcase random movement
+ * 5) 1 magenta ball with follow movement that chases the player
+ * 6) All entities bounce off each other EXCEPT yellow balls pass through
+ *    the player (pickup mechanic instead of bounce)
+ * 7) Boom sound on left click, ding/bell sound on collisions
  */
 public class GameScene extends Scene {
 
@@ -57,6 +64,16 @@ public class GameScene extends Scene {
 
     private float logTimer = 0f;
     private static final float LOG_INTERVAL = 2.0f;
+
+    // Track yellow balls and green squares for manual collision logic
+    private final List<GameEntity> yellowBalls = new ArrayList<>();
+    private final List<GameEntity> greenSquares = new ArrayList<>();
+    private GameEntity player;
+    private GameEntity followerBall;
+
+    // Player speed boost tracking
+    private float playerSpeedMultiplier = 1.0f;
+    private static final float SPEED_BOOST_PER_BALL = 0.15f;
 
     public GameScene(
         IInputController input,
@@ -93,10 +110,10 @@ public class GameScene extends Scene {
 
         audio.setMusic("Music_Game.mp3");
 
-        // Configure collision sound
+        // Configure collision sound (ding on collision)
         collisionSystem.setCollisionSound("bell.mp3");
 
-        // ===== CREATE ENTITIES DIRECTLY (no EntityDefinition, no switch) =====
+        // ===== CREATE ENTITIES =====
         createEntities();
 
         named = entityQuery.getNamedEntities();
@@ -110,84 +127,87 @@ public class GameScene extends Scene {
      * All context-specific logic lives HERE, not in the engine.
      */
     private void createEntities() {
-        // --- Player ---
-        GameEntity player = new GameEntity("Player");
-        player.addComponent(new TransformComponent(100f, 100f));
-        player.addComponent(new PhysicComponent(new Vector2(50f, 0f), 1.0f));
+        Random rand = new Random();
+        float padding = 60f;
+
+        // --- 1) Player: Blue Triangle (controllable) ---
+        player = new GameEntity("Player");
+        player.addComponent(new TransformComponent(WORLD_W / 2f, WORLD_H / 2f));
+        player.addComponent(new PhysicComponent(new Vector2(0f, 0f), 1.0f));
         player.addComponent(new RenderComponent(new TriangleRenderer(25f), new Color(0.2f, 0.6f, 1f, 1f)));
         player.setCollisionRadius(25f);
         entitySystem.addEntity(player);
         collisionSystem.registerCollidable(player, CollisionResolution.ResolutionType.BOUNCE);
-        movementSystem.addEntity(player, null); // Physics-only movement
+        movementSystem.addEntity(player, null); // Physics-only (player-controlled)
 
-        // --- Diamonds (static collectibles) ---
-        Random rand = new Random();
-        float padding = 50f;
-        for (int i = 1; i <= 3; i++) {
+        // --- 2) 5 Static Green Squares with random spawn positions (large) ---
+        for (int i = 1; i <= 5; i++) {
             float rx = padding + rand.nextFloat() * (WORLD_W - 2 * padding);
             float ry = padding + rand.nextFloat() * (WORLD_H - 2 * padding);
 
-            GameEntity diamond = new GameEntity("Diamond" + i);
-            diamond.addComponent(new TransformComponent(new Vector2(rx, ry), 45f));
-            diamond.addComponent(new RenderComponent(new RectangleRenderer(30f, 30f), new Color(0.3f, 1f, 0.3f, 1f)));
-            diamond.setCollisionRadius(21f);
-            entitySystem.addEntity(diamond);
-            collisionSystem.registerCollidable(diamond, CollisionResolution.ResolutionType.PASS_THROUGH);
+            GameEntity square = new GameEntity("GreenSquare" + i);
+            square.addComponent(new TransformComponent(new Vector2(rx, ry), 0f));
+            square.addComponent(new RenderComponent(new RectangleRenderer(55f, 55f), new Color(0.2f, 0.85f, 0.2f, 1f)));
+            square.setCollisionRadius(38f);
+            entitySystem.addEntity(square);
+            // BOUNCE so other entities (orange ball, follow ball, player) bounce off them
+            collisionSystem.registerCollidable(square, CollisionResolution.ResolutionType.BOUNCE);
+            greenSquares.add(square);
         }
 
-        // --- Enemy (follows player) ---
-        GameEntity enemy = new GameEntity("Enemy");
-        enemy.addComponent(new TransformComponent(400f, 200f));
-        enemy.addComponent(new RenderComponent(new CircleRenderer(20f), new Color(1f, 0.3f, 0.3f, 1f)));
-        enemy.setCollisionRadius(20f);
-        entitySystem.addEntity(enemy);
-        collisionSystem.registerCollidable(enemy, CollisionResolution.ResolutionType.BOUNCE);
-        movementSystem.addEntity(enemy, new FollowMovement(player, 80f));
+        // --- 3) 5 Yellow Balls with linear movement (slightly bigger) ---
+        for (int i = 1; i <= 5; i++) {
+            float rx = padding + rand.nextFloat() * (WORLD_W - 2 * padding);
+            float ry = padding + rand.nextFloat() * (WORLD_H - 2 * padding);
 
-        // --- Static Object ---
-        GameEntity staticObj = new GameEntity("StaticObject");
-        staticObj.addComponent(new TransformComponent(new Vector2(250f, 150f), 45f));
-        staticObj.addComponent(new RenderComponent(new RectangleRenderer(30f, 30f), new Color(0.3f, 1f, 0.3f, 1f)));
-        staticObj.setCollisionRadius(21f);
-        entitySystem.addEntity(staticObj);
-        collisionSystem.registerCollidable(staticObj, CollisionResolution.ResolutionType.PASS_THROUGH);
+            // Random direction
+            float dirX = rand.nextFloat() * 2f - 1f;
+            float dirY = rand.nextFloat() * 2f - 1f;
+            if (Math.abs(dirX) < 0.1f && Math.abs(dirY) < 0.1f) {
+                dirX = 1f;
+                dirY = 0.5f;
+            }
 
-        // --- Linear Entity ---
-        GameEntity linear = new GameEntity("LinearEntity");
-        linear.addComponent(new TransformComponent(600f, 300f));
-        linear.addComponent(new RenderComponent(new CircleRenderer(20f), new Color(1f, 1f, 0.2f, 1f)));
-        linear.setCollisionRadius(20f);
-        LinearMovement linearBehaviour = new LinearMovement(new Vector2(-1f, -0.5f), 100f);
-        linear.addComponent(new MovementComponent(linearBehaviour));
-        entitySystem.addEntity(linear);
-        collisionSystem.registerCollidable(linear, CollisionResolution.ResolutionType.BOUNCE);
-        movementSystem.addEntity(linear, linearBehaviour);
+            float speed = 80f + rand.nextFloat() * 60f; // 80-140
 
-        // --- AI Wanderer ---
-        GameEntity aiWanderer = new GameEntity("AIWanderer");
-        aiWanderer.addComponent(new TransformComponent(300f, 400f));
-        aiWanderer.addComponent(new RenderComponent(new CircleRenderer(20f), new Color(0.8f, 0.2f, 0.8f, 1f)));
-        aiWanderer.setCollisionRadius(20f);
-        entitySystem.addEntity(aiWanderer);
-        collisionSystem.registerCollidable(aiWanderer, CollisionResolution.ResolutionType.BOUNCE);
-        movementSystem.addEntity(aiWanderer, new AImovement(60f));
+            GameEntity yellowBall = new GameEntity("YellowBall" + i);
+            yellowBall.addComponent(new TransformComponent(rx, ry));
+            yellowBall.addComponent(new RenderComponent(new CircleRenderer(18f), new Color(1f, 1f, 0.2f, 1f)));
+            yellowBall.setCollisionRadius(18f);
+            LinearMovement linearBehaviour = new LinearMovement(new Vector2(dirX, dirY), speed);
+            yellowBall.addComponent(new MovementComponent(linearBehaviour));
+            entitySystem.addEntity(yellowBall);
+            // NOT registered with collisionSystem — all yellow ball collisions
+            // (bounce off green squares + pickup by player) are handled manually
+            // in the scene, so no engine ding sound is triggered for them.
+            movementSystem.addEntity(yellowBall, linearBehaviour);
+            yellowBalls.add(yellowBall);
+        }
 
-        // --- Bouncing Circle ---
-        GameEntity bouncer = new GameEntity("BouncingCircle");
-        bouncer.addComponent(new TransformComponent(500f, 240f));
-        bouncer.addComponent(new PhysicComponent(new Vector2(150f, 100f), 1.0f));
-        bouncer.addComponent(new RenderComponent(new CircleRenderer(18f), new Color(0f, 0.9f, 0.9f, 1f)));
-        bouncer.setCollisionRadius(18f);
-        entitySystem.addEntity(bouncer);
-        collisionSystem.registerCollidable(bouncer, CollisionResolution.ResolutionType.BOUNCE);
-        movementSystem.addEntity(bouncer, null); // Physics-only
+        // --- 4) 1 Orange Ball with random (AI) movement ---
+        GameEntity randomBall = new GameEntity("RandomBall");
+        randomBall.addComponent(new TransformComponent(
+            padding + rand.nextFloat() * (WORLD_W - 2 * padding),
+            padding + rand.nextFloat() * (WORLD_H - 2 * padding)
+        ));
+        randomBall.addComponent(new RenderComponent(new CircleRenderer(18f), new Color(1f, 0.5f, 0.1f, 1f)));
+        randomBall.setCollisionRadius(18f);
+        entitySystem.addEntity(randomBall);
+        collisionSystem.registerCollidable(randomBall, CollisionResolution.ResolutionType.BOUNCE);
+        movementSystem.addEntity(randomBall, new AImovement(70f));
 
-        // --- Inactive Entity (demonstrates lifecycle) ---
-        GameEntity inactive = new GameEntity("InactiveEntity");
-        inactive.addComponent(new TransformComponent(0f, 0f));
-        inactive.addComponent(new PhysicComponent(new Vector2(100f, 100f), 1.0f));
-        inactive.setActive(false);
-        entitySystem.addEntity(inactive);
+        // --- 5) 1 Magenta Ball with follow movement (chases the player) ---
+        // NOT registered with collisionSystem so it passes through the blue triangle.
+        // Bouncing off green squares (with ding) is handled manually in the scene.
+        followerBall = new GameEntity("FollowerBall");
+        followerBall.addComponent(new TransformComponent(
+            padding + rand.nextFloat() * (WORLD_W - 2 * padding),
+            padding + rand.nextFloat() * (WORLD_H - 2 * padding)
+        ));
+        followerBall.addComponent(new RenderComponent(new CircleRenderer(18f), new Color(0.9f, 0.2f, 0.7f, 1f)));
+        followerBall.setCollisionRadius(18f);
+        entitySystem.addEntity(followerBall);
+        movementSystem.addEntity(followerBall, new FollowMovement(player, 80f));
     }
 
     @Override
@@ -216,21 +236,168 @@ public class GameScene extends Scene {
             nav.requestScene(factory.createMainMenuScene());
             return;
         }
+
+        // Boom sound on left click
         if (input.isActionJustPressed("SHOOT")) {
             audio.playSound("Sound_Boom.mp3");
         }
 
-        GameEntity player = (named != null) ? named.get("Player") : null;
-        if (player == null) return;
+        if (player == null || !player.isActive()) return;
 
+        // Handle player movement with speed multiplier from collected yellow balls
         PhysicComponent physics = player.getComponent(PhysicComponent.class);
         if (movementLogic != null && physics != null) {
             movementLogic.handle(physics, input);
+            Vector2 vel = physics.getVelocity();
+            vel.x *= playerSpeedMultiplier;
+            vel.y *= playerSpeedMultiplier;
         }
 
-        // to check esc pressed and freeze the gamescene
+        // Custom collision checks for yellow balls
+        checkYellowBallGreenSquareBounce();
+        checkYellowBallPlayerPickup();
+
+        // Magenta ball bounces off green squares (with ding) but passes through player
+        checkFollowerGreenSquareBounce();
+
+        // ESC to open settings
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             nav.pushScene(factory.createSettingsScene());
+        }
+    }
+
+    /**
+     * Manually bounces yellow balls off green squares.
+     * Since yellow balls are PASS_THROUGH in the collision system,
+     * we handle their bouncing off static green squares here.
+     */
+    private void checkYellowBallGreenSquareBounce() {
+        for (GameEntity ball : yellowBalls) {
+            if (!ball.isActive()) continue;
+
+            TransformComponent ballTransform = ball.getComponent(TransformComponent.class);
+            if (ballTransform == null) continue;
+            Vector2 ballPos = ballTransform.getPosition();
+            float ballRadius = ball.getCollisionRadius();
+
+            MovementComponent mc = ball.getComponent(MovementComponent.class);
+            if (mc == null) continue;
+            MovementBehaviour behaviour = mc.getMovementBehaviour();
+            if (!(behaviour instanceof LinearMovement)) continue;
+            LinearMovement linear = (LinearMovement) behaviour;
+
+            for (GameEntity square : greenSquares) {
+                if (!square.isActive()) continue;
+
+                TransformComponent sqTransform = square.getComponent(TransformComponent.class);
+                if (sqTransform == null) continue;
+                Vector2 sqPos = sqTransform.getPosition();
+                float sqRadius = square.getCollisionRadius();
+
+                // Circle-circle overlap check
+                float dx = ballPos.x - sqPos.x;
+                float dy = ballPos.y - sqPos.y;
+                float distSq = dx * dx + dy * dy;
+                float minDist = ballRadius + sqRadius;
+
+                if (distSq < minDist * minDist) {
+                    float dist = (float) Math.sqrt(distSq);
+                    if (dist < 0.001f) dist = 0.001f;
+
+                    // Collision normal (from square towards ball)
+                    float nx = dx / dist;
+                    float ny = dy / dist;
+
+                    // Separate the ball from the square
+                    float penetration = minDist - dist;
+                    ballPos.x += nx * penetration;
+                    ballPos.y += ny * penetration;
+
+                    // Reflect the linear movement direction
+                    Vector2 dir = linear.getDirection();
+                    float dot = dir.x * nx + dir.y * ny;
+                    dir.x -= 2f * dot * nx;
+                    dir.y -= 2f * dot * ny;
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if any active yellow ball overlaps the player.
+     * Grants a speed boost and deactivates (disappears) the ball.
+     */
+    private void checkYellowBallPlayerPickup() {
+        if (player == null || !player.isActive()) return;
+
+        TransformComponent playerTransform = player.getComponent(TransformComponent.class);
+        if (playerTransform == null) return;
+        Vector2 playerPos = playerTransform.getPosition();
+        float playerRadius = player.getCollisionRadius();
+
+        for (int i = yellowBalls.size() - 1; i >= 0; i--) {
+            GameEntity ball = yellowBalls.get(i);
+            if (!ball.isActive()) continue;
+
+            TransformComponent ballTransform = ball.getComponent(TransformComponent.class);
+            if (ballTransform == null) continue;
+            Vector2 ballPos = ballTransform.getPosition();
+            float ballRadius = ball.getCollisionRadius();
+
+            float dx = playerPos.x - ballPos.x;
+            float dy = playerPos.y - ballPos.y;
+            float distSq = dx * dx + dy * dy;
+            float minDist = playerRadius + ballRadius;
+
+            if (distSq <= minDist * minDist) {
+                // Speed boost
+                playerSpeedMultiplier += SPEED_BOOST_PER_BALL;
+                Gdx.app.log("GameScene", "Speed boost! Multiplier now: " +
+                    String.format("%.2f", playerSpeedMultiplier) +
+                    " (collected " + ball.getName() + ")");
+
+                // Disappear
+                ball.setActive(false);
+            }
+        }
+    }
+
+    /**
+     * Manually bounces the magenta follower ball off green squares (with ding sound).
+     * The follower is not registered with the collision system so it can pass through the player.
+     */
+    private void checkFollowerGreenSquareBounce() {
+        if (followerBall == null || !followerBall.isActive()) return;
+
+        TransformComponent fTransform = followerBall.getComponent(TransformComponent.class);
+        if (fTransform == null) return;
+        Vector2 fPos = fTransform.getPosition();
+        float fRadius = followerBall.getCollisionRadius();
+
+        for (GameEntity square : greenSquares) {
+            if (!square.isActive()) continue;
+
+            TransformComponent sqTransform = square.getComponent(TransformComponent.class);
+            if (sqTransform == null) continue;
+            Vector2 sqPos = sqTransform.getPosition();
+            float sqRadius = square.getCollisionRadius();
+
+            float dx = fPos.x - sqPos.x;
+            float dy = fPos.y - sqPos.y;
+            float distSq = dx * dx + dy * dy;
+            float minDist = fRadius + sqRadius;
+
+            if (distSq < minDist * minDist) {
+                float dist = (float) Math.sqrt(distSq);
+                if (dist < 0.001f) dist = 0.001f;
+
+                // Push the follower out of the square
+                float nx = dx / dist;
+                float ny = dy / dist;
+                float penetration = minDist - dist;
+                fPos.x += nx * penetration;
+                fPos.y += ny * penetration;
+            }
         }
     }
 
@@ -266,24 +433,24 @@ public class GameScene extends Scene {
 
             if (!hitX && !hitY) continue;
 
+            // Reflect physics velocity at walls
             PhysicComponent p = entity.getComponent(PhysicComponent.class);
             if (p != null) {
                 Vector2 vel = p.getVelocity();
 
-                // Reflect velocity at walls (bounce) for all physics entities
                 if (hitLeft  && vel.x < 0f) vel.x = -vel.x;
                 if (hitRight && vel.x > 0f) vel.x = -vel.x;
                 if (hitBottom && vel.y < 0f) vel.y = -vel.y;
                 if (hitTop    && vel.y > 0f) vel.y = -vel.y;
             }
 
+            // Reflect linear movement direction at walls
             MovementComponent mc = entity.getComponent(MovementComponent.class);
             if (mc != null) {
                 MovementBehaviour behaviour = mc.getMovementBehaviour();
                 if (behaviour instanceof LinearMovement) {
                     LinearMovement linear = (LinearMovement) behaviour;
                     Vector2 dir = linear.getDirection();
-                    // Only reverse if direction is pointing INTO the wall
                     if (hitLeft && dir.x < 0f)   dir.x = -dir.x;
                     if (hitRight && dir.x > 0f)  dir.x = -dir.x;
                     if (hitBottom && dir.y < 0f) dir.y = -dir.y;
@@ -296,12 +463,14 @@ public class GameScene extends Scene {
     private void logEntityPositions() {
         if (named == null) return;
 
-        GameEntity player = named.get("Player");
-        if (player != null) {
-            TransformComponent t = player.getComponent(TransformComponent.class);
+        GameEntity p = named.get("Player");
+        if (p != null) {
+            TransformComponent t = p.getComponent(TransformComponent.class);
             if (t != null) {
                 Vector2 pos = t.getPosition();
-                Gdx.app.log("ECS", "Player position: (" + String.format("%.1f", pos.x) + ", " + String.format("%.1f", pos.y) + ")");
+                Gdx.app.log("ECS", "Player position: (" +
+                    String.format("%.1f", pos.x) + ", " +
+                    String.format("%.1f", pos.y) + ")");
             }
         }
     }
@@ -319,7 +488,7 @@ public class GameScene extends Scene {
         shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        // Render ALL entities using RenderComponent (Strategy Pattern!)
+        // Render ALL active entities using RenderComponent (Strategy Pattern)
         for (Entity entity : entityQuery.getAllEntities()) {
             if (!entity.isActive()) continue;
 

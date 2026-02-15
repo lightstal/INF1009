@@ -16,7 +16,6 @@ public class CollisionManager implements ICollisionSystem {
 
     private final List<ICollidable> collidableObjects;
     private final Map<String, CollisionResolution.ResolutionType> resolutionTypes;
-    private final Map<String, CollisionResolution.CollisionCallback> callbacks;
     private final Set<String> activeCollisions;
     private final IAudioController audioController;
 
@@ -26,7 +25,6 @@ public class CollisionManager implements ICollisionSystem {
     public CollisionManager(IAudioController audioController) {
         this.collidableObjects = new ArrayList<>();
         this.resolutionTypes = new HashMap<>();
-        this.callbacks = new HashMap<>();
         this.activeCollisions = new HashSet<>();
         this.audioController = audioController;
     }
@@ -45,12 +43,6 @@ public class CollisionManager implements ICollisionSystem {
     public void unregisterCollidable(ICollidable collidable) {
         collidableObjects.remove(collidable);
         resolutionTypes.remove(collidable.getObjectId());
-        callbacks.remove(collidable.getObjectId());
-    }
-
-    @Override
-    public void setCollisionCallback(String objectId, CollisionResolution.CollisionCallback callback) {
-        callbacks.put(objectId, callback);
     }
 
     @Override
@@ -79,7 +71,7 @@ public class CollisionManager implements ICollisionSystem {
                     currentCollisions.add(key);
 
                     if (!activeCollisions.contains(key)) {
-                        handleCollision(obj1, obj2, collisionInfo);
+                        onCollision(obj1, obj2, collisionInfo);
                     }
                 }
             }
@@ -89,9 +81,8 @@ public class CollisionManager implements ICollisionSystem {
         activeCollisions.addAll(currentCollisions);
     }
 
-    private void handleCollision(ICollidable obj1, ICollidable obj2,
-                                 CollisionInfo collisionInfo) {
-
+    @Override
+    public void onCollision(ICollidable obj1, ICollidable obj2, CollisionInfo collisionInfo) {
         Gdx.app.log("Collision", "Collision detected: " + obj1.getObjectId() +
             " <-> " + obj2.getObjectId());
 
@@ -113,13 +104,7 @@ public class CollisionManager implements ICollisionSystem {
             resolutionType = CollisionResolution.ResolutionType.BOUNCE;
         }
 
-        CollisionResolution.CollisionCallback callback1 = callbacks.get(obj1.getObjectId());
-        CollisionResolution.CollisionCallback callback2 = callbacks.get(obj2.getObjectId());
-
-        if (callback1 != null) callback1.onCollision(obj1, obj2, collisionInfo);
-        if (callback2 != null) callback2.onCollision(obj2, obj1, collisionInfo);
-
-        CollisionResolution.resolve(obj1, obj2, collisionInfo, resolutionType, null);
+        CollisionResolution.resolve(obj1, obj2, collisionInfo, resolutionType);
     }
 
     private String getCollisionKey(String id1, String id2) {
@@ -134,7 +119,6 @@ public class CollisionManager implements ICollisionSystem {
     public void clear() {
         collidableObjects.clear();
         resolutionTypes.clear();
-        callbacks.clear();
         activeCollisions.clear();
         Gdx.app.log("CollisionManager", "All collidable objects cleared");
     }
