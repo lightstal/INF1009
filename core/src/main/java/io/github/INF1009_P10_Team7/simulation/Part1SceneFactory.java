@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.simulation;
 
 import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
-import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
+import io.github.INF1009_P10_Team7.engine.entity.IEntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
@@ -15,7 +15,7 @@ public class Part1SceneFactory implements SceneFactory {
     private final IInputController input;
     private final IAudioController audio;
     private final SceneNavigator nav;
-    private final EntityQuery entityQuery;
+    private final IEntityQuery entityQuery;
     private final IEntitySystem entitySystem;
     private final ICollisionSystem collisionSystem;
     private final IMovementSystem movementSystem;
@@ -24,7 +24,7 @@ public class Part1SceneFactory implements SceneFactory {
         IInputController input,
         IAudioController audio,
         SceneNavigator nav,
-        EntityQuery entityQuery,
+        IEntityQuery entityQuery,
         IEntitySystem entitySystem,
         ICollisionSystem collisionSystem,
         IMovementSystem movementSystem

@@ -6,7 +6,7 @@ import com.badlogic.gdx.Input;
 
 import io.github.INF1009_P10_Team7.engine.core.GameEngine;
 import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
-import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
+import io.github.INF1009_P10_Team7.engine.entity.IEntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
@@ -39,7 +39,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
         IInputController input = engine.getInput();
         IAudioController audio = engine.getAudio();
         SceneNavigator nav = engine.getNavigator();
-        EntityQuery entityQuery = engine.getEntityQuery();
+        IEntityQuery entityQuery = engine.getEntityQuery();
         IEntitySystem entitySystem = engine.getEntitySystem();
         ICollisionSystem collisionSystem = engine.getCollisionSystem();
         IMovementSystem movementSystem = engine.getMovementSystem();

@@ -13,7 +13,7 @@ import io.github.INF1009_P10_Team7.engine.collision.CollisionResolution;
 import io.github.INF1009_P10_Team7.engine.collision.ICollisionResponse;
 import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
-import io.github.INF1009_P10_Team7.engine.entity.EntityQuery;
+import io.github.INF1009_P10_Team7.engine.entity.IEntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.GameEntity;
 import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.entity.components.*;
@@ -33,7 +33,7 @@ import java.util.Random;
  * GameScene (simulation layer)
  *
  * Demonstrates engine features:
- * - EntityQuery.getByName()           — lookup entities by name instead of caching refs
+ * - IEntityQuery.getByName()           — lookup entities by name instead of caching refs
  * - PhysicComponent.applyImpulse()    — one-shot dash on SHOOT click
  * - IMovementSystem.setBehavior()     — runtime movement strategy swap (R key toggles follower AI)
  * - IMovementSystem.hasEntity()       — guard check before setBehavior
@@ -54,7 +54,7 @@ import java.util.Random;
  */
 public class GameScene extends Scene {
 
-    private final EntityQuery entityQuery;
+    private final IEntityQuery entityQuery;
     private final IEntitySystem entitySystem;
     private final ICollisionSystem collisionSystem;
     private final IMovementSystem movementSystem;
@@ -85,7 +85,7 @@ public class GameScene extends Scene {
         IInputController input,
         IAudioController audio,
         SceneNavigator nav,
-        EntityQuery entityQuery,
+        IEntityQuery entityQuery,
         IEntitySystem entitySystem,
         ICollisionSystem collisionSystem,
         IMovementSystem movementSystem,

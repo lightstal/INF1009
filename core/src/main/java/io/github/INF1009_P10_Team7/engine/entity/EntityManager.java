@@ -22,7 +22,7 @@ import java.util.UUID;
  * - No movement execution
  * - No context-specific code (no EntityType enum, no switch statements)
  */
-public class EntityManager implements IEntitySystem, EntityQuery {
+public class EntityManager implements IEntitySystem, IEntityQuery {
 
     private final Map<UUID, Entity> entities = new HashMap<>();
     private final List<Entity> pendingAdd = new ArrayList<>();
