@@ -10,23 +10,12 @@ import java.util.Set;
 import com.badlogic.gdx.Gdx;
 
 /**
- * Concrete collision management implementation.
+ * <p>Handles collision detection and resolution for all registered
+ * collidable objects. Implements {@link ICollisionSystem}.</p>
  *
- * Demonstrates all 4 OOP pillars:
- *
- * Encapsulation — all fields are private; internal state (active collisions,
- *   object lists, response map) is hidden behind the ICollisionSystem interface.
- *
- * Abstraction — implements ICollisionSystem so callers (GameScene, GameEngine)
- *   depend on the interface, not this concrete class.
- *
- * Inheritance — CollisionDetection is an instance (not static), so a subclass
- *   (e.g. AABBCollisionDetection) can be injected via setDetector() to change
- *   detection behaviour without modifying this class.
- *
- * Polymorphism — collision responses are ICollisionResponse objects (Strategy
- *   Pattern). Each registered collidable carries its own response, and resolution
- *   is a polymorphic resolve() call — no switch/if-else on type.
+ * <p>The detection strategy can be swapped at runtime by passing in
+ * a different detector, and each collidable can have its own
+ * response behaviour.</p>
  */
 public class CollisionManager implements ICollisionSystem {
 
@@ -36,6 +25,7 @@ public class CollisionManager implements ICollisionSystem {
 
     private CollisionDetection detector;
 
+    /** <p>Creates a new CollisionManager with the default detection strategy.</p> */
     public CollisionManager() {
         this.collidableObjects = new ArrayList<>();
         this.responses = new HashMap<>();
@@ -44,13 +34,22 @@ public class CollisionManager implements ICollisionSystem {
     }
 
     /**
-     * Allows swapping the detection algorithm at runtime (Inheritance + Polymorphism).
-     * For example, pass in an AABBCollisionDetection subclass for box-based detection.
+     * <p>Swaps the detection algorithm at runtime.
+     * E.g., passing in an AABBCollisionDetection subclass
+     * for box-based detection.</p>
+     *
+     * @param detector the new detection strategy
      */
     public void setDetector(CollisionDetection detector) {
         this.detector = detector;
     }
 
+    /**
+     * <p>Registers a collidable with its response. Duplicates are ignored.</p>
+     *
+     * @param collidable the object to register
+     * @param response   the response strategy for this object
+     */
     @Override
     public void registerCollidable(ICollidable collidable, ICollisionResponse response) {
         if (!collidableObjects.contains(collidable)) {
@@ -60,12 +59,23 @@ public class CollisionManager implements ICollisionSystem {
         }
     }
 
+    /**
+     * <p>Removes a collidable from the system.</p>
+     *
+     * @param collidable the object to unregister
+     */
     @Override
     public void unregisterCollidable(ICollidable collidable) {
         collidableObjects.remove(collidable);
         responses.remove(collidable.getObjectId());
     }
 
+    /**
+     * <p>Runs collision checks each frame and resolves any new collisions.
+     * Already-active collisions are tracked to avoid duplicates.</p>
+     *
+     * @param deltaTime time since last frame in seconds
+     */
     @Override
     public void update(float deltaTime) {
         Set<String> currentCollisions = new HashSet<>();
@@ -97,12 +107,12 @@ public class CollisionManager implements ICollisionSystem {
     }
 
     /**
-     * Resolves a collision using the registered ICollisionResponse strategies.
+     * <p>Called when a collision is detected. Picks the right response
+     * based on priority and resolves it.</p>
      *
-     * Priority logic (Polymorphism — no switch statement):
-     * - If either object has PASS_THROUGH, use PASS_THROUGH.
-     * - If either object has DESTROY, use DESTROY.
-     * - Otherwise use the first object's response (typically BOUNCE).
+     * @param obj1          first colliding object
+     * @param obj2          second colliding object
+     * @param collisionInfo details about the collision
      */
     public void onCollision(ICollidable obj1, ICollidable obj2, CollisionInfo collisionInfo) {
         Gdx.app.log("Collision", "Collision detected: " + obj1.getObjectId() +
@@ -116,8 +126,8 @@ public class CollisionManager implements ICollisionSystem {
     }
 
     /**
-     * Determines which response to use when two collidables collide.
-     * PASS_THROUGH wins over DESTROY, which wins over everything else.
+     * <p>Picks which response to use. PASS_THROUGH has priority over
+     * DESTROY, which follows how other game engine are designed</p>
      */
     private ICollisionResponse pickResponse(ICollisionResponse r1, ICollisionResponse r2) {
         // PASS_THROUGH takes highest priority
@@ -132,6 +142,7 @@ public class CollisionManager implements ICollisionSystem {
         return r1 != null ? r1 : CollisionResolution.BOUNCE;
     }
 
+    /** <p>Generates a consistent key for a collision pair regardless of order.</p> */
     private String getCollisionKey(String id1, String id2) {
         if (id1.compareTo(id2) < 0) {
             return id1 + ":" + id2;
@@ -140,6 +151,7 @@ public class CollisionManager implements ICollisionSystem {
         }
     }
 
+    /** <p>Removes all registered collidables and resets internal state.</p> */
     @Override
     public void clear() {
         collidableObjects.clear();
@@ -148,6 +160,7 @@ public class CollisionManager implements ICollisionSystem {
         Gdx.app.log("CollisionManager", "All collidable objects cleared");
     }
 
+    /** @return the number of registered collidables */
     @Override
     public int getCollidableCount() {
         return collidableObjects.size();

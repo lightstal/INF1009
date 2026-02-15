@@ -3,23 +3,20 @@ package io.github.INF1009_P10_Team7.engine.collision;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
- * Circle-based collision detection (default strategy).
+ * <p>Default collision detection. Checks if two collidable
+ * objects are overlapping</p>
  *
- * Demonstrates Inheritance — methods are non-static and can be overridden
- * by subclasses (e.g. AABBCollisionDetection) to provide alternative
- * detection algorithms without modifying existing code.
- *
- * CollisionManager holds a CollisionDetection reference, so swapping
- * in a subclass changes behaviour polymorphically.
+ * <p>If subclasses has other methoods for alternative algorithms,
+ * they can be ooverridden</p>
  */
 public class CollisionDetection {
 
     /**
-     * Checks whether two collidable objects are overlapping (circle-circle).
+     * <p>Checks if two collidable objects are overlapping.</p>
      *
      * @param obj1 first collidable
      * @param obj2 second collidable
-     * @return true if the objects overlap
+     * @return {@code true} if the objects overlap
      */
     public boolean checkCollision(ICollidable obj1, ICollidable obj2) {
         if (obj1 == null || obj2 == null) {
@@ -47,12 +44,12 @@ public class CollisionDetection {
     }
 
     /**
-     * Returns detailed collision info if the two objects overlap, or null otherwise.
-     * Can be overridden by subclasses for different detection shapes.
+     * <p>Returns collision info if the two objects overlap,
+     * or {@code null} otherwise. Can be overridden.</p>
      *
      * @param obj1 first collidable
      * @param obj2 second collidable
-     * @return CollisionInfo with normal and penetration depth, or null
+     * @return {@link CollisionInfo} with normal and depth, or {@code null}
      */
     public CollisionInfo getCollisionInfo(ICollidable obj1, ICollidable obj2) {
         if (!checkCollision(obj1, obj2)) {

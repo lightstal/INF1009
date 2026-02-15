@@ -3,45 +3,41 @@ package io.github.INF1009_P10_Team7.engine.collision;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
- * Provides built-in collision response strategies as static constants.
+ * <p>Provides collision response strategies as static constants.
+ * Each one implements {@link ICollisionResponse}.</p>
  *
- * Demonstrates Polymorphism (Strategy Pattern):
- * - Each response (BOUNCE, DESTROY, PASS_THROUGH) implements ICollisionResponse.
- * - No switch/if-else — each strategy resolves itself via its own resolve() method.
- * - New strategies can be created externally (e.g. in GameScene) without
- *   modifying this class (Open/Closed Principle).
- *
- * The old enum + switch approach violated OCP because adding a new type
- * required editing both the enum and the switch in resolve().
+ * <p>New strategies can be added externally by creating a new
+ * {@link ICollisionResponse} implementation, for example using
+ * a lambda passed into {@link CollisionManager#registerCollidable}.</p>
  */
 public class CollisionResolution {
 
     /**
-     * BOUNCE — separates overlapping objects and reflects their velocities.
-     * Only affects movable objects (isMovable() == true).
+     * <p>BOUNCE — separates overlapping objects and reflects
+     * their velocities. Only affects movable objects.</p>
      */
     public static final ICollisionResponse BOUNCE = (obj1, obj2, info) -> {
         resolveBounce(obj1, obj2, info);
     };
 
-    /**
-     * DESTROY — deactivates both colliding objects.
-     */
+    /** <p>DESTROY — deactivates both colliding objects.</p> */
     public static final ICollisionResponse DESTROY = (obj1, obj2, info) -> {
         obj1.deactivate();
         obj2.deactivate();
     };
 
     /**
-     * PASS_THROUGH — detects collision but takes no action.
-     * Useful for triggers, pickups, or sensor zones.
+     * <p>PASS_THROUGH — detects the collision but takes no action.
+     * For triggers or sensor zones.</p>
      */
     public static final ICollisionResponse PASS_THROUGH = (obj1, obj2, info) -> {
         // Intentionally empty — collision is detected but no physics response
     };
 
-    // ---- Private helper for bounce logic ----
-
+    /**
+     * <p>Separates overlapping objects and reflects their velocities
+     * along the collision normal.</p>
+     */
     private static void resolveBounce(ICollidable obj1, ICollidable obj2, CollisionInfo info) {
         if (obj1 == null || obj2 == null || info == null) return;
 
@@ -56,7 +52,7 @@ public class CollisionResolution {
         boolean m1 = obj1.isMovable();
         boolean m2 = obj2.isMovable();
 
-        // ---- Separate overlap ----
+        // Separate overlap
         if (m1 && m2) {
             float half = penetration / 2f;
 
@@ -78,7 +74,7 @@ public class CollisionResolution {
             return;
         }
 
-        // ---- Reflect velocity only for movable ----
+        // Reflect velocity but only for movable
         if (m1) {
             Vector2 v1 = obj1.getVelocity();
             float dot = v1.x * n.x + v1.y * n.y;
