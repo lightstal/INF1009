@@ -1,9 +1,10 @@
-package io.github.INF1009_P10_Team7.engine.movement;
+package io.github.INF1009_P10_Team7.simulation;
 
 import java.util.HashMap;
 
 import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
+import io.github.INF1009_P10_Team7.engine.movement.MovementHandler;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 import java.util.Map;
 
