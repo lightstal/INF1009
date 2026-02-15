@@ -1,20 +1,32 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
 /**
- * Minimal scene navigation interface.
- * Scenes depend on this abstraction (NOT SceneManager).
+ * <p>Interface for scene navigation. Scenes depend on this
+ * instead of the concrete SceneManager.</p>
  */
 public interface SceneNavigator {
 
-    /** Immediately replace the current scene (useful for initial scene). */
+    /**
+     * <p>Immediately replaces the current scene.</p>
+     *
+     * @param scene the new scene
+     */
     void setScene(Scene scene);
 
-    /** Request a full scene replace (applied at a safe frame boundary). */
+    /**
+     * <p>Requests a scene replace at a safe frame boundary.</p>
+     *
+     * @param scene the new scene
+     */
     void requestScene(Scene scene);
 
-    /** Push a scene on top (overlay). The previous scene instance is kept alive. */
+    /**
+     * <p>Pushes a scene on top. The previous scene is kept alive.</p>
+     *
+     * @param scene the scene to push
+     */
     void pushScene(Scene scene);
 
-    /** Pop the top scene and return to the previous scene instance. */
+    /** <p>Pops the top scene and returns to the previous one.</p> */
     void popScene();
 }

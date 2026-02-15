@@ -10,7 +10,10 @@ import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
-/** Concrete factory implementation for Part 1 scenes. */
+/**
+ * <p>Creates scenes for the simulation and wires them with
+ * the engine interfaces they need.</p>
+ */
 public class Part1SceneFactory implements SceneFactory {
     private final IInputController input;
     private final IAudioController audio;
@@ -20,6 +23,15 @@ public class Part1SceneFactory implements SceneFactory {
     private final ICollisionSystem collisionSystem;
     private final IMovementSystem movementSystem;
 
+    /**
+     * @param input           input controller
+     * @param audio           audio controller
+     * @param nav             scene navigator
+     * @param entityQuery     for looking up entities
+     * @param entitySystem    for adding/removing entities
+     * @param collisionSystem for registering collidables
+     * @param movementSystem  for registering movement behaviours
+     */
     public Part1SceneFactory(
         IInputController input,
         IAudioController audio,
@@ -38,16 +50,19 @@ public class Part1SceneFactory implements SceneFactory {
         this.movementSystem = movementSystem;
     }
 
+    /** @return a new main menu scene */
     @Override
     public Scene createMainMenuScene() {
         return new MainMenuScene(input, audio, nav, this);
     }
 
+    /** @return a new game scene */
     @Override
     public Scene createGameScene() {
         return new GameScene(input, audio, nav, entityQuery, entitySystem, collisionSystem, movementSystem, this);
     }
 
+    /** @return a new settings scene */
     @Override
     public Scene createSettingsScene() {
         return new SettingsScene(input, audio, nav, this);

@@ -27,7 +27,8 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
- * SettingsScene (UI-only)
+ * <p>Settings screen with a volume slider and key rebinding buttons.
+ * Pushed on top of the current scene as an overlay.</p>
  */
 public class SettingsScene extends Scene {
 
@@ -60,7 +61,6 @@ public class SettingsScene extends Scene {
     private UIElement uiElement;;
     private List<KeyBindingButton> keyBindingButtons;
 
-    // encapsulate for keybind position
     // Back button layout
     private static final float BACK_BUTTON_WIDTH = 260f;
     private static final float BACK_BUTTON_HEIGHT = 56f;
@@ -79,6 +79,7 @@ public class SettingsScene extends Scene {
 
     }
 
+    /** <p>Sets up camera, rendering resources, volume, UI layout, and buttons.</p> */
     @Override
     protected void onLoad() {
         // Initialization
@@ -92,7 +93,7 @@ public class SettingsScene extends Scene {
         Gdx.app.log("Scene", "SettingsScene loaded");
     }
 
-    // Initilizae camera and viewport by SRP.
+    /** <p>Sets up the camera and viewport.</p> */
     private void initializeCamera() {
         camera = new OrthographicCamera();
         viewport = new StretchViewport(VW, VH, camera);
@@ -102,7 +103,7 @@ public class SettingsScene extends Scene {
         camera.update();
     }
 
-    // Initializes rendering resources by SRP
+    /** <p>Creates the shape renderer, sprite batch, and font if not already created.</p> */
     private void initializeRendering() {
         if (shape == null) {
             shape = new ShapeRenderer();
@@ -112,13 +113,13 @@ public class SettingsScene extends Scene {
         }
     }
 
-    // Initializes volume by SRP
+    /** <p>Reads the current music volume from the audio controller.</p> */
     private void initializeVolume() {
         volume01 = audio.getMusicVolume();
         Gdx.app.log("AudioController", "SettingsScene current music volume: " + (int) (volume01 * 100) + "%");
     }
 
-    // Calculates UI layout by SRP
+    /** <p>Calculates positions and sizes for the panel, slider, and back button.</p> */
     private void recalcUI() {
         // Panel
         panelW = 620f;
@@ -139,13 +140,13 @@ public class SettingsScene extends Scene {
         btnY = BACK_BUTTON_Y;
     }
 
-    // Initializes the Stage for UI components by SRP
+    /** <p>Creates the Stage for UI components.</p> */
     private void initializeStage() {
         stage = new Stage(viewport);
         Gdx.input.setInputProcessor(stage);
     }
 
-    // Initializes UI components for back button and keybind by SRP
+    /** <p>Loads the skin and creates the back button and key binding buttons.</p> */
     private void initializeUI() {
         try {
             Skin skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
@@ -160,20 +161,19 @@ public class SettingsScene extends Scene {
         }
     }
 
-    // Create back button. SRP for only back button and OCP by open for extension.
-    // No modification allow here.
+    /** <p>Creates the back button that pops this scene.</p> */
     private void createBackButton() {
         backButton = uiElement.createButton(
-                "BACK",
-                BACK_BUTTON_WIDTH,
-                BACK_BUTTON_HEIGHT,
-                () -> nav.popScene());
+            "BACK",
+            BACK_BUTTON_WIDTH,
+            BACK_BUTTON_HEIGHT,
+            () -> nav.popScene());
 
         backButton.setPosition(btnX, btnY);
         stage.addActor(backButton);
     }
 
-    // Create key binding. SRP by creating position calculation on  calculateKeyBindingPositions(). OCP by addkeybinding.
+    /** <p>Creates key binding buttons for LEFT, RIGHT, UP, DOWN, and SHOOT.</p> */
     private void createKeyBindings() {
         keyBindingButtons = new java.util.ArrayList<>();
         KeyBindingPositions positions = calculateKeyBindingPositions();
@@ -189,7 +189,7 @@ public class SettingsScene extends Scene {
         addKeyBinding("SHOOT", positions.centerX - (KEY_BUTTON_WIDTH / 2f), positions.row3Y);
     }
 
-    // Key binding calculation.
+    /** <p>Calculates the x/y positions for each row and column of key binding buttons.</p> */
     private KeyBindingPositions calculateKeyBindingPositions() {
         float centerX = VW / 2f;
         float centerY = VH / 2f;
@@ -206,7 +206,9 @@ public class SettingsScene extends Scene {
         return new KeyBindingPositions(centerX, leftX, rightX, row1Y, row2Y, row3Y);
     }
 
-    // Put object for createkeybinding by encapsulation and srp.
+    /**
+     * <p>Holds the calculated positions for key binding button layout.</p>
+     */
     private static class KeyBindingPositions {
         final float centerX;
         final float leftX;
@@ -216,17 +218,15 @@ public class SettingsScene extends Scene {
         final float row3Y;
 
         /**
-         * Creates a KeyBindingPositions value object.
-         * 
-         * @param centerX Center X position
-         * @param leftX   Left column X position
-         * @param rightX  Right column X position
-         * @param row1Y   First row Y position
-         * @param row2Y   Second row Y position
-         * @param row3Y   Third row Y position
+         * @param centerX center X position
+         * @param leftX   left column X
+         * @param rightX  right column X
+         * @param row1Y   first row Y
+         * @param row2Y   second row Y
+         * @param row3Y   third row Y
          */
         KeyBindingPositions(float centerX, float leftX, float rightX,
-                float row1Y, float row2Y, float row3Y) {
+                            float row1Y, float row2Y, float row3Y) {
             this.centerX = centerX;
             this.leftX = leftX;
             this.rightX = rightX;
@@ -236,19 +236,31 @@ public class SettingsScene extends Scene {
         }
     }
 
-    // To stage and act the keybinding button.
+    /**
+     * <p>Creates a single key binding button and adds it to the stage.</p>
+     *
+     * @param action the action name to bind
+     * @param x      x position
+     * @param y      y position
+     */
     private void addKeyBinding(String action, float x, float y) {
         KeyBindingButton button = uiElement.createKeyBindingButton(
-                action,
-                KEY_BUTTON_WIDTH,
-                KEY_BUTTON_HEIGHT,
-                input);
+            action,
+            KEY_BUTTON_WIDTH,
+            KEY_BUTTON_HEIGHT,
+            input);
 
         button.setPosition(x, y);
         stage.addActor(button);
         keyBindingButtons.add(button);
     }
 
+    /**
+     * <p>Handles volume slider input (arrow keys and click) and
+     * keyboard shortcuts each frame.</p>
+     *
+     * @param delta time since last frame in seconds
+     */
     @Override
     protected void onUpdate(float delta) {
         handleKeyboardShortcuts();
@@ -284,16 +296,19 @@ public class SettingsScene extends Scene {
 
     }
 
+    /** <p>Pops the scene when ENTER is pressed.</p> */
     private void handleKeyboardShortcuts() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             nav.popScene();
         }
     }
 
+    /** <p>Checks if a point is inside a rectangle.</p> */
     private boolean contains(float px, float py, float x, float y, float w, float h) {
         return px >= x && px <= x + w && py >= y && py <= y + h;
     }
 
+    /** <p>Draws the settings panel, slider, text, and UI buttons.</p> */
     @Override
     protected void onRender() {
         if (camera == null || viewport == null)
@@ -305,6 +320,7 @@ public class SettingsScene extends Scene {
         renderStage();
     }
 
+    /** <p>Applies the viewport, clears the screen, and sets projection matrices.</p> */
     private void prepareRender() {
         // CRITICAL ORDER: Apply viewport FIRST, then clear, then draw!
         viewport.apply();
@@ -317,6 +333,7 @@ public class SettingsScene extends Scene {
         batch.setProjectionMatrix(camera.combined);
     }
 
+    /** <p>Draws the panel background, header, slider track, fill, and knob.</p> */
     private void renderShapes() {
         shape.begin(ShapeRenderer.ShapeType.Filled);
 
@@ -344,6 +361,7 @@ public class SettingsScene extends Scene {
         shape.end();
     }
 
+    /** <p>Draws the title, volume label, and percentage text.</p> */
     private void renderText() {
         batch.begin();
 
@@ -351,8 +369,8 @@ public class SettingsScene extends Scene {
         font.getData().setScale(2.0f);
         layout.setText(font, "SETTINGS");
         font.draw(batch, layout,
-                panelX + (panelW - layout.width) / 2f,
-                panelY + panelH - 28f);
+            panelX + (panelW - layout.width) / 2f,
+            panelY + panelH - 28f);
 
         // Volume label
         font.getData().setScale(1.3f);
@@ -368,7 +386,7 @@ public class SettingsScene extends Scene {
         batch.end();
     }
 
-    // draw the Stage
+    /** <p>Updates and draws the Stage (buttons).</p> */
     private void renderStage() {
         if (stage != null) {
             stage.act(Gdx.graphics.getDeltaTime());
@@ -388,6 +406,7 @@ public class SettingsScene extends Scene {
         Gdx.app.log("Scene", "World size locked at: " + VW + "x" + VH);
     }
 
+    /** <p>Returns true so the engine pauses world updates while settings is open.</p> */
     @Override
     public boolean blocksWorldUpdate() {
         return true; // pause world while settings is open

@@ -15,15 +15,14 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
- * MainMenuScene
- *
- * Uses StretchViewport so the menu UI scales with the window.
+ * <p>Main menu screen with start game and settings buttons.
+ * Uses StretchViewport so the UI scales with the window.</p>
  */
 public class MainMenuScene extends Scene {
 
     private final SceneFactory factory;
 
-    // create for buttion ui
+    // create for button ui
     private Stage stage;
     private Skin skin;
     private TextButton startButton;
@@ -37,7 +36,7 @@ public class MainMenuScene extends Scene {
     // Button dimensions
     private static final float BUTTON_WIDTH = 200f;
     private static final float BUTTON_HEIGHT = 60f;
-    
+
     // Button spacing
     private static final float START_BUTTON_Y_OFFSET = 40f;
 
@@ -46,6 +45,7 @@ public class MainMenuScene extends Scene {
         this.factory = factory;
     }
 
+    /** <p>Sets up the stage, loads menu music, and creates the UI buttons.</p> */
     @Override
     protected void onLoad() {
         Gdx.app.log("Scene", "MainMenuScene loaded");
@@ -62,7 +62,7 @@ public class MainMenuScene extends Scene {
 
     }
 
-    // initialize ui by SRP
+    /** <p>Loads the skin and creates the buttons.</p> */
     private void initializeUI() {
         try {
             skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
@@ -78,24 +78,24 @@ public class MainMenuScene extends Scene {
         }
     }
 
-    // list of button created. using OCP by uiElement
+    /** <p>Creates the start game and settings buttons.</p> */
     private void createButtons() {
         // Start game button
         startButton = uiElement.createButton(
-                "START GAME",
-                BUTTON_WIDTH,
-                BUTTON_HEIGHT,
-                () -> nav.requestScene(factory.createGameScene()));
+            "START GAME",
+            BUTTON_WIDTH,
+            BUTTON_HEIGHT,
+            () -> nav.requestScene(factory.createGameScene()));
 
         // Settings button
         settingButton = uiElement.createButton(
-                "SETTING",
-                BUTTON_WIDTH,
-                BUTTON_HEIGHT,
-                () -> nav.pushScene(factory.createSettingsScene()));
+            "SETTING",
+            BUTTON_WIDTH,
+            BUTTON_HEIGHT,
+            () -> nav.pushScene(factory.createSettingsScene()));
     }
 
-    // button positioning
+    /** <p>Positions the buttons in the centre of the screen.</p> */
     private void positionButtons() {
         float centerX = (WORLD_W - BUTTON_WIDTH) / 2f;
         float centerY = WORLD_H / 2f;
@@ -111,7 +111,7 @@ public class MainMenuScene extends Scene {
         }
     }
 
-    // to put stage and actors for button.
+    /** <p>Adds the buttons to the stage so they can be rendered and clicked.</p> */
     private void addButtonsToStage() {
         if (startButton != null) {
             stage.addActor(startButton);
@@ -122,6 +122,11 @@ public class MainMenuScene extends Scene {
     }
 
 
+    /**
+     * <p>Updates the stage and checks for the START_GAME key press.</p>
+     *
+     * @param delta time since last frame in seconds
+     */
     @Override
     protected void onUpdate(float delta) {
         if (stage != null)
@@ -138,6 +143,7 @@ public class MainMenuScene extends Scene {
         }
     }
 
+    /** <p>Clears the screen and draws the stage.</p> */
     @Override
     protected void onRender() {
         // CRITICAL ORDER: Apply viewport FIRST, then clear, then draw!
@@ -157,7 +163,7 @@ public class MainMenuScene extends Scene {
         Gdx.app.log("Scene", "MainMenuScene resize: " + width + "x" + height);
         if (stage != null) {
             stage.getViewport().update(width, height, true);
-           positionButtons();
+            positionButtons();
         }
     }
 
