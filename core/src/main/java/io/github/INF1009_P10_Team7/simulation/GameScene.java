@@ -70,7 +70,7 @@ public class GameScene extends Scene {
     private static final float WORLD_W = 800f;
     private static final float WORLD_H = 480f;
 
-    private MovementHandler movementLogic;
+    
 
     private float logTimer = 0f;
     private static final float LOG_INTERVAL = 2.0f;
@@ -128,41 +128,31 @@ public class GameScene extends Scene {
         createRandomBall();
         createFollowerBall();
 
-        movementLogic = new PlayerMovement();
-
         Gdx.app.log("GameScene", "World locked at: " + WORLD_W + "x" + WORLD_H);
     }
 
     // ===== ENTITY CREATION (SRP: separated into focused methods) =====
 
-    /** Player: Blue Triangle — controlled by input, physics-based velocity. */
-    private void createPlayer() {
-        GameEntity player = new GameEntity("Player");
-        player.addComponent(new TransformComponent(WORLD_W / 2f, WORLD_H / 2f));
-        player.addComponent(new PhysicComponent(new Vector2(0f, 0f), 1.0f));
-        player.addComponent(new RenderComponent(new TriangleRenderer(25f), new Color(0.2f, 0.6f, 1f, 1f)));
-        player.setCollisionRadius(25f);
+   /** Player: Blue Triangle — controlled by input, physics-based velocity. */
+private void createPlayer() {
+    GameEntity player = new GameEntity("Player");
+    player.addComponent(new TransformComponent(WORLD_W / 2f, WORLD_H / 2f));
+    player.addComponent(new PhysicComponent(new Vector2(0f, 0f), 1.0f));
+    player.addComponent(new RenderComponent(new TriangleRenderer(25f), new Color(0.2f, 0.6f, 1f, 1f)));
+    player.setCollisionRadius(25f);
 
-        entitySystem.addEntity(player);
-        // DEMONSTRATES: CollisionInfo.involves(), getObjectId1(), getObjectId2()
-        ICollisionResponse bounceWithSound = (obj1, obj2, info) -> {
-            audio.playSound("bell.mp3");
-
-            // Use involves() to confirm this collision includes the player
-            if (info.involves(player.getObjectId())) {
-                // Use getObjectId1() and getObjectId2() to identify the other object
-                String otherId = info.getObjectId1().equals(player.getObjectId())
-                    ? info.getObjectId2()
-                    : info.getObjectId1();
-                Gdx.app.log("GameScene", "Player bounced off: " + otherId);
-            }
-
-            CollisionResolution.BOUNCE.resolve(obj1, obj2, info);
-        };
-
-        collisionSystem.registerCollidable(player, bounceWithSound);
-        movementSystem.addEntity(player, null); // Physics-only (player handles velocity)
-    }
+    entitySystem.addEntity(player);
+    ICollisionResponse bounceWithSound = (obj1, obj2, info) -> {
+        audio.playSound("bell.mp3");
+        CollisionResolution.BOUNCE.resolve(obj1, obj2, info);
+    };
+    collisionSystem.registerCollidable(player, bounceWithSound);
+    
+    // Create InputDrivenMovement that connects PlayerMovement to MovementManager
+    MovementHandler playerHandler = new PlayerMovement();
+    MovementBehaviour inputDriven = new InputDrivenMovement(playerHandler, input);
+    movementSystem.addEntity(player, inputDriven);
+}
 
     /** 5 Static Green Diamonds — demonstrates setRotation() for diamond shape. */
     private void createGreenSquares() {
@@ -315,13 +305,10 @@ public class GameScene extends Scene {
             physics.applyForce(thrust);
         }
 
-        // Handle player movement with speed multiplier from collected yellow balls
-        if (movementLogic != null && physics != null) {
-            movementLogic.handle(physics, input);
-            Vector2 vel = physics.getVelocity();
-            vel.scl(playerSpeedMultiplier); // DEMONSTRATES: Vector2.scl()
-        }
-
+        if (physics != null) {
+    Vector2 vel = physics.getVelocity();
+    vel.scl(playerSpeedMultiplier); // DEMONSTRATES: Vector2.scl()
+}
         // --- DEMONSTRATES: setBehavior(), hasEntity(), getBehavior() — toggle follower AI ---
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             toggleFollowerBehavior(player);
