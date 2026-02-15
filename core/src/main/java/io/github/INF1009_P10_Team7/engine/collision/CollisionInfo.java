@@ -4,7 +4,6 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
  * Immutable data class holding information about a detected collision.
- *
  * Demonstrates Encapsulation:
  * - All fields are private final (no direct access).
  * - Getters return copies of mutable objects (Vector2) to prevent

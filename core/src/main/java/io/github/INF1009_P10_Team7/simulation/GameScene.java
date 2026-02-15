@@ -144,10 +144,22 @@ public class GameScene extends Scene {
         player.setCollisionRadius(25f);
 
         entitySystem.addEntity(player);
+        // DEMONSTRATES: CollisionInfo.involves(), getObjectId1(), getObjectId2()
         ICollisionResponse bounceWithSound = (obj1, obj2, info) -> {
             audio.playSound("bell.mp3");
+
+            // Use involves() to confirm this collision includes the player
+            if (info.involves(player.getObjectId())) {
+                // Use getObjectId1() and getObjectId2() to identify the other object
+                String otherId = info.getObjectId1().equals(player.getObjectId())
+                    ? info.getObjectId2()
+                    : info.getObjectId1();
+                Gdx.app.log("GameScene", "Player bounced off: " + otherId);
+            }
+
             CollisionResolution.BOUNCE.resolve(obj1, obj2, info);
         };
+
         collisionSystem.registerCollidable(player, bounceWithSound);
         movementSystem.addEntity(player, null); // Physics-only (player handles velocity)
     }
