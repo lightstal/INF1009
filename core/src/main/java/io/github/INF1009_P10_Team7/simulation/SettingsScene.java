@@ -18,10 +18,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import io.github.INF1009_P10_Team7.engine.UIManagement.KeyBindingButton;
+import io.github.INF1009_P10_Team7.engine.UIManagement.UIElement;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
-import io.github.INF1009_P10_Team7.engine.inputoutput.InputBindElement;
-import io.github.INF1009_P10_Team7.engine.inputoutput.UIElement;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
@@ -53,23 +53,25 @@ public class SettingsScene extends Scene {
     private static final float VW = 800f;
     private static final float VH = 600f;
 
-    // For key binding
-    private boolean isRebinding = false;
-    private String actionToRebind = null;
-    private List<InputBindElement> inputBindElements;
-
     // create for button ui
     private Skin skin;
     private TextButton backButton;
     private Stage stage;
     private UIElement uiElement;;
+    private List<KeyBindingButton> keyBindingButtons;
 
     // encapsulate for keybind position
-    private static final float KEY_BINDING_WIDTH = 140f;
-    private static final float KEY_BINDING_HEIGHT = 35f;
-    private static final float KEY_BINDING_START_Y = 350f;
-    private static final float KEY_BINDING_ROW_GAP = 60f;
-    private static final float KEY_BINDING_COLUMN_GAP = 30f;
+    // Back button layout
+    private static final float BACK_BUTTON_WIDTH = 260f;
+    private static final float BACK_BUTTON_HEIGHT = 56f;
+    private static final float BACK_BUTTON_Y = 120f;
+
+    // Key binding buttons layout
+    private static final float KEY_BUTTON_WIDTH = 140f;
+    private static final float KEY_BUTTON_HEIGHT = 35f;
+    private static final float KEY_HORIZONTAL_GAP = 60f;
+    private static final float KEY_VERTICAL_GAP = 55f;
+    private static final float KEY_START_Y_OFFSET = 20f;
 
     public SettingsScene(IInputController input, IAudioController audio, SceneNavigator nav, SceneFactory factory) {
         super(input, audio, nav);
@@ -79,132 +81,177 @@ public class SettingsScene extends Scene {
 
     @Override
     protected void onLoad() {
+        // Initialization
+        initializeCamera();
+        initializeRendering();
+        initializeVolume();
+        recalcUI();
+        initializeStage();
+        initializeUI();
+
+        Gdx.app.log("Scene", "SettingsScene loaded");
+    }
+
+    // Initilizae camera and viewport by SRP.
+    private void initializeCamera() {
         camera = new OrthographicCamera();
         viewport = new StretchViewport(VW, VH, camera);
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
+        camera.position.set(VW / 2f, VH / 2f, 0);
+        camera.update();
+    }
+
+    // Initializes rendering resources by SRP
+    private void initializeRendering() {
         if (shape == null) {
             shape = new ShapeRenderer();
             batch = new SpriteBatch();
             font = new BitmapFont();
             layout = new GlyphLayout();
         }
-
-        camera.position.set(VW / 2f, VH / 2f, 0);
-        camera.update();
-
-        volume01 = audio.getMusicVolume();
-        Gdx.app.log("AudioController", "SettingsScene current music volume: " + (int) (volume01 * 100) + "%");
-
-        recalcUI();
-
-        // initalize the key binding
-        initializeKeyBindings();
-
-        Gdx.app.log("Scene", "SettingsScene loaded");
-        Gdx.app.log("SettingsScene", "World locked at: " + VW + "x" + VH);
-
-        // stage for UI
-        stage = new Stage(viewport);
-
-        // handling for button event
-        Gdx.input.setInputProcessor(stage);
-
-        // loading skin
-        try {
-            skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
-
-            // create UIElement instance
-            uiElement = new UIElement(skin, true);
-
-            // create button with lambda
-            backButton = uiElement.createButton("BACK", btnW, btnH,
-                    () -> nav.popScene());
-
-            // backbutton position
-            backButton.setPosition(btnX, btnY);
-
-            // create the stage and actor to screen
-            stage.addActor(backButton);
-
-        } catch (Exception e) {
-            Gdx.app.error("UI", "Failed to load skin", e);
-        }
-        Gdx.app.log("Scene", "SettingsScene loaded");
-
     }
 
+    // Initializes volume by SRP
+    private void initializeVolume() {
+        volume01 = audio.getMusicVolume();
+        Gdx.app.log("AudioController", "SettingsScene current music volume: " + (int) (volume01 * 100) + "%");
+    }
+
+    // Calculates UI layout by SRP
     private void recalcUI() {
+        // Panel
         panelW = 620f;
         panelH = 420f;
         panelX = (VW - panelW) / 2f;
         panelY = (VH - panelH) / 2f;
 
+        // Slider
         sliderW = 460f;
         sliderH = 16f;
         sliderX = panelX + 80f;
         sliderY = panelY + panelH - 120f;
 
-        btnW = 260f;
-        btnH = 56f;
-        btnX = panelX + (panelW - btnW) / 2f;
-        btnY = panelY + 90f;
+        // Back button
+        btnW = BACK_BUTTON_WIDTH;
+        btnH = BACK_BUTTON_HEIGHT;
+        btnX = (VW - btnW) / 2f;
+        btnY = BACK_BUTTON_Y;
     }
 
-    // Initializes key binding UI elements.
-    private void initializeKeyBindings() {
-        inputBindElements = new java.util.ArrayList<>();
+    // Initializes the Stage for UI components by SRP
+    private void initializeStage() {
+        stage = new Stage(viewport);
+        Gdx.input.setInputProcessor(stage);
+    }
 
-        float centerX = VW / 2f;
+    // Initializes UI components for back button and keybind by SRP
+    private void initializeUI() {
+        try {
+            Skin skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
+            uiElement = new UIElement(skin, true);
+
+            createBackButton();
+            createKeyBindings();
+
+            Gdx.app.log("SettingsScene", "UI initialized");
+        } catch (Exception e) {
+            Gdx.app.error("SettingsScene", "Failed to load UI", e);
+        }
+    }
+
+    // Create back button. SRP for only back button and OCP by open for extension.
+    // No modification allow here.
+    private void createBackButton() {
+        backButton = uiElement.createButton(
+                "BACK",
+                BACK_BUTTON_WIDTH,
+                BACK_BUTTON_HEIGHT,
+                () -> nav.popScene());
+
+        backButton.setPosition(btnX, btnY);
+        stage.addActor(backButton);
+    }
+
+    // Create key binding. SRP by creating position calculation on  calculateKeyBindingPositions(). OCP by addkeybinding.
+    private void createKeyBindings() {
+        keyBindingButtons = new java.util.ArrayList<>();
+        KeyBindingPositions positions = calculateKeyBindingPositions();
 
         // Row 1: LEFT and RIGHT
-        addKeyBinding("LEFT", centerX - KEY_BINDING_WIDTH - KEY_BINDING_COLUMN_GAP,
-                KEY_BINDING_START_Y);
-        addKeyBinding("RIGHT", centerX + KEY_BINDING_COLUMN_GAP,
-                KEY_BINDING_START_Y);
+        addKeyBinding("LEFT", positions.leftX, positions.row1Y);
+        addKeyBinding("RIGHT", positions.rightX, positions.row1Y);
 
         // Row 2: UP and DOWN
-        float row2Y = KEY_BINDING_START_Y - KEY_BINDING_ROW_GAP;
-        addKeyBinding("UP", centerX - KEY_BINDING_WIDTH - KEY_BINDING_COLUMN_GAP, row2Y);
-        addKeyBinding("DOWN", centerX + KEY_BINDING_COLUMN_GAP, row2Y);
-
+        addKeyBinding("UP", positions.leftX, positions.row2Y);
+        addKeyBinding("DOWN", positions.rightX, positions.row2Y);
         // Row 3: SHOOT (centered)
-        float row3Y = row2Y - KEY_BINDING_ROW_GAP;
-        addKeyBinding("SHOOT", centerX - (KEY_BINDING_WIDTH / 2f), row3Y);
+        addKeyBinding("SHOOT", positions.centerX - (KEY_BUTTON_WIDTH / 2f), positions.row3Y);
     }
 
-    // add a key binding element.
+    // Key binding calculation.
+    private KeyBindingPositions calculateKeyBindingPositions() {
+        float centerX = VW / 2f;
+        float centerY = VH / 2f;
+
+        // Calculate column positions
+        float leftX = centerX - KEY_HORIZONTAL_GAP - KEY_BUTTON_WIDTH;
+        float rightX = centerX + KEY_HORIZONTAL_GAP;
+
+        // Calculate row positions
+        float row1Y = centerY + KEY_START_Y_OFFSET;
+        float row2Y = row1Y - KEY_VERTICAL_GAP;
+        float row3Y = row2Y - KEY_VERTICAL_GAP;
+
+        return new KeyBindingPositions(centerX, leftX, rightX, row1Y, row2Y, row3Y);
+    }
+
+    // Put object for createkeybinding by encapsulation and srp.
+    private static class KeyBindingPositions {
+        final float centerX;
+        final float leftX;
+        final float rightX;
+        final float row1Y;
+        final float row2Y;
+        final float row3Y;
+
+        /**
+         * Creates a KeyBindingPositions value object.
+         * 
+         * @param centerX Center X position
+         * @param leftX   Left column X position
+         * @param rightX  Right column X position
+         * @param row1Y   First row Y position
+         * @param row2Y   Second row Y position
+         * @param row3Y   Third row Y position
+         */
+        KeyBindingPositions(float centerX, float leftX, float rightX,
+                float row1Y, float row2Y, float row3Y) {
+            this.centerX = centerX;
+            this.leftX = leftX;
+            this.rightX = rightX;
+            this.row1Y = row1Y;
+            this.row2Y = row2Y;
+            this.row3Y = row3Y;
+        }
+    }
+
+    // To stage and act the keybinding button.
     private void addKeyBinding(String action, float x, float y) {
-        inputBindElements.add(new InputBindElement(
+        KeyBindingButton button = uiElement.createKeyBindingButton(
                 action,
-                x,
-                y,
-                KEY_BINDING_WIDTH,
-                KEY_BINDING_HEIGHT));
+                KEY_BUTTON_WIDTH,
+                KEY_BUTTON_HEIGHT,
+                input);
+
+        button.setPosition(x, y);
+        stage.addActor(button);
+        keyBindingButtons.add(button);
     }
-
-
-    //  Checks if a specific action on rebind
-    private boolean isRebindingAction(String actionName) {
-        return isRebinding &&
-                actionToRebind != null &&
-                actionToRebind.equals(actionName);
-    }
-
 
     @Override
     protected void onUpdate(float delta) {
-        // Use action binding for BACK
-        // if (input.isActionJustPressed("BACK")) {
-        //     nav.popScene();
-        //     return;
-        // }
-
-        // Optional: ENTER also returns
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            nav.popScene();
-            return;
-        }
+        handleKeyboardShortcuts();
 
         float previousVolume = volume01;
 
@@ -235,35 +282,12 @@ public class SettingsScene extends Scene {
             Gdx.app.log("SettingsScene", "Volume updated to: " + (int) (volume01 * 100) + "%");
         }
 
-        // for key binding, when touch on the binded key
-        if (Gdx.input.justTouched()) {
-            Vector2 mouse = viewport.unproject(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
+    }
 
-            // SRP to check by list that wants to bind
-            if (!isRebinding) {
-                for (InputBindElement element : inputBindElements) {
-                    if (element.isClicked(mouse)) {
-                        startRebinding(element.getActionName());
-                        break;
-                    }
-                }
-            }
+    private void handleKeyboardShortcuts() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            nav.popScene();
         }
-    }
-
-    // for binding
-    private void startRebinding(String action) {
-        isRebinding = true;
-        actionToRebind = action;
-
-        // oop to encapsulate 'this' (the scene instance) to the static handler
-        input.listenForNextKey(new RebindHandler(this, action));
-    }
-
-    // to clean after binding
-    private void stopRebinding() {
-        isRebinding = false;
-        actionToRebind = null;
     }
 
     private boolean contains(float px, float py, float x, float y, float w, float h) {
@@ -275,6 +299,13 @@ public class SettingsScene extends Scene {
         if (camera == null || viewport == null)
             return;
 
+        prepareRender();
+        renderShapes();
+        renderText();
+        renderStage();
+    }
+
+    private void prepareRender() {
         // CRITICAL ORDER: Apply viewport FIRST, then clear, then draw!
         viewport.apply();
         camera.update();
@@ -284,14 +315,10 @@ public class SettingsScene extends Scene {
 
         shape.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(camera.combined);
+    }
 
+    private void renderShapes() {
         shape.begin(ShapeRenderer.ShapeType.Filled);
-
-        // draw key background for keybind
-        for (InputBindElement element : inputBindElements) {
-            boolean waiting = isRebindingAction(element.getActionName());
-            element.drawShape(shape, waiting);
-        }
 
         // Panel background
         shape.setColor(0.13f, 0.14f, 0.17f, 1f);
@@ -314,19 +341,11 @@ public class SettingsScene extends Scene {
         shape.setColor(0.90f, 0.90f, 0.95f, 1f);
         shape.circle(knobX, sliderY + sliderH / 2f, 12f);
 
-        // Back button
-        shape.setColor(0.25f, 0.28f, 0.34f, 1f);
-        shape.rect(btnX, btnY, btnW, btnH);
-
         shape.end();
+    }
 
+    private void renderText() {
         batch.begin();
-
-        // draw key text for keybind
-        for (InputBindElement element : inputBindElements) {
-            boolean waiting = isRebindingAction(element.getActionName());
-            element.drawText(batch, font, input, waiting);
-        }
 
         // Title
         font.getData().setScale(2.0f);
@@ -346,15 +365,11 @@ public class SettingsScene extends Scene {
         layout.setText(font, percent);
         font.draw(batch, layout, sliderX + sliderW - layout.width, sliderY + 60f);
 
-        // Back button text
-        // font.getData().setScale(1.2f);
-        // layout.setText(font, "BACK");
-        // font.draw(batch, layout,
-        //         btnX + (btnW - layout.width) / 2f,
-        //         btnY + (btnH + layout.height) / 2f);
-
         batch.end();
-        // draw the Stage
+    }
+
+    // draw the Stage
+    private void renderStage() {
         if (stage != null) {
             stage.act(Gdx.graphics.getDeltaTime());
             stage.draw();
@@ -391,36 +406,11 @@ public class SettingsScene extends Scene {
             batch.dispose();
         if (font != null)
             font.dispose();
-         if (skin != null)
+        if (skin != null)
             skin.dispose();
         if (stage != null)
             stage.dispose();
         Gdx.app.log("Scene", "SettingsScene disposed");
     }
 
-    /**
-     * Implementing SRP and Encapsulation.
-     * to hold references and separate by state
-     */
-    private class RebindHandler implements IInputController.InputCallback {
-        private final SettingsScene scene;
-        private final String action;
-
-        public RebindHandler(SettingsScene scene, String action) {
-            this.scene = scene;
-            this.action = action;
-        }
-
-        @Override
-        public void onInputReceived(int keycode) {
-            // Perform the rebinding
-            scene.input.bindKey(this.action, keycode);
-
-            Gdx.app.log("KeyBinding",
-                    "Rebound '" + this.action + "' to key code: " + keycode);
-
-            // Reset UI state
-            scene.stopRebinding();
-        }
-    }
 }

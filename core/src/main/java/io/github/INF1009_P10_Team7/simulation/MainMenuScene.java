@@ -7,9 +7,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
+import io.github.INF1009_P10_Team7.engine.UIManagement.UIElement;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
-import io.github.INF1009_P10_Team7.engine.inputoutput.UIElement;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
@@ -34,6 +34,13 @@ public class MainMenuScene extends Scene {
     private static final float WORLD_W = 800f;
     private static final float WORLD_H = 480f;
 
+    // Button dimensions
+    private static final float BUTTON_WIDTH = 200f;
+    private static final float BUTTON_HEIGHT = 60f;
+    
+    // Button spacing
+    private static final float START_BUTTON_Y_OFFSET = 40f;
+
     public MainMenuScene(IInputController input, IAudioController audio, SceneNavigator nav, SceneFactory factory) {
         super(input, audio, nav);
         this.factory = factory;
@@ -48,48 +55,72 @@ public class MainMenuScene extends Scene {
 
         stage = new Stage(new StretchViewport(WORLD_W, WORLD_H));
         stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
-
-        // for button ui
-        try {
-            skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
-
-            uiElement = new UIElement(skin, true); // Create instance
-
-            startButton = uiElement.createButton("START GAME", 200, 60,
-                    () -> nav.requestScene(factory.createGameScene()));
-
-            settingButton = uiElement.createButton("SETTING", 200, 60,
-                    () -> nav.pushScene(factory.createSettingsScene()));
-
-            updateButtonPosition();
-
-            stage.addActor(startButton);
-            stage.addActor(settingButton);
-
-        } catch (Exception e) {
-            Gdx.app.error("UI", "Failed to load skin: buttons/name2d.json", e);
-        }
-
         Gdx.input.setInputProcessor(stage);
 
+        // creation on ui button
+        initializeUI();
+
     }
 
-    private void updateButtonPosition() {
-        if (stage != null) {
-            // Center of the screen horizontally
-            float centerX = (WORLD_W - 200) / 2f;
+    // initialize ui by SRP
+    private void initializeUI() {
+        try {
+            skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
+            uiElement = new UIElement(skin, true);
 
-            // Position Start Button slightly above the center
-            if (startButton != null) {
-                startButton.setPosition(centerX, (WORLD_H / 2f) + 40);
-            }
+            createButtons();
+            positionButtons();
+            addButtonsToStage();
 
-            // Position Setting Button slightly below the Start Button
-            if (settingButton != null) {
-                settingButton.setPosition(centerX, (WORLD_H / 2f) - 40);
-            }
+            Gdx.app.log("MainMenuScene", "UI initialized");
+        } catch (Exception e) {
+            Gdx.app.error("MainMenuScene", "Failed to load UI skin", e);
         }
     }
+
+    // list of button created. using OCP by uiElement
+    private void createButtons() {
+        // Start game button
+        startButton = uiElement.createButton(
+                "START GAME",
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT,
+                () -> nav.requestScene(factory.createGameScene()));
+
+        // Settings button
+        settingButton = uiElement.createButton(
+                "SETTING",
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT,
+                () -> nav.pushScene(factory.createSettingsScene()));
+    }
+
+    // button positioning
+    private void positionButtons() {
+        float centerX = (WORLD_W - BUTTON_WIDTH) / 2f;
+        float centerY = WORLD_H / 2f;
+
+        // Position start button above center
+        if (startButton != null) {
+            startButton.setPosition(centerX, centerY + START_BUTTON_Y_OFFSET);
+        }
+
+        // Position settings button below start button
+        if (settingButton != null) {
+            settingButton.setPosition(centerX, centerY - START_BUTTON_Y_OFFSET);
+        }
+    }
+
+    // to put stage and actors for button.
+    private void addButtonsToStage() {
+        if (startButton != null) {
+            stage.addActor(startButton);
+        }
+        if (settingButton != null) {
+            stage.addActor(settingButton);
+        }
+    }
+
 
     @Override
     protected void onUpdate(float delta) {
@@ -126,7 +157,7 @@ public class MainMenuScene extends Scene {
         Gdx.app.log("Scene", "MainMenuScene resize: " + width + "x" + height);
         if (stage != null) {
             stage.getViewport().update(width, height, true);
-            updateButtonPosition();
+           positionButtons();
         }
     }
 

@@ -178,7 +178,7 @@ public class InputOutputManager implements IInputController, IAudioController{
                 callback.onInputReceived(keycode);
 
                 // stop listening
-                Gdx.input.setInputProcessor(null);
+                //Gdx.input.setInputProcessor(null);
 
                 return true;
             }
