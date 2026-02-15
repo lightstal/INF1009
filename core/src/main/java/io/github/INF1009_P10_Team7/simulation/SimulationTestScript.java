@@ -30,7 +30,6 @@ public final class SimulationTestScript {
         Gdx.app.log("Input Output", "BACK: BACKSPACE");
         Gdx.app.log("Input Output", "SHOOT: Mouse LEFT BUTTON (also dashes in move direction)");
         Gdx.app.log("Input Output", "WASD: Move player");
-        Gdx.app.log("Input Output", "SPACE (in game): Upward thrust (applyForce)");
         Gdx.app.log("Input Output", "R: Toggle follower AI (chase vs random wander)");
         Gdx.app.log("Input Output", "Collect yellow balls for speed boosts!");
     }

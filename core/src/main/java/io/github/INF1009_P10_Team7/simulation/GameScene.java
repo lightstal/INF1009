@@ -24,19 +24,16 @@ import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
-import io.github.INF1009_P10_Team7.engine.collision.ICollisionResponse;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 /**
- * GameScene (simulation layer demo)
+ * GameScene (simulation layer)
  *
- * Demonstrates ALL engine features including previously unused methods:
- *
+ * Demonstrates engine features:
  * - EntityQuery.getByName()           — lookup entities by name instead of caching refs
- * - PhysicComponent.applyForce()      — continuous thrust on player (SPACE key)
  * - PhysicComponent.applyImpulse()    — one-shot dash on SHOOT click
  * - IMovementSystem.setBehavior()     — runtime movement strategy swap (R key toggles follower AI)
  * - IMovementSystem.hasEntity()       — guard check before setBehavior
@@ -69,8 +66,6 @@ public class GameScene extends Scene {
 
     private static final float WORLD_W = 800f;
     private static final float WORLD_H = 480f;
-
-    
 
     private float logTimer = 0f;
     private static final float LOG_INTERVAL = 2.0f;
@@ -133,26 +128,26 @@ public class GameScene extends Scene {
 
     // ===== ENTITY CREATION (SRP: separated into focused methods) =====
 
-   /** Player: Blue Triangle — controlled by input, physics-based velocity. */
-private void createPlayer() {
-    GameEntity player = new GameEntity("Player");
-    player.addComponent(new TransformComponent(WORLD_W / 2f, WORLD_H / 2f));
-    player.addComponent(new PhysicComponent(new Vector2(0f, 0f), 1.0f));
-    player.addComponent(new RenderComponent(new TriangleRenderer(25f), new Color(0.2f, 0.6f, 1f, 1f)));
-    player.setCollisionRadius(25f);
+    /** Player: Blue Triangle — controlled by input, physics-based velocity. */
+    private void createPlayer() {
+        GameEntity player = new GameEntity("Player");
+        player.addComponent(new TransformComponent(WORLD_W / 2f, WORLD_H / 2f));
+        player.addComponent(new PhysicComponent(new Vector2(0f, 0f), 1.0f));
+        player.addComponent(new RenderComponent(new TriangleRenderer(25f), new Color(0.2f, 0.6f, 1f, 1f)));
+        player.setCollisionRadius(25f);
 
-    entitySystem.addEntity(player);
-    ICollisionResponse bounceWithSound = (obj1, obj2, info) -> {
-        audio.playSound("bell.mp3");
-        CollisionResolution.BOUNCE.resolve(obj1, obj2, info);
-    };
-    collisionSystem.registerCollidable(player, bounceWithSound);
-    
-    // Create InputDrivenMovement that connects PlayerMovement to MovementManager
-    MovementHandler playerHandler = new PlayerMovement();
-    MovementBehaviour inputDriven = new InputDrivenMovement(playerHandler, input);
-    movementSystem.addEntity(player, inputDriven);
-}
+        entitySystem.addEntity(player);
+        ICollisionResponse bounceWithSound = (obj1, obj2, info) -> {
+            audio.playSound("bell.mp3");
+            CollisionResolution.BOUNCE.resolve(obj1, obj2, info);
+        };
+        collisionSystem.registerCollidable(player, bounceWithSound);
+
+        // Create InputDrivenMovement that connects PlayerMovement to MovementManager
+        MovementHandler playerHandler = new PlayerMovement();
+        MovementBehaviour inputDriven = new InputDrivenMovement(playerHandler, input);
+        movementSystem.addEntity(player, inputDriven);
+    }
 
     /** 5 Static Green Diamonds — demonstrates setRotation() for diamond shape. */
     private void createGreenSquares() {
@@ -299,16 +294,13 @@ private void createPlayer() {
             }
         }
 
-        // --- DEMONSTRATES: applyForce() — continuous thrust with SPACE key ---
-        if (Gdx.input.isKeyPressed(Input.Keys.SPACE) && physics != null) {
-            Vector2 thrust = new Vector2(0f, 500f);
-            physics.applyForce(thrust);
-        }
+        // REMOVED: SPACE bar upward thrust (applyForce) — was bypassing movement system
 
         if (physics != null) {
-    Vector2 vel = physics.getVelocity();
-    vel.scl(playerSpeedMultiplier); // DEMONSTRATES: Vector2.scl()
-}
+            Vector2 vel = physics.getVelocity();
+            vel.scl(playerSpeedMultiplier); // DEMONSTRATES: Vector2.scl()
+        }
+
         // --- DEMONSTRATES: setBehavior(), hasEntity(), getBehavior() — toggle follower AI ---
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             toggleFollowerBehavior(player);
