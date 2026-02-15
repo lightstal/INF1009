@@ -35,7 +35,7 @@ public class GameEngine {
 
     public GameEngine() {
         io = new InputOutputManager();
-        collision = new CollisionManager(io);
+        collision = new CollisionManager();
         movement = new MovementManager();
         entities = new EntityManager();
         scenes = new SceneManager();

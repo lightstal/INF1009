@@ -19,9 +19,6 @@ public interface ICollisionSystem {
     /** Removes a collidable from the system. */
     void unregisterCollidable(ICollidable collidable);
 
-    /** Sets the sound to play when any collision is detected. */
-    void setCollisionSound(String soundPath);
-
     /** Runs collision detection and resolution for the current frame. */
     void update(float deltaTime);
 
@@ -31,6 +28,4 @@ public interface ICollisionSystem {
     /** Returns the number of currently registered collidables. */
     int getCollidableCount();
 
-    /** Called when a collision is first detected between two objects. */
-    void onCollision(ICollidable obj1, ICollidable obj2, CollisionInfo info);
 }

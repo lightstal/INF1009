@@ -24,6 +24,7 @@ import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
+import io.github.INF1009_P10_Team7.engine.collision.ICollisionResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,7 +120,6 @@ public class GameScene extends Scene {
         camera.update();
 
         audio.setMusic("Music_Game.mp3");
-        collisionSystem.setCollisionSound("bell.mp3");
 
         // ===== CREATE ENTITIES (SRP: each type in its own method) =====
         createPlayer();
@@ -144,7 +144,11 @@ public class GameScene extends Scene {
         player.setCollisionRadius(25f);
 
         entitySystem.addEntity(player);
-        collisionSystem.registerCollidable(player, CollisionResolution.BOUNCE);
+        ICollisionResponse bounceWithSound = (obj1, obj2, info) -> {
+            audio.playSound("bell.mp3");
+            CollisionResolution.BOUNCE.resolve(obj1, obj2, info);
+        };
+        collisionSystem.registerCollidable(player, bounceWithSound);
         movementSystem.addEntity(player, null); // Physics-only (player handles velocity)
     }
 

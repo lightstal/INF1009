@@ -9,8 +9,6 @@ import java.util.Set;
 
 import com.badlogic.gdx.Gdx;
 
-import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
-
 /**
  * Concrete collision management implementation.
  *
@@ -35,19 +33,14 @@ public class CollisionManager implements ICollisionSystem {
     private final List<ICollidable> collidableObjects;
     private final Map<String, ICollisionResponse> responses;
     private final Set<String> activeCollisions;
-    private final IAudioController audioController;
 
     private CollisionDetection detector;
 
-    private String collisionSoundPath = null;
-    private boolean playSoundOnCollision = false;
-
-    public CollisionManager(IAudioController audioController) {
+    public CollisionManager() {
         this.collidableObjects = new ArrayList<>();
         this.responses = new HashMap<>();
         this.activeCollisions = new HashSet<>();
-        this.audioController = audioController;
-        this.detector = new CollisionDetection(); // Default: circle-circle
+        this.detector = new CollisionDetection();
     }
 
     /**
@@ -71,12 +64,6 @@ public class CollisionManager implements ICollisionSystem {
     public void unregisterCollidable(ICollidable collidable) {
         collidableObjects.remove(collidable);
         responses.remove(collidable.getObjectId());
-    }
-
-    @Override
-    public void setCollisionSound(String soundPath) {
-        this.collisionSoundPath = soundPath;
-        this.playSoundOnCollision = true;
     }
 
     @Override
@@ -117,19 +104,13 @@ public class CollisionManager implements ICollisionSystem {
      * - If either object has DESTROY, use DESTROY.
      * - Otherwise use the first object's response (typically BOUNCE).
      */
-    @Override
     public void onCollision(ICollidable obj1, ICollidable obj2, CollisionInfo collisionInfo) {
         Gdx.app.log("Collision", "Collision detected: " + obj1.getObjectId() +
             " <-> " + obj2.getObjectId());
 
-        if (playSoundOnCollision && collisionSoundPath != null && audioController != null) {
-            audioController.playSound(collisionSoundPath);
-        }
-
         ICollisionResponse r1 = responses.get(obj1.getObjectId());
         ICollisionResponse r2 = responses.get(obj2.getObjectId());
 
-        // Pick the response using priority rules (Polymorphism)
         ICollisionResponse response = pickResponse(r1, r2);
         response.resolve(obj1, obj2, collisionInfo);
     }
