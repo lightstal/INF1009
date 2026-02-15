@@ -1,10 +1,8 @@
 package io.github.INF1009_P10_Team7.engine.entity;
 
-import java.util.Collection;
-
 /**
- * Interface for entity lifecycle management.
- * Decouples scenes and engine from the concrete EntityManager.
+ * Interface for entity lifecycle management (SRP: manages entity lifecycle only).
+ * Decouples scenes and engine from the concrete EntityManager (DIP).
  */
 public interface IEntitySystem {
 
@@ -19,6 +17,4 @@ public interface IEntitySystem {
     void dispose();
 
     Iterable<Entity> getAllEntities();
-
-    Collection<Entity> getAllEntitiesCollection();
 }
