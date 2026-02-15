@@ -12,13 +12,6 @@ public class GameEntity extends Entity implements ICollidable {
     private String name;
     private float collisionRadius = 20f; // Default collision radius
 
-    // Creates a new GameEntity with an empty name.
-    // commented out since no callers - barn
-//    public GameEntity() {
-//        super();
-//        this.name = "";
-//    }
-
     // Creates a new GameEntity with the specified name.
     public GameEntity(String name) {
         super();
