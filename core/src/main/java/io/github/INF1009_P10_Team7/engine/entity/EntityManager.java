@@ -87,7 +87,7 @@ public class EntityManager implements IEntitySystem, EntityQuery {
         return entities.values();
     }
 
-    @Override
+
     public Collection<Entity> getAllEntitiesCollection() {
         return entities.values();
     }
