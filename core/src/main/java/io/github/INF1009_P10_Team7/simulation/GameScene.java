@@ -137,7 +137,8 @@ public class GameScene extends Scene {
         player.addComponent(new RenderComponent(new TriangleRenderer(25f), new Color(0.2f, 0.6f, 1f, 1f)));
         player.setCollisionRadius(25f);
         entitySystem.addEntity(player);
-        collisionSystem.registerCollidable(player, CollisionResolution.ResolutionType.BOUNCE);
+        // CHANGED: CollisionResolution.ResolutionType.BOUNCE → CollisionResolution.BOUNCE
+        collisionSystem.registerCollidable(player, CollisionResolution.BOUNCE);
         movementSystem.addEntity(player, null); // Physics-only (player-controlled)
 
         // --- 2) 5 Static Green Squares with random spawn positions (large) ---
@@ -150,8 +151,8 @@ public class GameScene extends Scene {
             square.addComponent(new RenderComponent(new RectangleRenderer(55f, 55f), new Color(0.2f, 0.85f, 0.2f, 1f)));
             square.setCollisionRadius(38f);
             entitySystem.addEntity(square);
-            // BOUNCE so other entities (orange ball, follow ball, player) bounce off them
-            collisionSystem.registerCollidable(square, CollisionResolution.ResolutionType.BOUNCE);
+            // CHANGED: CollisionResolution.ResolutionType.BOUNCE → CollisionResolution.BOUNCE
+            collisionSystem.registerCollidable(square, CollisionResolution.BOUNCE);
             greenSquares.add(square);
         }
 
@@ -193,7 +194,8 @@ public class GameScene extends Scene {
         randomBall.addComponent(new RenderComponent(new CircleRenderer(18f), new Color(1f, 0.5f, 0.1f, 1f)));
         randomBall.setCollisionRadius(18f);
         entitySystem.addEntity(randomBall);
-        collisionSystem.registerCollidable(randomBall, CollisionResolution.ResolutionType.BOUNCE);
+        // CHANGED: CollisionResolution.ResolutionType.BOUNCE → CollisionResolution.BOUNCE
+        collisionSystem.registerCollidable(randomBall, CollisionResolution.BOUNCE);
         movementSystem.addEntity(randomBall, new AImovement(70f));
 
         // --- 5) 1 Magenta Ball with follow movement (chases the player) ---
