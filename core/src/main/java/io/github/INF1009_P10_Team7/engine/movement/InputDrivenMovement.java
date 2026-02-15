@@ -5,26 +5,27 @@ import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 
 /**
- * InputDrivenMovement - A MovementBehaviour that uses MovementHandler for input-based control.
- * 
- * This class bridges the gap between the input system (PlayerMovement/MovementHandler) 
- * and the movement system (MovementManager/MovementBehaviour).
- * 
- * SOLID Principles:
- * - SRP: Focused solely on translating input into movement via delegation
- * - OCP: Extensible through different MovementHandler implementations
- * - LSP: Implements MovementBehaviour, fully substitutable
- * - ISP: Depends on narrow interfaces (MovementHandler, IInputController)
- * - DIP: Depends on abstractions (MovementHandler, IInputController), not concrete classes
+ * <p>
+ * InputDrivenMovement is a movement behaviour that uses player input.
+ * It connects the input system with the movement system.
+ * Instead of moving directly, it lets MovementHandler process the input.
+ * </p>
  */
 public class InputDrivenMovement implements MovementBehaviour {
+    /** Handles how movement is processed based on input */
     private final MovementHandler handler;
+
+    /** Reads the user input (keyboard, controller, etc.) */
     private final IInputController inputController;
 
     /**
-     * Constructor for InputDrivenMovement
-     * @param handler The movement handler that processes input
-     * @param inputController The input controller to read input from
+     * <p>
+     * Constructor to set the movement handler and input controller.
+     * Both cannot be null.
+     * </p>
+     *
+     * @param handler movement handler that processes input
+     * @param inputController controller that provides input data
      */
     public InputDrivenMovement(MovementHandler handler, IInputController inputController) {
         if (handler == null) {
@@ -37,17 +38,27 @@ public class InputDrivenMovement implements MovementBehaviour {
         this.inputController = inputController;
     }
 
+    /**
+     * <p>
+     * Move the entity based on player input.
+     * If entity is inactive or null, nothing will happen.
+     * Movement logic is delegated to the MovementHandler.
+     * </p>
+     *
+     * @param entity the entity to move
+     * @param deltaTime time passed since last frame
+     */
     @Override
     public void move(Entity entity, float deltaTime) {
         if (entity == null || !entity.isActive()) {
             return;
         }
 
-        // Get the physics component
+        // get physics component of the entity
         PhysicComponent physics = entity.getComponent(PhysicComponent.class);
         
         if (physics != null) {
-            // Delegate input handling to the MovementHandler
+            // let the handler process input and update movement
             handler.handle(physics, inputController);
         }
     }
