@@ -5,11 +5,7 @@ import com.badlogic.gdx.Gdx;
 /**
  * SimulationTestScript (Part 1)
  *
- * This file is ONLY for Part 1 simulation / testing.
- * It keeps "demo text" out of your engine and out of your scenes.
- *
- * In your video/report, you can say:
- * - Engine starts cleanly
+ * - Engine starts
  * - Scene lifecycle logs show load/unload order
  * - Controls show transitions
  * - Resize log shows forwarding works

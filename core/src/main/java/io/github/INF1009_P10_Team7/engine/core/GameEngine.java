@@ -1,7 +1,5 @@
 package io.github.INF1009_P10_Team7.engine.core;
 
-import com.badlogic.gdx.Gdx;
-
 import io.github.INF1009_P10_Team7.engine.collision.CollisionManager;
 import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
 import io.github.INF1009_P10_Team7.engine.entity.EntityManager;

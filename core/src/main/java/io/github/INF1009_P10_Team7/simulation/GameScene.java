@@ -114,7 +114,6 @@ public class GameScene extends Scene {
         GameEntity player = new GameEntity("Player");
         player.addComponent(new TransformComponent(100f, 100f));
         player.addComponent(new PhysicComponent(new Vector2(50f, 0f), 1.0f));
-        player.addComponent(new SpriteComponent("player_sprite"));
         player.addComponent(new RenderComponent(new TriangleRenderer(25f), new Color(0.2f, 0.6f, 1f, 1f)));
         player.setCollisionRadius(25f);
         entitySystem.addEntity(player);

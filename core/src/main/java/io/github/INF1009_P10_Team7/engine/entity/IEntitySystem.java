@@ -1,7 +1,6 @@
 package io.github.INF1009_P10_Team7.engine.entity;
 
 import java.util.Collection;
-import java.util.UUID;
 
 /**
  * Interface for entity lifecycle management.
