@@ -139,7 +139,13 @@ public class InputOutputManager implements IInputController, IAudioController{
         return false;
     }
 
-     // Get key code when pressed
+    /**
+     * {@inheritDoc}
+     * <p>Get key code when pressed</p>
+     * 
+     * @param action Get action name like ("UP", "DOWN")
+     * @return Mouse click or Keyboard keycode or NONE or UNKNOWN(Error)
+     */
     @Override
     public String getKeyName(String action) {
         if (keyBindings.containsKey(action)) {
@@ -166,7 +172,12 @@ public class InputOutputManager implements IInputController, IAudioController{
         return "NONE";
     }
 
-    // add listener for next key press
+    /**
+     * {@inheritDoc}
+     * <p>add listener for next key press</p>
+     * 
+     * @param callback when key is pressed
+     */
     @Override
     public void listenForNextKey(final IInputController.InputCallback callback) {
 

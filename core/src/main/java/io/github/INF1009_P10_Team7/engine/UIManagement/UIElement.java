@@ -8,133 +8,74 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 
-// Create ui components
 public class UIElement {
-    
-    // encapsulated variable
-    private final Skin skin;
-    private final boolean debugLogging;
 
-    // constructor
-    public UIElement(Skin skin, boolean debugLogging) {
+    /**
+     * <p>
+     * Skin for fonts, textures for the button
+     * debug to log the console
+     * </p>
+     */
+    private final Skin skin;
+    private final boolean debug;
+
+    /**
+     * <p>
+     * Constructs for UIElement
+     * </p>
+     *
+     * @param skin Use skin for button style and font
+     * @param debug Use debug for logging in console
+     */
+    public UIElement(Skin skin, boolean debug) {
         this.skin = skin;
-        this.debugLogging = debugLogging;
+        this.debug = debug;
     }
 
-    // create textbutton for text inside button
-    public TextButton createButton(String text, float width, float height, iUIElement action) {
-        if (text == null) {
-            throw new IllegalArgumentException("Button text cannot be null");
-        }
-        if (width <= 0 || height <= 0) {
-            throw new IllegalArgumentException("Button dimensions must be positive");
-        }
-        
-        // add skin side the button
-        TextButton button = new TextButton(text, skin, "default");
-        button.setSize(width, height);
+    /**
+     * <p>
+     * Create button using TextButton with onclick listener
+     * </p>
+     *
+     * @param text Get text for labelling
+     * @param width Width for button
+     * @param height Height for button
+     * @param callback For click listener
+     * @return Fully configured Textbutton
+     */
+    public TextButton createButton(String text, float width, float height, final iUIElement callback) {
+        TextButton btn = new TextButton(text, skin);
+        btn.setSize(width, height);
 
-        // listener for onclick
-        button.addListener(new ClickListener() {
+        btn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                // Log only if debug is enabled
-                if (debugLogging) {
-                    Gdx.app.log("UI", text + " Button Clicked");
-                }
+                if (debug)
+                    Gdx.app.log("UI", "Clicked: " + text);
 
-                // Execute action if provided
-                if (action != null) {
-                    action.execute();
+                if (callback != null) {
+                    callback.execute();
                 }
             }
         });
 
-        return button;
+        return btn;
     }
 
-  
-    // Creates a key binding button.
-    public KeyBindingButton createKeyBindingButton(
-            String actionName,
-            float width,
-            float height,
-            IInputController inputController) {
-        
-        // Input validation
-        if (actionName == null || actionName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Action name cannot be null or empty");
-        }
-        if (width <= 0 || height <= 0) {
-            throw new IllegalArgumentException("Button dimensions must be positive");
-        }
-        if (inputController == null) {
-            throw new IllegalArgumentException("InputController cannot be null");
-        }
-        
-        // Create specialized key binding button
-        KeyBindingButton button = new KeyBindingButton(
-            actionName, 
-            skin, 
-            inputController
-        );
-        
-        // Configure size
-        button.setSize(width, height);
-        
-        // Debug logging
-        if (debugLogging) {
-            Gdx.app.log("UIElement", 
-                String.format("Created key binding button for action '%s' (%dx%d)", 
-                    actionName, (int)width, (int)height));
-        }
-        
-        return button;
-    }
-    
-    
-    // Creates a label-button pair for key bindings.
-    public TextButton[] createKeyBindingPair(
-            String actionName,
-            float buttonWidth,
-            float buttonHeight,
-            IInputController inputController) {
-        
-        // Create non-clickable label
-        TextButton label = new TextButton(actionName + ":", skin, "default");
-        label.setDisabled(true);  // Make it non-interactive
-        
-        // Create binding button
-        KeyBindingButton button = createKeyBindingButton(
-            actionName, buttonWidth, buttonHeight, inputController);
-        
-        return new TextButton[] { label, button };
-    }
-    
-    
-    // Creates multiple key binding buttons at once.
-    public KeyBindingButton[] createKeyBindingButtons(
-            String[] actionNames,
-            float width,
-            float height,
-            IInputController inputController) {
-        
-        if (actionNames == null || actionNames.length == 0) {
-            throw new IllegalArgumentException("Action names array cannot be null or empty");
-        }
-        
-        KeyBindingButton[] buttons = new KeyBindingButton[actionNames.length];
-        
-        for (int i = 0; i < actionNames.length; i++) {
-            buttons[i] = createKeyBindingButton(
-                actionNames[i], width, height, inputController);
-        }
-        
-        if (debugLogging) {
-            Gdx.app.log("UIElement", 
-                "Created " + buttons.length + " key binding buttons");
-        }
-        
-        return buttons;
+    /**
+     * <p>
+     * Button for keybinding
+     * </p>
+     *
+     * @param action Get action name like ("UP", "DOWN")
+     * @param width Width for button
+     * @param height Height for button
+     * @param input IInputController to get binding
+     * @return Created KeyBindingButton
+     */
+    public KeyBindingButton createKeyBindingButton(String action, float width, float height, IInputController input) {
+        KeyBindingButton btn = new KeyBindingButton(action, skin, input);
+        btn.setSize(width, height);
+        return btn;
     }
 }

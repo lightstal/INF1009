@@ -27,116 +27,262 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
- * <p>Settings screen with a volume slider and key rebinding buttons.
+ * <p>
+ * Settings screen with a volume slider and key rebinding buttons.
  * Pushed on top of the current scene as an overlay, so the game
- * world is paused underneath.</p>
+ * world is paused underneath.
+ * </p>
  *
- * <p>The player can adjust volume with the slider or arrow keys,
+ * <p>
+ * The player can adjust volume with the slider or arrow keys,
  * rebind movement and shoot keys, and return to the previous
- * scene with the back button or ENTER key.</p>
+ * scene with the back button or ENTER key.
+ * </p>
  */
 public class SettingsScene extends Scene {
 
-    /** <p>Factory for creating scenes during navigation.</p> */
+    /**
+     * <p>
+     * Factory for creating scenes during navigation.
+     * </p>
+     */
     private final SceneFactory factory;
 
-    /** <p>Orthographic camera for 2D rendering.</p> */
+    /**
+     * <p>
+     * Orthographic camera for 2D rendering.
+     * </p>
+     */
     private OrthographicCamera camera;
 
-    /** <p>Viewport that stretches the virtual resolution to fill the window.</p> */
+    /**
+     * <p>
+     * Viewport that stretches the virtual resolution to fill the window.
+     * </p>
+     */
     private Viewport viewport;
 
-    /** <p>Shape renderer for drawing the panel, slider, and other shapes.</p> */
+    /**
+     * <p>
+     * Shape renderer for drawing the panel, slider, and other shapes.
+     * </p>
+     */
     private ShapeRenderer shape;
 
-    /** <p>Sprite batch for rendering text.</p> */
+    /**
+     * <p>
+     * Sprite batch for rendering text.
+     * </p>
+     */
     private SpriteBatch batch;
 
-    /** <p>Font used for the title, volume label, and percentage text.</p> */
+    /**
+     * <p>
+     * Font used for the title, volume label, and percentage text.
+     * </p>
+     */
     private BitmapFont font;
 
-    /** <p>Glyph layout used for measuring text width for centring.</p> */
+    /**
+     * <p>
+     * Glyph layout used for measuring text width for centring.
+     * </p>
+     */
     private GlyphLayout layout;
 
-    /** <p>Current volume level as a float between 0 and 1.</p> */
+    /**
+     * <p>
+     * Current volume level as a float between 0 and 1.
+     * </p>
+     */
     private float volume01;
 
     // --- UI rectangle positions and sizes (in world coordinates) ---
 
-    /** <p>X position of the settings panel.</p> */
+    /**
+     * <p>
+     * X position of the settings panel.
+     * </p>
+     */
     private float panelX;
-    /** <p>Y position of the settings panel.</p> */
+    /**
+     * <p>
+     * Y position of the settings panel.
+     * </p>
+     */
     private float panelY;
-    /** <p>Width of the settings panel.</p> */
+    /**
+     * <p>
+     * Width of the settings panel.
+     * </p>
+     */
     private float panelW;
-    /** <p>Height of the settings panel.</p> */
+    /**
+     * <p>
+     * Height of the settings panel.
+     * </p>
+     */
     private float panelH;
 
-    /** <p>X position of the volume slider track.</p> */
+    /**
+     * <p>
+     * X position of the volume slider track.
+     * </p>
+     */
     private float sliderX;
-    /** <p>Y position of the volume slider track.</p> */
+    /**
+     * <p>
+     * Y position of the volume slider track.
+     * </p>
+     */
     private float sliderY;
-    /** <p>Width of the volume slider track.</p> */
+    /**
+     * <p>
+     * Width of the volume slider track.
+     * </p>
+     */
     private float sliderW;
-    /** <p>Height of the volume slider track.</p> */
+    /**
+     * <p>
+     * Height of the volume slider track.
+     * </p>
+     */
     private float sliderH;
 
-    /** <p>X position of the back button.</p> */
+    /**
+     * <p>
+     * X position of the back button.
+     * </p>
+     */
     private float btnX;
-    /** <p>Y position of the back button.</p> */
+    /**
+     * <p>
+     * Y position of the back button.
+     * </p>
+     */
     private float btnY;
-    /** <p>Width of the back button.</p> */
+    /**
+     * <p>
+     * Width of the back button.
+     * </p>
+     */
     private float btnW;
-    /** <p>Height of the back button.</p> */
+    /**
+     * <p>
+     * Height of the back button.
+     * </p>
+     */
     private float btnH;
 
-    /** <p>Fixed virtual width for the settings screen.</p> */
+    /**
+     * <p>
+     * Fixed virtual width for the settings screen.
+     * </p>
+     */
     private static final float VW = 800f;
 
-    /** <p>Fixed virtual height for the settings screen.</p> */
+    /**
+     * <p>
+     * Fixed virtual height for the settings screen.
+     * </p>
+     */
     private static final float VH = 600f;
 
-    /** <p>Skin that provides styles for UI buttons.</p> */
+    /**
+     * <p>
+     * Skin that provides styles for UI buttons.
+     * </p>
+     */
     private Skin skin;
 
-    /** <p>Back button that pops this scene.</p> */
+    /**
+     * <p>
+     * Back button that pops this scene.
+     * </p>
+     */
     private TextButton backButton;
 
-    /** <p>Scene2D stage that holds and manages UI actors.</p> */
+    /**
+     * <p>
+     * Scene2D stage that holds and manages UI actors.
+     * </p>
+     */
     private Stage stage;
 
-    /** <p>Helper class for creating styled UI buttons.</p> */
+    /**
+     * <p>
+     * Helper class for creating styled UI buttons.
+     * </p>
+     */
     private UIElement uiElement;;
 
-    /** <p>List of key binding buttons for rebinding controls.</p> */
+    /**
+     * <p>
+     * List of key binding buttons for rebinding controls.
+     * </p>
+     */
     private List<KeyBindingButton> keyBindingButtons;
 
-    /** <p>Width of the back button in world units.</p> */
+    /**
+     * <p>
+     * Width of the back button in world units.
+     * </p>
+     */
     private static final float BACK_BUTTON_WIDTH = 260f;
 
-    /** <p>Height of the back button in world units.</p> */
+    /**
+     * <p>
+     * Height of the back button in world units.
+     * </p>
+     */
     private static final float BACK_BUTTON_HEIGHT = 56f;
 
-    /** <p>Y position of the back button from the bottom of the screen.</p> */
+    /**
+     * <p>
+     * Y position of the back button from the bottom of the screen.
+     * </p>
+     */
     private static final float BACK_BUTTON_Y = 120f;
 
-    /** <p>Width of each key binding button.</p> */
+    /**
+     * <p>
+     * Width of each key binding button.
+     * </p>
+     */
     private static final float KEY_BUTTON_WIDTH = 140f;
 
-    /** <p>Height of each key binding button.</p> */
+    /**
+     * <p>
+     * Height of each key binding button.
+     * </p>
+     */
     private static final float KEY_BUTTON_HEIGHT = 35f;
 
-    /** <p>Horizontal gap between left and right columns of key binding buttons.</p> */
+    /**
+     * <p>
+     * Horizontal gap between left and right columns of key binding buttons.
+     * </p>
+     */
     private static final float KEY_HORIZONTAL_GAP = 60f;
 
-    /** <p>Vertical gap between rows of key binding buttons.</p> */
+    /**
+     * <p>
+     * Vertical gap between rows of key binding buttons.
+     * </p>
+     */
     private static final float KEY_VERTICAL_GAP = 55f;
 
-    /** <p>Vertical offset from centre for the first row of key bindings.</p> */
+    /**
+     * <p>
+     * Vertical offset from centre for the first row of key bindings.
+     * </p>
+     */
     private static final float KEY_START_Y_OFFSET = 20f;
 
     /**
-     * <p>Constructs the SettingsScene with the required dependencies.</p>
+     * <p>
+     * Constructs the SettingsScene with the required dependencies.
+     * </p>
      *
      * @param input   the input controller for detecting key presses and rebinding
      * @param audio   the audio controller for reading/setting volume
@@ -150,8 +296,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Sets up camera, rendering resources, volume, UI layout, and buttons.
-     * Called when the scene is first loaded.</p>
+     * <p>
+     * Sets up camera, rendering resources, volume, UI layout, and buttons.
+     * Called when the scene is first loaded.
+     * </p>
      */
     @Override
     protected void onLoad() {
@@ -166,8 +314,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Sets up the orthographic camera and stretch viewport
-     * with the fixed virtual resolution.</p>
+     * <p>
+     * Sets up the orthographic camera and stretch viewport
+     * with the fixed virtual resolution.
+     * </p>
      */
     private void initializeCamera() {
         camera = new OrthographicCamera();
@@ -180,8 +330,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Creates the shape renderer, sprite batch, font, and glyph layout
-     * if they haven't been created yet.</p>
+     * <p>
+     * Creates the shape renderer, sprite batch, font, and glyph layout
+     * if they haven't been created yet.
+     * </p>
      */
     private void initializeRendering() {
         if (shape == null) {
@@ -193,8 +345,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Reads the current music volume from the audio controller
-     * so the slider starts at the correct position.</p>
+     * <p>
+     * Reads the current music volume from the audio controller
+     * so the slider starts at the correct position.
+     * </p>
      */
     private void initializeVolume() {
         volume01 = audio.getMusicVolume();
@@ -202,8 +356,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Calculates positions and sizes for the panel, slider, and
-     * back button based on the fixed virtual resolution.</p>
+     * <p>
+     * Calculates positions and sizes for the panel, slider, and
+     * back button based on the fixed virtual resolution.
+     * </p>
      */
     private void recalcUI() {
         // Panel — centred on screen
@@ -226,8 +382,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Creates the Scene2D Stage that manages UI actors and sets it
-     * as the input processor so buttons receive click events.</p>
+     * <p>
+     * Creates the Scene2D Stage that manages UI actors and sets it
+     * as the input processor so buttons receive click events.
+     * </p>
      */
     private void initializeStage() {
         stage = new Stage(viewport);
@@ -235,12 +393,13 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Loads the UI skin from file and creates the back button and
-     * key binding buttons. Logs an error if the skin cannot be loaded.</p>
+     * <p>
+     * Loads the skin file and sets up the back button and key bindings.
+     * </p>
      */
     private void initializeUI() {
         try {
-            Skin skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
+            skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
             uiElement = new UIElement(skin, true);
 
             createBackButton();
@@ -248,129 +407,75 @@ public class SettingsScene extends Scene {
 
             Gdx.app.log("SettingsScene", "UI initialized");
         } catch (Exception e) {
-            Gdx.app.error("SettingsScene", "Failed to load UI", e);
+            Gdx.app.error("SettingsScene", "UI Load Error", e);
         }
     }
 
     /**
-     * <p>Creates the back button that pops this settings scene,
-     * returning to the previous scene underneath.</p>
+     * <p>
+     * Create back button and calculate bottom the screen.
+     * </p>
      */
     private void createBackButton() {
-        backButton = uiElement.createButton(
-            "BACK",
-            BACK_BUTTON_WIDTH,
-            BACK_BUTTON_HEIGHT,
-            () -> nav.popScene());
+        backButton = uiElement.createButton("BACK", BACK_BUTTON_WIDTH, BACK_BUTTON_HEIGHT, () -> nav.popScene());
+
+        btnX = (VW - BACK_BUTTON_WIDTH) / 2f;
+        btnY = BACK_BUTTON_Y;
 
         backButton.setPosition(btnX, btnY);
         stage.addActor(backButton);
     }
 
     /**
-     * <p>Creates key binding buttons for LEFT, RIGHT, UP, DOWN, and SHOOT
-     * arranged in a grid layout. Each button allows the player to rebind
-     * the corresponding action to a different key.</p>
+     * <p>
+     * For keybinding - calculate position and make a grid layout
+     * </p>
      */
     private void createKeyBindings() {
         keyBindingButtons = new java.util.ArrayList<>();
-        KeyBindingPositions positions = calculateKeyBindingPositions();
 
-        // Row 1: LEFT and RIGHT
-        addKeyBinding("LEFT", positions.leftX, positions.row1Y);
-        addKeyBinding("RIGHT", positions.rightX, positions.row1Y);
-
-        // Row 2: UP and DOWN
-        addKeyBinding("UP", positions.leftX, positions.row2Y);
-        addKeyBinding("DOWN", positions.rightX, positions.row2Y);
-        // Row 3: SHOOT (centred)
-        addKeyBinding("SHOOT", positions.centerX - (KEY_BUTTON_WIDTH / 2f), positions.row3Y);
-    }
-
-    /**
-     * <p>Calculates the x/y positions for each row and column of
-     * key binding buttons based on the virtual resolution.</p>
-     *
-     * @return a {@link KeyBindingPositions} object with all calculated positions
-     */
-    private KeyBindingPositions calculateKeyBindingPositions() {
         float centerX = VW / 2f;
         float centerY = VH / 2f;
 
-        // Two-column layout: left and right of centre
         float leftX = centerX - KEY_HORIZONTAL_GAP - KEY_BUTTON_WIDTH;
         float rightX = centerX + KEY_HORIZONTAL_GAP;
 
-        // Three rows starting from above centre, going downward
         float row1Y = centerY + KEY_START_Y_OFFSET;
         float row2Y = row1Y - KEY_VERTICAL_GAP;
         float row3Y = row2Y - KEY_VERTICAL_GAP;
 
-        return new KeyBindingPositions(centerX, leftX, rightX, row1Y, row2Y, row3Y);
+        addKeyBinding("LEFT", leftX, row1Y);
+        addKeyBinding("RIGHT", rightX, row1Y);
+
+        addKeyBinding("UP", leftX, row2Y);
+        addKeyBinding("DOWN", rightX, row2Y);
+
+        float shootX = centerX - (KEY_BUTTON_WIDTH / 2f);
+        addKeyBinding("SHOOT", shootX, row3Y);
     }
 
     /**
-     * <p>Holds the calculated positions for key binding button layout.
-     * Used internally to pass multiple position values between methods.</p>
-     */
-    private static class KeyBindingPositions {
-        /** <p>Centre X of the screen.</p> */
-        final float centerX;
-        /** <p>Left column X position.</p> */
-        final float leftX;
-        /** <p>Right column X position.</p> */
-        final float rightX;
-        /** <p>First row Y position.</p> */
-        final float row1Y;
-        /** <p>Second row Y position.</p> */
-        final float row2Y;
-        /** <p>Third row Y position.</p> */
-        final float row3Y;
-
-        /**
-         * <p>Constructs position data for key binding button layout.</p>
-         *
-         * @param centerX centre X position
-         * @param leftX   left column X
-         * @param rightX  right column X
-         * @param row1Y   first row Y
-         * @param row2Y   second row Y
-         * @param row3Y   third row Y
-         */
-        KeyBindingPositions(float centerX, float leftX, float rightX,
-                            float row1Y, float row2Y, float row3Y) {
-            this.centerX = centerX;
-            this.leftX = leftX;
-            this.rightX = rightX;
-            this.row1Y = row1Y;
-            this.row2Y = row2Y;
-            this.row3Y = row3Y;
-        }
-    }
-
-    /**
-     * <p>Creates a single key binding button for the given action and adds
-     * it to the stage at the specified position.</p>
-     *
-     * @param action the action name to bind (e.g. "LEFT", "SHOOT")
-     * @param x      x position in world coordinates
-     * @param y      y position in world coordinates
+     * <p>
+     * Helper method to register key binding.
+     * </p>
+     * 
+     * @param action get the action name like (LEFT, RIGHT)
+     * @param x design layout width for keybinding button
+     * @param y design layout height for keybinding button
      */
     private void addKeyBinding(String action, float x, float y) {
-        KeyBindingButton button = uiElement.createKeyBindingButton(
-            action,
-            KEY_BUTTON_WIDTH,
-            KEY_BUTTON_HEIGHT,
-            input);
+        KeyBindingButton btn = uiElement.createKeyBindingButton(action, KEY_BUTTON_WIDTH, KEY_BUTTON_HEIGHT, input);
+        btn.setPosition(x, y);
 
-        button.setPosition(x, y);
-        stage.addActor(button);
-        keyBindingButtons.add(button);
+        stage.addActor(btn);
+        keyBindingButtons.add(btn);
     }
 
     /**
-     * <p>Handles input each frame: volume slider control via arrow keys
-     * and mouse click, and keyboard shortcuts for navigation.</p>
+     * <p>
+     * Handles input each frame: volume slider control via arrow keys
+     * and mouse click, and keyboard shortcuts for navigation.
+     * </p>
      *
      * @param delta time since last frame in seconds
      */
@@ -416,7 +521,9 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Checks for ENTER key press to pop back to the previous scene.</p>
+     * <p>
+     * Checks for ENTER key press to pop back to the previous scene.
+     * </p>
      */
     private void handleKeyboardShortcuts() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
@@ -425,8 +532,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Checks if a point (px, py) is inside a rectangle defined by
-     * position (x, y) and size (w, h).</p>
+     * <p>
+     * Checks if a point (px, py) is inside a rectangle defined by
+     * position (x, y) and size (w, h).
+     * </p>
      *
      * @param px point x coordinate
      * @param py point y coordinate
@@ -441,8 +550,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Draws the settings panel, slider, text labels, and UI buttons.
-     * Called every frame after onUpdate.</p>
+     * <p>
+     * Draws the settings panel, slider, text labels, and UI buttons.
+     * Called every frame after onUpdate.
+     * </p>
      */
     @Override
     protected void onRender() {
@@ -456,8 +567,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Applies the viewport, clears the screen with a dark background,
-     * and sets projection matrices for shape and text rendering.</p>
+     * <p>
+     * Applies the viewport, clears the screen with a dark background,
+     * and sets projection matrices for shape and text rendering.
+     * </p>
      */
     private void prepareRender() {
         // Apply viewport first, then clear, then draw
@@ -474,8 +587,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Draws the panel background, header strip, slider track,
-     * slider fill bar, and slider knob using the shape renderer.</p>
+     * <p>
+     * Draws the panel background, header strip, slider track,
+     * slider fill bar, and slider knob using the shape renderer.
+     * </p>
      */
     private void renderShapes() {
         shape.begin(ShapeRenderer.ShapeType.Filled);
@@ -505,8 +620,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Draws the "SETTINGS" title, "VOLUME" label, and current
-     * volume percentage text using the sprite batch and font.</p>
+     * <p>
+     * Draws the "SETTINGS" title, "VOLUME" label, and current
+     * volume percentage text using the sprite batch and font.
+     * </p>
      */
     private void renderText() {
         batch.begin();
@@ -515,8 +632,8 @@ public class SettingsScene extends Scene {
         font.getData().setScale(2.0f);
         layout.setText(font, "SETTINGS");
         font.draw(batch, layout,
-            panelX + (panelW - layout.width) / 2f,
-            panelY + panelH - 28f);
+                panelX + (panelW - layout.width) / 2f,
+                panelY + panelH - 28f);
 
         // Volume label — above the slider on the left
         font.getData().setScale(1.3f);
@@ -533,8 +650,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Updates and draws the Scene2D Stage, which contains the
-     * back button and key binding buttons.</p>
+     * <p>
+     * Updates and draws the Scene2D Stage, which contains the
+     * back button and key binding buttons.
+     * </p>
      */
     private void renderStage() {
         if (stage != null) {
@@ -544,8 +663,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Called when the window is resized. Updates the viewport and
-     * recalculates UI positions to stay centred.</p>
+     * <p>
+     * Called when the window is resized. Updates the viewport and
+     * recalculates UI positions to stay centred.
+     * </p>
      *
      * @param width  new window width in pixels
      * @param height new window height in pixels
@@ -564,8 +685,10 @@ public class SettingsScene extends Scene {
     }
 
     /**
-     * <p>Returns true so the engine pauses world updates (entity movement,
-     * collisions, etc.) while the settings overlay is open.</p>
+     * <p>
+     * Returns true so the engine pauses world updates (entity movement,
+     * collisions, etc.) while the settings overlay is open.
+     * </p>
      *
      * @return true to block world updates underneath this scene
      */
@@ -574,15 +697,21 @@ public class SettingsScene extends Scene {
         return true;
     }
 
-    /** <p>Called when the scene is unloaded (before disposal).</p> */
+    /**
+     * <p>
+     * Called when the scene is unloaded (before disposal).
+     * </p>
+     */
     @Override
     protected void onUnload() {
         Gdx.app.log("Scene", "SettingsScene unloading...");
     }
 
     /**
-     * <p>Disposes of all rendering resources (shape renderer, sprite batch,
-     * font, skin, stage) to free GPU memory.</p>
+     * <p>
+     * Disposes of all rendering resources (shape renderer, sprite batch,
+     * font, skin, stage) to free GPU memory.
+     * </p>
      */
     @Override
     protected void onDispose() {
