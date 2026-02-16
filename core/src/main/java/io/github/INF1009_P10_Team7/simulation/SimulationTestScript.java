@@ -3,18 +3,31 @@ package io.github.INF1009_P10_Team7.simulation;
 import com.badlogic.gdx.Gdx;
 
 /**
- * SimulationTestScript (Part 1)
+ * <p>Utility class that prints simulation control instructions and
+ * scaling notes to the console log at startup.</p>
  *
- * - Engine starts
- * - Scene lifecycle logs show load/unload order
- * - Controls show transitions
- * - Resize log shows forwarding works
- * - Close window shows clean shutdown
+ * <p>This is a final class with a private constructor to prevent
+ * instantiation — all methods are static.</p>
+ *
+ * <p>Test script verifies:</p>
+ * <ul>
+ *   <li>Engine starts successfully</li>
+ *   <li>Scene lifecycle logs show correct load/unload order</li>
+ *   <li>Controls trigger scene transitions</li>
+ *   <li>Resize log confirms viewport forwarding works</li>
+ *   <li>Closing the window triggers a clean shutdown</li>
+ * </ul>
  */
 public final class SimulationTestScript {
 
+    /** <p>Private constructor to prevent instantiation of this utility class.</p> */
     private SimulationTestScript() {}
 
+    /**
+     * <p>Prints all simulation control instructions to the console log.
+     * Includes scene navigation keys, movement keys, mouse controls,
+     * and gameplay tips.</p>
+     */
     public static void printInstructions() {
         Gdx.app.log("SIM", "==============================");
         Gdx.app.log("SIM", "Part 1 Simulation Controls:");
@@ -34,6 +47,10 @@ public final class SimulationTestScript {
         Gdx.app.log("Input Output", "Collect yellow balls for speed boosts!");
     }
 
+    /**
+     * <p>Prints a note explaining that adding a new Scene class does not
+     * require any changes to the SceneManager (OCP).</p>
+     */
     public static void printScalingNote() {
         Gdx.app.log("SIM", "Scaling note: adding a new Scene class does NOT require changes to SceneManager.");
     }

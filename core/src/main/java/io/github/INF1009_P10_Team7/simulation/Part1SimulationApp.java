@@ -15,27 +15,40 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
- * Part1SimulationApp (composition root)
+ * <p>The composition root of the simulation. This is the entry point
+ * that LibGDX calls to start the application.</p>
  *
- * - Creates GameEngine
- * - Configures keybinds
- * - Wires scenes using ONLY interfaces (Dependency Inversion)
- * - Starts the initial scene
+ * <p>Responsibilities:</p>
+ * <ul>
+ *   <li>Creates the {@link GameEngine}</li>
+ *   <li>Configures simulation-specific keybinds</li>
+ *   <li>Wires scenes using ONLY interfaces (Dependency Inversion Principle)</li>
+ *   <li>Starts the initial scene (main menu)</li>
+ *   <li>Delegates the game loop (update/render/resize/dispose) to the engine</li>
+ * </ul>
  */
 public class Part1SimulationApp extends ApplicationAdapter {
 
+    /** <p>The game engine that manages all engine subsystems.</p> */
     private GameEngine engine;
 
+    /**
+     * <p>Called once when the application starts. Initialises the engine,
+     * binds keys to actions, creates the scene factory, and sets the
+     * initial scene to the main menu.</p>
+     */
     @Override
     public void create() {
         Gdx.app.log("SIM", "Part1SimulationApp create(): start (engine init)");
 
+        // Print control instructions and scaling note to the console
         SimulationTestScript.printInstructions();
         SimulationTestScript.printScalingNote();
 
+        // Create the engine (initialises all subsystems)
         engine = new GameEngine();
 
-        // Get interfaces from engine (Dependency Inversion)
+        // Retrieve engine interfaces (Dependency Inversion — depend on abstractions)
         IInputController input = engine.getInput();
         IAudioController audio = engine.getAudio();
         SceneNavigator nav = engine.getNavigator();
@@ -44,7 +57,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
         ICollisionSystem collisionSystem = engine.getCollisionSystem();
         IMovementSystem movementSystem = engine.getMovementSystem();
 
-        // Keybinds (simulation-specific configuration)
+        // Bind simulation-specific keys to named actions
         input.bindKey("START_GAME", Input.Keys.SPACE);
         input.bindKey("RESTART_GAME", Input.Keys.R);
         input.bindKey("SETTINGS", Input.Keys.ESCAPE);
@@ -55,16 +68,20 @@ public class Part1SimulationApp extends ApplicationAdapter {
         input.bindKey("DOWN", Input.Keys.S);
         input.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
-        // Scene factory wired with interfaces
+        // Create the scene factory, wired with all engine interfaces
         SceneFactory factory = new Part1SceneFactory(
             input, audio, nav, entityQuery,
             entitySystem, collisionSystem, movementSystem
         );
 
-        // Start with MainMenu scene
+        // Set the initial scene to the main menu
         nav.setScene(factory.createMainMenuScene());
     }
 
+    /**
+     * <p>Called every frame by LibGDX. Computes delta time and delegates
+     * the update and render passes to the engine.</p>
+     */
     @Override
     public void render() {
         float dt = Gdx.graphics.getDeltaTime();
@@ -72,11 +89,22 @@ public class Part1SimulationApp extends ApplicationAdapter {
         engine.render();
     }
 
+    /**
+     * <p>Called when the window is resized. Forwards the new dimensions
+     * to the engine so viewports can be updated.</p>
+     *
+     * @param width  new window width in pixels
+     * @param height new window height in pixels
+     */
     @Override
     public void resize(int width, int height) {
         engine.resize(width, height);
     }
 
+    /**
+     * <p>Called when the application is closing. Disposes of the engine
+     * and all its subsystems for a clean shutdown.</p>
+     */
     @Override
     public void dispose() {
         Gdx.app.log("SIM", "Part1SimulationApp dispose(): clean shutdown");
