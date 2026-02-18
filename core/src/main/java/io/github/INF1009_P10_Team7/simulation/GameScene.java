@@ -249,40 +249,24 @@ public class GameScene extends Scene {
     private void createYellowBalls() {
         Random rand = new Random();
         float padding = 60f;
-
-        // OCP: Custom collision response for pickup — no modification to CollisionResolution needed
-        ICollisionResponse pickupResponse = (obj1, obj2, info) -> {
-            // Intentionally empty — pickup logic handled in scene update
-        };
+        float speed = 120f; // Fixed speed (80 x 1.5)
 
         for (int i = 1; i <= 5; i++) {
-            // Random starting position
             float rx = padding + rand.nextFloat() * (WORLD_W - 2 * padding);
             float ry = padding + rand.nextFloat() * (WORLD_H - 2 * padding);
-
-            // Random movement direction, ensure it's not near-zero
             float dirX = rand.nextFloat() * 2f - 1f;
             float dirY = rand.nextFloat() * 2f - 1f;
-            if (Math.abs(dirX) < 0.1f && Math.abs(dirY) < 0.1f) {
-                dirX = 1f;
-                dirY = 0.5f;
-            }
-
-            // Random speed between 80 and 140
-            float speed = 80f + rand.nextFloat() * 60f;
 
             GameEntity yellowBall = new GameEntity("YellowBall" + i);
             yellowBall.addComponent(new TransformComponent(rx, ry));
             yellowBall.addComponent(new RenderComponent(new CircleRenderer(18f), new Color(1f, 1f, 0.2f, 1f)));
             yellowBall.setCollisionRadius(18f);
 
-            // Attach linear movement behaviour for straight-line travel
             LinearMovement linearBehaviour = new LinearMovement(new Vector2(dirX, dirY), speed);
             yellowBall.addComponent(new MovementComponent(linearBehaviour));
 
-            // Register with all systems
             entitySystem.addEntity(yellowBall);
-            collisionSystem.registerCollidable(yellowBall, pickupResponse); // Custom pickup response (OCP)
+            collisionSystem.registerCollidable(yellowBall, CollisionResolution.PASS_THROUGH);
             movementSystem.addEntity(yellowBall, linearBehaviour);
             yellowBalls.add(yellowBall);
         }
@@ -337,9 +321,9 @@ public class GameScene extends Scene {
         FollowMovement followBehaviour = new FollowMovement(player, 80f);
         followerBall.addComponent(new MovementComponent(followBehaviour));
 
-        // Register with all systems
+        // Register with all systems — follower passes through other entities
         entitySystem.addEntity(followerBall);
-        collisionSystem.registerCollidable(followerBall, CollisionResolution.BOUNCE);
+        collisionSystem.registerCollidable(followerBall, CollisionResolution.PASS_THROUGH);
         movementSystem.addEntity(followerBall, followBehaviour);
     }
 
@@ -570,6 +554,9 @@ public class GameScene extends Scene {
             float minDist = playerRadius + ballRadius;
 
             if (distance <= minDist) {
+                // Play pickup sound
+                audio.playSound("bell.mp3");
+
                 // Grant speed boost to the player
                 playerSpeedMultiplier += SPEED_BOOST_PER_BALL;
                 Gdx.app.log("GameScene", "Speed boost! Multiplier: " +

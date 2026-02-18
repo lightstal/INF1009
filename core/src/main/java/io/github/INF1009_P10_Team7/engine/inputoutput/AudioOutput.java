@@ -57,6 +57,10 @@ public class AudioOutput {
     }
 
     public void playSound(String audioPath) {
+        if (sfxVolume <= 0f) {
+            Gdx.app.log("AudioOutput", audioPath + " skipped (volume is 0).");
+            return;
+        }
         Sound sound = soundCache.get(audioPath);
         if (sound == null) {
             sound = Gdx.audio.newSound(Gdx.files.internal(audioPath));
