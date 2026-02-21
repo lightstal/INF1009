@@ -16,14 +16,8 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
  * GameEngine (engine layer)
- *
  * Owns and orchestrates all engine sub-systems.
  * Exposes ONLY interfaces to the simulation layer (Dependency Inversion).
- *
- * CHANGES FROM ORIGINAL V2:
- * - Removed rebuildForScene() — scenes now register entities with managers directly
- * - Uses ICollisionSystem, IMovementSystem, IEntitySystem interfaces
- * - No references to EntityDefinition, MovementComponent, PhysicComponent (no context coupling)
  */
 public class GameEngine {
 
@@ -41,7 +35,7 @@ public class GameEngine {
         scenes = new SceneManager();
     }
 
-    // Expose ONLY interfaces to simulation/scenes
+    // Expose only interfaces to simulation/scenes
     public IInputController getInput() { return io; }
     public IAudioController getAudio() { return io; }
     public IEntityQuery getEntityQuery() { return entities; }

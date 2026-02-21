@@ -12,7 +12,6 @@ public interface ICollisionResponse {
 
     /**
      * <p>Resolves a collision between two collidable objects.</p>
-     *
      * @param obj1 first collidable
      * @param obj2 second collidable
      * @param info collision details (normal and penetration depth)
