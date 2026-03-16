@@ -11,8 +11,8 @@ import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
-import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
+import io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory;
 
 /**
  * <p>The composition root of the simulation. This is the entry point
@@ -57,25 +57,24 @@ public class Part1SimulationApp extends ApplicationAdapter {
         ICollisionSystem collisionSystem = engine.getCollisionSystem();
         IMovementSystem movementSystem = engine.getMovementSystem();
 
-        // Bind simulation-specific keys to named actions
-        input.bindKey("START_GAME", Input.Keys.SPACE);
-        input.bindKey("RESTART_GAME", Input.Keys.R);
-        input.bindKey("SETTINGS", Input.Keys.ESCAPE);
-        input.bindKey("BACK", Input.Keys.BACKSPACE);
-        input.bindKey("LEFT", Input.Keys.A);
-        input.bindKey("RIGHT", Input.Keys.D);
-        input.bindKey("UP", Input.Keys.W);
-        input.bindKey("DOWN", Input.Keys.S);
-        input.bindMouseButton("SHOOT", Input.Buttons.LEFT);
+        // Key bindings for Cyber Maze Escape
+        input.bindKey("START_GAME",  Input.Keys.SPACE);
+        input.bindKey("SETTINGS",    Input.Keys.ESCAPE);
+        input.bindKey("BACK",        Input.Keys.BACKSPACE);
+        input.bindKey("LEFT",        Input.Keys.A);
+        input.bindKey("RIGHT",       Input.Keys.D);
+        input.bindKey("UP",          Input.Keys.W);
+        input.bindKey("DOWN",        Input.Keys.S);
+        input.bindKey("INTERACT",    Input.Keys.E);
 
-        // Create the scene factory, wired with all engine interfaces
-        SceneFactory factory = new Part1SceneFactory(
+        // Create the Cyber Maze Escape scene factory (Part 2 game)
+        CyberSceneFactory factory = new CyberSceneFactory(
             input, audio, nav, entityQuery,
             entitySystem, collisionSystem, movementSystem
         );
 
-        // Set the initial scene to the main menu
-        nav.setScene(factory.createMainMenuScene());
+        // Launch with the Linux boot splash, then → main menu → level select → game
+        nav.setScene(factory.createBootScene());
     }
 
     /**

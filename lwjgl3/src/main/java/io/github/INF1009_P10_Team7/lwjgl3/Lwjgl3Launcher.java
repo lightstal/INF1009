@@ -11,7 +11,7 @@ public class Lwjgl3Launcher {
 
 
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
-        configuration.setTitle("INF1009 P10 Team7_Abstract Engine");
+        configuration.setTitle("Cyber Maze Escape — CTF Infiltration Sim");
 
 
         configuration.useVsync(true);
@@ -19,7 +19,7 @@ public class Lwjgl3Launcher {
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
 
 
-        configuration.setWindowedMode(800, 480);
+        configuration.setWindowedMode(1280, 704);
         configuration.setResizable(true);  // Window CAN be resized
 
 
