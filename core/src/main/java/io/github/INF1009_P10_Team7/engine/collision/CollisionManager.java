@@ -88,7 +88,7 @@ public class CollisionManager implements ICollisionSystem {
                 ICollidable obj2 = collidableObjects.get(j);
                 if (obj2 == null || !obj2.isCollidable()) continue;
 
-                // Uses instance method — can be overridden by subclass (Inheritance)
+                // Uses instance method  -  can be overridden by subclass (Inheritance)
                 CollisionInfo collisionInfo = detector.getCollisionInfo(obj1, obj2);
 
                 if (collisionInfo != null) {

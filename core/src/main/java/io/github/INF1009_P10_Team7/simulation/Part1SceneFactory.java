@@ -17,7 +17,7 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
  * <p>This factory holds references to all engine interfaces so that
  * each scene receives only the dependencies it requires (DIP).
  * Adding a new scene type only requires adding a new create method
- * here — no changes to the engine are needed (OCP).</p>
+ * here  -  no changes to the engine are needed (OCP).</p>
  */
 public class Part1SceneFactory implements SceneFactory {
 

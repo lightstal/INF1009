@@ -46,6 +46,8 @@ public class UIElement {
     public TextButton createButton(String text, float width, float height, final iUIElement callback) {
         TextButton btn = new TextButton(text, skin);
         btn.setSize(width, height);
+        btn.getLabel().setFontScale(0.5f);
+        btn.pad(4f, 8f, 4f, 8f);
 
         btn.addListener(new ClickListener() {
             @Override
@@ -73,8 +75,8 @@ public class UIElement {
      * @param input IInputController to get binding
      * @return Created KeyBindingButton
      */
-    public KeyBindingButton createKeyBindingButton(String action, float width, float height, IInputController input) {
-        KeyBindingButton btn = new KeyBindingButton(action, skin, input);
+    public KeyBindingButton createKeyBindingButton(String action, String label, float width, float height, IInputController input) {
+        KeyBindingButton btn = new KeyBindingButton(action, label, skin, input);
         btn.setSize(width, height);
         return btn;
     }

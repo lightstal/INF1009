@@ -13,25 +13,25 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 public class CollisionResolution {
 
     /**
-     * <p>BOUNCE — separates overlapping objects and reflects
+     * <p>BOUNCE  -  separates overlapping objects and reflects
      * their velocities. Only affects movable objects.</p>
      */
     public static final ICollisionResponse BOUNCE = (obj1, obj2, info) -> {
         resolveBounce(obj1, obj2, info);
     };
 
-    /** <p>DESTROY — deactivates both colliding objects.</p> */
+    /** <p>DESTROY  -  deactivates both colliding objects.</p> */
     public static final ICollisionResponse DESTROY = (obj1, obj2, info) -> {
         obj1.deactivate();
         obj2.deactivate();
     };
 
     /**
-     * <p>PASS_THROUGH — detects the collision but takes no action.
+     * <p>PASS_THROUGH  -  detects the collision but takes no action.
      * For triggers or sensor zones.</p>
      */
     public static final ICollisionResponse PASS_THROUGH = (obj1, obj2, info) -> {
-        // Intentionally empty — collision is detected but no physics response
+        // Intentionally empty  -  collision is detected but no physics response
     };
 
     /**

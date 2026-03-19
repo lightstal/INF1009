@@ -19,6 +19,10 @@ apply plugin: 'io.github.fourlastor.construo'
 import io.github.fourlastor.construo.Target
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
+
+tasks.named('processResources') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 application.mainClass = 'io.github.INF1009_P10_Team7.lwjgl3.Lwjgl3Launcher'
 eclipse.project.name = appName + '-lwjgl3'
 java.sourceCompatibility = 8
@@ -31,6 +35,7 @@ dependencies {
   implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
   implementation "com.badlogicgames.gdx:gdx-lwjgl3-angle:$gdxVersion"
   implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+  implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
   implementation project(':core')
 
   if(enableGraalNative == 'true') {

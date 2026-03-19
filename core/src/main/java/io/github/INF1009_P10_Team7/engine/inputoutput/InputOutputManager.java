@@ -148,28 +148,22 @@ public class InputOutputManager implements IInputController, IAudioController{
      */
     @Override
     public String getKeyName(String action) {
-        if (keyBindings.containsKey(action)) {
-            int keycode = keyBindings.get(action);
-
-            // get keycode for mouse
-            if (keycode == Input.Keys.LEFT)
-                return "L-CLICK"; // return 0
-            if (keycode == Input.Keys.RIGHT)
-                return "R-CLICK"; // return 1
-
-            // when keycode more than 300, it will crash.
-            if (keycode >= 255) {
-                return "MOUSE";
-            }
-
-            // conversion for keyboard keys
-            if (keycode >= 0 && keycode <= 255) {
-                return Input.Keys.toString(keycode);
-            }
-
-            return "UNKNOWN";
+        if (!keyBindings.containsKey(action)) {
+            return "NONE";
         }
-        return "NONE";
+
+        int keycode = keyBindings.get(action);
+        if (keycode >= MOUSE_OFFSET) {
+            int button = keycode - MOUSE_OFFSET;
+            switch (button) {
+                case Input.Buttons.LEFT:   return "L-CLICK";
+                case Input.Buttons.RIGHT:  return "R-CLICK";
+                case Input.Buttons.MIDDLE: return "M-CLICK";
+                default: return "MOUSE-" + button;
+            }
+        }
+
+        return Input.Keys.toString(keycode);
     }
 
     /**
@@ -181,16 +175,17 @@ public class InputOutputManager implements IInputController, IAudioController{
     @Override
     public void listenForNextKey(final IInputController.InputCallback callback) {
 
-        // set a temporary processor to catch exactly ONE key
+        // set a temporary processor to catch exactly ONE key or mouse click
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean keyDown(int keycode) {
-                // send the key back
                 callback.onInputReceived(keycode);
+                return true;
+            }
 
-                // stop listening
-                //Gdx.input.setInputProcessor(null);
-
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                callback.onInputReceived(MOUSE_OFFSET + button);
                 return true;
             }
         });

@@ -9,9 +9,9 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 
 public class KeyBindingButton extends TextButton {
 
-    
-    private String actionName;
-    private IInputController controller;
+    private final String actionName;
+    private final String displayName;
+    private final IInputController controller;
     private boolean listening;
 
     /**
@@ -23,41 +23,64 @@ public class KeyBindingButton extends TextButton {
      * @param skin For UI Skin
      * @param ctrl Input controller for binding
      */
-    public KeyBindingButton(String action, Skin skin, IInputController ctrl) {
-        super(action, skin);
+    public KeyBindingButton(String action, String displayName, Skin skin, IInputController ctrl) {
+        super("", skin);
         this.actionName = action;
+        this.displayName = displayName;
         this.controller = ctrl;
         this.listening = false;
 
-        // Concat action with text by correct key
-        String currentKey = controller.getKeyName(actionName);
-        setText(actionName + ": " + (currentKey == null ? "?" : currentKey));
+        getLabel().setFontScale(0.30f);
+        getLabel().setWrap(false);
+        pad(4f, 8f, 4f, 8f);
+
+        refreshLabel();
 
         addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                // Prevention of multiple clicking
                 if (listening) return;
 
                 listening = true;
-                setText(actionName + ":Press Key");
+                setText(displayName + ": ...");
 
-                // Listening for the next key
                 controller.listenForNextKey(k -> {
-                    controller.bindKey(actionName, k);
-                    
-                    // Refresh the button for next key
-                    String newKey = controller.getKeyName(actionName);
-                    setText(actionName + ": " + (newKey == null ? "?" : newKey));
-                    
+                    if (k >= 300) {
+                        controller.bindMouseButton(actionName, k - 300);
+                    } else {
+                        controller.bindKey(actionName, k);
+                    }
+
+                    refreshLabel();
                     listening = false;
 
-                    // To return back to the correct state
                     if (getStage() != null) {
                         Gdx.input.setInputProcessor(getStage());
                     }
                 });
             }
         });
+    }
+
+    private void refreshLabel() {
+        String currentKey = controller.getKeyName(actionName);
+        setText(displayName + ": " + shortKey(currentKey == null ? "?" : currentKey));
+    }
+
+
+    private String shortKey(String key) {
+        switch (key) {
+            case "Escape": return "ESC";
+            case "Enter": return "ENTER";
+            case "Backspace": return "BKSP";
+            case "Space": return "SPACE";
+            case "Left": return "LEFT";
+            case "Right": return "RIGHT";
+            case "Up": return "UP";
+            case "Down": return "DOWN";
+            case "Control Left": return "CTRL";
+            case "Control Right": return "CTRL";
+            default: return key;
+        }
     }
 }

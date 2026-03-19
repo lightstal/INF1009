@@ -42,10 +42,10 @@ public class MainMenuScene extends Scene {
     /** <p>Helper class for creating styled UI buttons.</p> */
     private UIElement uiElement;
 
-    /** <p>Fixed virtual world width — matches GameScene.</p> */
+    /** <p>Fixed virtual world width  -  matches GameScene.</p> */
     private static final float WORLD_W = 800f;
 
-    /** <p>Fixed virtual world height — matches GameScene.</p> */
+    /** <p>Fixed virtual world height  -  matches GameScene.</p> */
     private static final float WORLD_H = 480f;
 
     /** <p>Width of the menu buttons in world units.</p> */
@@ -115,14 +115,14 @@ public class MainMenuScene extends Scene {
      * the settings scene as an overlay.</p>
      */
     private void createButtons() {
-        // Start game button — replaces current scene with GameScene
+        // Start game button  -  replaces current scene with GameScene
         startButton = uiElement.createButton(
             "START GAME",
             BUTTON_WIDTH,
             BUTTON_HEIGHT,
             () -> nav.requestScene(factory.createGameScene()));
 
-        // Settings button — pushes SettingsScene on top of current scene
+        // Settings button  -  pushes SettingsScene on top of current scene
         settingButton = uiElement.createButton(
             "SETTING",
             BUTTON_WIDTH,
