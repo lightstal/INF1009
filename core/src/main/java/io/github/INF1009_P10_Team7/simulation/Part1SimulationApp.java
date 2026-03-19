@@ -11,8 +11,8 @@ import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
+import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
-import io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory;
 
 /**
  * <p>The composition root of the simulation. This is the entry point
@@ -39,7 +39,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
      */
     @Override
     public void create() {
-        Gdx.app.log("SIM", "Cyber Maze Escape app create(): start (engine init)");
+        Gdx.app.log("SIM", "Part1SimulationApp create(): start (engine init)");
 
         // Print control instructions and scaling note to the console
         SimulationTestScript.printInstructions();
@@ -48,7 +48,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
         // Create the engine (initialises all subsystems)
         engine = new GameEngine();
 
-        // Retrieve engine interfaces (Dependency Inversion  -  depend on abstractions)
+        // Retrieve engine interfaces (Dependency Inversion — depend on abstractions)
         IInputController input = engine.getInput();
         IAudioController audio = engine.getAudio();
         SceneNavigator nav = engine.getNavigator();
@@ -57,31 +57,25 @@ public class Part1SimulationApp extends ApplicationAdapter {
         ICollisionSystem collisionSystem = engine.getCollisionSystem();
         IMovementSystem movementSystem = engine.getMovementSystem();
 
-        // Key bindings for Cyber Maze Escape
-        input.bindKey("START_GAME",  Input.Keys.SPACE);
-        input.bindKey("SETTINGS",    Input.Keys.ESCAPE);
-        input.bindKey("BACK",        Input.Keys.Q);
-        input.bindKey("LEFT",        Input.Keys.A);
-        input.bindKey("RIGHT",       Input.Keys.D);
-        input.bindKey("UP",          Input.Keys.W);
-        input.bindKey("DOWN",        Input.Keys.S);
-        input.bindKey("INTERACT",    Input.Keys.E);
-        input.bindKey("HELP",        Input.Keys.H);
+        // Bind simulation-specific keys to named actions
+        input.bindKey("START_GAME", Input.Keys.SPACE);
+        input.bindKey("RESTART_GAME", Input.Keys.R);
+        input.bindKey("SETTINGS", Input.Keys.ESCAPE);
+        input.bindKey("BACK", Input.Keys.BACKSPACE);
+        input.bindKey("LEFT", Input.Keys.A);
+        input.bindKey("RIGHT", Input.Keys.D);
+        input.bindKey("UP", Input.Keys.W);
+        input.bindKey("DOWN", Input.Keys.S);
+        input.bindMouseButton("SHOOT", Input.Buttons.LEFT);
 
-        // Menu navigation bindings kept separate from gameplay bindings
-        input.bindKey("MENU_LEFT",   Input.Keys.LEFT);
-        input.bindKey("MENU_RIGHT",  Input.Keys.RIGHT);
-        input.bindKey("MENU_CONFIRM",Input.Keys.ENTER);
-        input.bindKey("MENU_BACK",   Input.Keys.ESCAPE);
-
-        // Create the Cyber Maze Escape scene factory (Part 2 game)
-        CyberSceneFactory factory = new CyberSceneFactory(
+        // Create the scene factory, wired with all engine interfaces
+        SceneFactory factory = new Part1SceneFactory(
             input, audio, nav, entityQuery,
             entitySystem, collisionSystem, movementSystem
         );
 
-        // Launch with the Linux boot splash, then → main menu → level select → game
-        nav.setScene(factory.createBootScene());
+        // Set the initial scene to the main menu
+        nav.setScene(factory.createMainMenuScene());
     }
 
     /**
@@ -113,7 +107,7 @@ public class Part1SimulationApp extends ApplicationAdapter {
      */
     @Override
     public void dispose() {
-        Gdx.app.log("SIM", "Cyber Maze Escape app dispose(): clean shutdown");
+        Gdx.app.log("SIM", "Part1SimulationApp dispose(): clean shutdown");
         if (engine != null) engine.dispose();
     }
 }

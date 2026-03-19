@@ -7,7 +7,7 @@ import com.badlogic.gdx.Gdx;
  * scaling notes to the console log at startup.</p>
  *
  * <p>This is a final class with a private constructor to prevent
- * instantiation  -  all methods are static.</p>
+ * instantiation — all methods are static.</p>
  *
  * <p>Test script verifies:</p>
  * <ul>
@@ -30,20 +30,21 @@ public final class SimulationTestScript {
      */
     public static void printInstructions() {
         Gdx.app.log("SIM", "==============================");
-        Gdx.app.log("SIM", "Cyber Maze Escape Controls:");
-        Gdx.app.log("SIM", "Main Menu: SPACE/ENTER/click -> continue");
-        Gdx.app.log("SIM", "Game: ESC -> Settings, Q -> Main Menu, E -> Interact, H -> Signal Ping");
-        Gdx.app.log("SIM", "Settings: change volume and rebind gameplay + menu keys");
+        Gdx.app.log("SIM", "Part 1 Simulation Controls:");
+        Gdx.app.log("SIM", "MainMenu: SPACE -> Game");
+        Gdx.app.log("SIM", "Game: ESC -> Settings, BACKSPACE -> MainMenu");
+        Gdx.app.log("SIM", "Settings: BACKSPACE -> return to previous");
         Gdx.app.log("SIM", "Resize window: logs resize() calls");
         Gdx.app.log("SIM", "Close window: logs dispose() (clean end)");
         Gdx.app.log("SIM", "==============================");
         Gdx.app.log("Input Output", "Key Controls Binded to Actions:");
         Gdx.app.log("Input Output", "START_GAME: SPACE");
         Gdx.app.log("Input Output", "SETTINGS: ESC");
-        Gdx.app.log("Input Output", "BACK: Q");
+        Gdx.app.log("Input Output", "BACK: BACKSPACE");
+        Gdx.app.log("Input Output", "SHOOT: Mouse LEFT BUTTON (also dashes in move direction)");
         Gdx.app.log("Input Output", "WASD: Move player");
-        Gdx.app.log("Input Output", "E: Interact with terminal");
-        Gdx.app.log("Input Output", "Arrow keys / ENTER: menu navigation");
+        Gdx.app.log("Input Output", "R: Toggle follower AI (chase vs random wander)");
+        Gdx.app.log("Input Output", "Collect yellow balls for speed boosts!");
     }
 
     /**

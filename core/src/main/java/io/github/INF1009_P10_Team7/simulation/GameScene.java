@@ -35,17 +35,17 @@ import java.util.Random;
  *
  * <p>Demonstrates engine features:</p>
  * <ul>
- *   <li>{@code IEntityQuery.getByName()}  -  lookup entities by name instead of caching refs</li>
- *   <li>{@code PhysicComponent.applyImpulse()}  -  one-shot dash on SHOOT click</li>
- *   <li>{@code IMovementSystem.setBehavior()}  -  runtime movement strategy swap (R key toggles follower AI)</li>
- *   <li>{@code IMovementSystem.hasEntity()}  -  guard check before setBehavior</li>
- *   <li>{@code IMovementSystem.getBehavior()}  -  read current behavior for toggle logic</li>
- *   <li>{@code MovementComponent.setMovementBehaviour()}  -  sync component when switching behavior</li>
- *   <li>{@code TransformComponent.setRotation()}  -  spinning diamonds (green squares rendered rotated)</li>
- *   <li>{@code ICollisionSystem.unregisterCollidable()}  -  cleanup when yellow balls are collected</li>
- *   <li>{@code IEntitySystem.removeEntity()}  -  remove collected yellow balls from entity system</li>
- *   <li>{@code Vector2} utility methods  -  sub, scl, dot, dst, cpy, len, nor used throughout</li>
- *   <li>Custom {@code ICollisionResponse}  -  yellow balls use a custom pickup response (OCP)</li>
+ *   <li>{@code IEntityQuery.getByName()} — lookup entities by name instead of caching refs</li>
+ *   <li>{@code PhysicComponent.applyImpulse()} — one-shot dash on SHOOT click</li>
+ *   <li>{@code IMovementSystem.setBehavior()} — runtime movement strategy swap (R key toggles follower AI)</li>
+ *   <li>{@code IMovementSystem.hasEntity()} — guard check before setBehavior</li>
+ *   <li>{@code IMovementSystem.getBehavior()} — read current behavior for toggle logic</li>
+ *   <li>{@code MovementComponent.setMovementBehaviour()} — sync component when switching behavior</li>
+ *   <li>{@code TransformComponent.setRotation()} — spinning diamonds (green squares rendered rotated)</li>
+ *   <li>{@code ICollisionSystem.unregisterCollidable()} — cleanup when yellow balls are collected</li>
+ *   <li>{@code IEntitySystem.removeEntity()} — remove collected yellow balls from entity system</li>
+ *   <li>{@code Vector2} utility methods — sub, scl, dot, dst, cpy, len, nor used throughout</li>
+ *   <li>Custom {@code ICollisionResponse} — yellow balls use a custom pickup response (OCP)</li>
  * </ul>
  *
  * <p>SOLID Principles applied:</p>
@@ -179,7 +179,7 @@ public class GameScene extends Scene {
     // ===== ENTITY CREATION (SRP: separated into focused methods) =====
 
     /**
-     * <p>Creates the player entity  -  a blue triangle controlled by keyboard input
+     * <p>Creates the player entity — a blue triangle controlled by keyboard input
      * with physics-based velocity. Registers it with the entity, collision, and
      * movement systems.</p>
      *
@@ -197,7 +197,7 @@ public class GameScene extends Scene {
         // Register with the entity system
         entitySystem.addEntity(player);
 
-        // Custom collision response: play a sound then bounce (OCP  -  extends behaviour without modifying engine)
+        // Custom collision response: play a sound then bounce (OCP — extends behaviour without modifying engine)
         ICollisionResponse bounceWithSound = (obj1, obj2, info) -> {
             audio.playSound("bell.mp3");
             CollisionResolution.BOUNCE.resolve(obj1, obj2, info);
@@ -232,7 +232,7 @@ public class GameScene extends Scene {
             square.addComponent(new RenderComponent(new RectangleRenderer(55f, 55f), new Color(0.2f, 0.85f, 0.2f, 1f)));
             square.setCollisionRadius(38f);
 
-            // Register with systems  -  diamonds use the default BOUNCE collision response
+            // Register with systems — diamonds use the default BOUNCE collision response
             entitySystem.addEntity(square);
             collisionSystem.registerCollidable(square, CollisionResolution.BOUNCE);
             greenSquares.add(square);
@@ -243,7 +243,7 @@ public class GameScene extends Scene {
      * <p>Creates 5 yellow ball entities that move in straight lines, bounce off
      * green squares, and can be collected by the player for speed boosts.</p>
      *
-     * <p>Uses a custom {@link ICollisionResponse} that does nothing (OCP)  -  the
+     * <p>Uses a custom {@link ICollisionResponse} that does nothing (OCP) — the
      * actual pickup logic is handled in the scene update loop instead.</p>
      */
     private void createYellowBalls() {
@@ -288,7 +288,7 @@ public class GameScene extends Scene {
         randomBall.addComponent(new RenderComponent(new CircleRenderer(18f), new Color(1f, 0.5f, 0.1f, 1f)));
         randomBall.setCollisionRadius(18f);
 
-        // Register with systems  -  uses AImovement for random wandering
+        // Register with systems — uses AImovement for random wandering
         entitySystem.addEntity(randomBall);
         collisionSystem.registerCollidable(randomBall, CollisionResolution.BOUNCE);
         movementSystem.addEntity(randomBall, new AImovement(70f));
@@ -321,7 +321,7 @@ public class GameScene extends Scene {
         FollowMovement followBehaviour = new FollowMovement(player, 80f);
         followerBall.addComponent(new MovementComponent(followBehaviour));
 
-        // Register with all systems  -  follower passes through other entities
+        // Register with all systems — follower passes through other entities
         entitySystem.addEntity(followerBall);
         collisionSystem.registerCollidable(followerBall, CollisionResolution.PASS_THROUGH);
         movementSystem.addEntity(followerBall, followBehaviour);
@@ -405,10 +405,10 @@ public class GameScene extends Scene {
      *
      * <p>Demonstrates:</p>
      * <ul>
-     *   <li>{@code IMovementSystem.hasEntity()}  -  guard check before operating</li>
-     *   <li>{@code IMovementSystem.getBehavior()}  -  read current behavior for toggle logic</li>
-     *   <li>{@code IMovementSystem.setBehavior()}  -  swap behavior at runtime</li>
-     *   <li>{@code MovementComponent.setMovementBehaviour()}  -  keep component in sync</li>
+     *   <li>{@code IMovementSystem.hasEntity()} — guard check before operating</li>
+     *   <li>{@code IMovementSystem.getBehavior()} — read current behavior for toggle logic</li>
+     *   <li>{@code IMovementSystem.setBehavior()} — swap behavior at runtime</li>
+     *   <li>{@code MovementComponent.setMovementBehaviour()} — keep component in sync</li>
      * </ul>
      *
      * <p>Strategy Pattern + LSP: behaviours are interchangeable at runtime.</p>

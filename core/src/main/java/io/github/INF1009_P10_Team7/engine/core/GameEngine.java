@@ -58,7 +58,7 @@ public class GameEngine {
         }
 
         scenes.update(dt);
-        // Consume the flag (no extra action needed  -  scene already loaded by SceneManager)
+        // Consume the flag (no extra action needed — scene already loaded by SceneManager)
         scenes.consumeSceneReplacedFlag();
 
         Scene top = scenes.getCurrentScene();
