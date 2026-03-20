@@ -3,6 +3,7 @@ package io.github.INF1009_P10_Team7.simulation.cyber.scenes;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -247,11 +248,14 @@ public class CyberGameScene extends Scene {
                 KEYS_REQUIRED  = 5;
                 timeRemaining  = 390f;
                 // BUG-4 FIX: level-appropriate waypoints
+                // DRONE-WALL FIX: waypoints moved into open corridor tiles (cols 11-28, rows 10-12)
+                // MAP_2 corridor (room 9) runs cols 10-29, rows 9-13.
+                // Spawn drones at tile centres well inside open floor to avoid wall embedding.
                 drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(8),  TileMap.tileCentreY(11),
-                        new float[][]{ {10,9}, {20,9}, {20,13}, {10,13} }),
-                    new DroneAI(TileMap.tileCentreX(28), TileMap.tileCentreY(11),
-                        new float[][]{ {27,9}, {19,9}, {19,13}, {27,13} })
+                    new DroneAI(TileMap.tileCentreX(13),  TileMap.tileCentreY(11),
+                        new float[][]{ {11,10}, {17,10}, {17,12}, {11,12} }),
+                    new DroneAI(TileMap.tileCentreX(25), TileMap.tileCentreY(11),
+                        new float[][]{ {22,10}, {28,10}, {28,12}, {22,12} })
                 };
                 playerStartTile = new int[]{ 19, 11 };
                 break;
@@ -718,6 +722,7 @@ public class CyberGameScene extends Scene {
         batch.setProjectionMatrix(camera.combined);
 
         tileMap.render(sr, batch, exitUnlocked);
+        renderRoomProps();          // FIX: render unused assets as room decorations
         renderCheckpointBeacon();
         renderDronePatrolRoutes();
         renderTerminalGlow();
@@ -778,6 +783,297 @@ public class CyberGameScene extends Scene {
             sr.setColor(0.3f, 0.8f, 1.0f, 1f);
             sr.triangle(px, py + r, px - r * 0.85f, py - r * 0.6f, px + r * 0.85f, py - r * 0.6f);
             sr.end();
+        }
+    }
+
+    // ── Room props ────────────────────────────────────────────────────────────
+    /**
+     * Purposeful usage of every previously-unused sprite asset:
+     *
+     *  ceiling_light.png  – A glowing light pool is drawn on the FLOOR directly
+     *                       beneath the ceiling fixture sprite.  The pool radius
+     *                       flickers slightly so it looks like a real lamp.
+     *                       The fixture sprite itself is drawn at the top of the
+     *                       pool so it reads as "mounted overhead".
+     *
+     *  barrier_large/small– Physical cover crates rendered in corridors.  A dark
+     *                       shadow ellipse is drawn under each one so they sit on
+     *                       the ground convincingly.  Players can hide behind them.
+     *
+     *  sec_camera.png     – Mounted on the wall ABOVE each corridor entrance
+     *                       (one tile above the doorway).  The sprite rotates
+     *                       slowly back and forth (±40°) like a real CCTV pan,
+     *                       and a translucent scan-cone is drawn in front of it
+     *                       so the player understands it has a field of view.
+     *
+     *  hunter.png         – Replaces the drone's geometric hexagon completely.
+     *                       Drawn rotated to match the drone's facing angle so it
+     *                       always looks like it is walking/flying toward its target.
+     *                       Tinted blue (patrol) or red (chase) for instant readability.
+     *
+     *  phone_wifi.png     – A pulsing wifi signal badge rendered just above the
+     *                       terminal sprite when the player walks within interact
+     *                       range.  It communicates "this device is broadcasting –
+     *                       get close to hack it" without any text.
+     *
+     *  camera.png         – Small icon prefix in the HUD alert bar, replacing the
+     *                       plain "ALERT" text label so the bar is instantly
+     *                       recognisable as a "camera / surveillance" meter.
+     *
+     *  map_pin.png        – Replaces the plain green circle terminal markers on
+     *                       the minimap so unsolved terminals look like map pins.
+     */
+    private void renderRoomProps() {
+        float ts = TileMap.TILE_SIZE;
+
+        // ── 1. Ceiling lights: floor glow pool + mounted fixture sprite ────────
+        renderCeilingLights(ts);
+
+        // ── 2. Barrier crates with shadows ────────────────────────────────────
+        renderBarriers(ts);
+
+        // ── 3. Security cameras mounted above corridor doorways ───────────────
+        renderSecurityCameras(ts);
+
+        // ── 4. Hunter sprite as drone body ────────────────────────────────────
+        renderDroneSprites(ts);
+
+        // ── 5. Wifi badge near terminal when player is close ──────────────────
+        renderTerminalWifiBadge(ts);
+    }
+
+    /** Ceiling light: draws a soft glow pool on the floor, then the fixture above it. */
+    private void renderCeilingLights(float ts) {
+        int[][] lights = getLightPositions();
+        float flicker = 0.72f + 0.08f * (float)Math.sin(stateTime * 2.3f)
+                               + 0.04f * (float)Math.sin(stateTime * 7.1f);
+
+        // Draw floor glow pools with ShapeRenderer (filled circles, additive feel)
+        sr.begin(ShapeRenderer.ShapeType.Filled);
+        for (int[] lt : lights) {
+            float cx = TileMap.tileCentreX(lt[0]);
+            float cy = TileMap.tileCentreY(lt[1]);
+            // Outer dim halo
+            sr.setColor(0.9f, 0.95f, 0.6f, 0.07f * flicker);
+            sr.circle(cx, cy, ts * 2.1f, 28);
+            // Inner bright pool
+            sr.setColor(0.95f, 1f, 0.75f, 0.16f * flicker);
+            sr.circle(cx, cy, ts * 1.2f, 22);
+            // Hot centre
+            sr.setColor(1f, 1f, 0.9f, 0.22f * flicker);
+            sr.circle(cx, cy, ts * 0.55f, 16);
+        }
+        sr.end();
+
+        // Draw the fixture sprite itself just above the pool centre
+        if (sprites.ceilingLight != null) {
+            batch.begin();
+            for (int[] lt : lights) {
+                float cx = TileMap.tileCentreX(lt[0]);
+                float cy = TileMap.tileCentreY(lt[1]);
+                sprites.drawCentered(batch, sprites.ceilingLight,
+                    cx, cy + ts * 0.35f,          // slightly above pool centre
+                    ts * 0.7f, 0.85f * flicker);
+            }
+            batch.end();
+        }
+    }
+
+    /** Barrier crates: shadow ellipse on ground + sprite on top. */
+    private void renderBarriers(float ts) {
+        int[][] barriers = getBarrierPositions();
+
+        // Shadow pass
+        sr.begin(ShapeRenderer.ShapeType.Filled);
+        for (int i = 0; i < barriers.length; i++) {
+            float bx = TileMap.tileCentreX(barriers[i][0]);
+            float by = TileMap.tileCentreY(barriers[i][1]);
+            boolean large = (i % 3 != 2);
+            float shadowW = large ? ts * 0.95f : ts * 0.70f;
+            sr.setColor(0f, 0f, 0f, 0.38f);
+            sr.ellipse(bx - shadowW * 0.5f, by - ts * 0.22f, shadowW, ts * 0.28f);
+        }
+        sr.end();
+
+        // Sprite pass
+        batch.begin();
+        for (int i = 0; i < barriers.length; i++) {
+            boolean large = (i % 3 != 2);
+            Texture bTex = large ? sprites.barrierLg : sprites.barrierSm;
+            if (bTex == null) continue;
+            float bx = TileMap.tileCentreX(barriers[i][0]);
+            float by = TileMap.tileCentreY(barriers[i][1]);
+            float size = large ? ts * 0.85f : ts * 0.62f;
+            sprites.drawCentered(batch, bTex, bx, by + ts * 0.08f, size, 1.0f);
+        }
+        batch.end();
+    }
+
+    /**
+     * Security cameras: mounted one tile above each corridor entrance.
+     * The sprite pans back and forth like real CCTV and a scan cone is shown.
+     */
+    private void renderSecurityCameras(float ts) {
+        if (sprites.secCamera == null) return;
+        int[][] camPositions = getCameraPositions();
+
+        for (int i = 0; i < camPositions.length; i++) {
+            float cx = TileMap.tileCentreX(camPositions[i][0]);
+            float cy = TileMap.tileCentreY(camPositions[i][1]);
+
+            // Pan angle: each camera has a different phase so they don't all move together
+            float phase  = i * 1.3f;
+            float panAng = (float)Math.sin(stateTime * 0.7f + phase) * 40f; // ±40°
+            float baseAng = camPositions[i][2]; // base facing direction (degrees)
+            float totalAng = baseAng + panAng;
+            float radAng = (float)Math.toRadians(totalAng);
+
+            // Draw scan cone
+            float coneLen = ts * 2.6f;
+            float halfFov = (float)Math.toRadians(28f);
+            sr.begin(ShapeRenderer.ShapeType.Filled);
+            sr.setColor(1f, 0.95f, 0.3f, 0.10f);
+            int steps = 14;
+            for (int s = 0; s < steps; s++) {
+                float a1 = radAng - halfFov + (2f * halfFov * s / steps);
+                float a2 = radAng - halfFov + (2f * halfFov * (s + 1) / steps);
+                sr.triangle(cx, cy,
+                    cx + (float)Math.cos(a1) * coneLen, cy + (float)Math.sin(a1) * coneLen,
+                    cx + (float)Math.cos(a2) * coneLen, cy + (float)Math.sin(a2) * coneLen);
+            }
+            sr.end();
+            sr.begin(ShapeRenderer.ShapeType.Line);
+            sr.setColor(1f, 0.9f, 0.2f, 0.35f);
+            sr.line(cx, cy, cx + (float)Math.cos(radAng - halfFov) * coneLen,
+                             cy + (float)Math.sin(radAng - halfFov) * coneLen);
+            sr.line(cx, cy, cx + (float)Math.cos(radAng + halfFov) * coneLen,
+                             cy + (float)Math.sin(radAng + halfFov) * coneLen);
+            sr.end();
+
+            // Draw mounted camera sprite, rotated to match pan
+            batch.begin();
+            sprites.drawCenteredRotated(batch, sprites.secCamera,
+                cx, cy, ts * 0.72f, totalAng - 90f, 0.92f);
+            batch.end();
+        }
+    }
+
+    /**
+     * Hunter sprite as drone body.
+     * Replaces the drone's hexagon completely – drawn rotated to face direction,
+     * blue tint in patrol, red tint when chasing, with a subtle drop-shadow.
+     */
+    private void renderDroneSprites(float ts) {
+        if (sprites.hunter == null) return;
+        float dSize = ts * 1.05f;
+
+        // Shadow pass
+        sr.begin(ShapeRenderer.ShapeType.Filled);
+        for (DroneAI drone : drones) {
+            float dx = drone.getPosition().x;
+            float dy = drone.getPosition().y;
+            sr.setColor(0f, 0f, 0f, 0.28f);
+            sr.ellipse(dx - dSize * 0.4f, dy - dSize * 0.22f, dSize * 0.8f, dSize * 0.22f);
+        }
+        sr.end();
+
+        // Sprite pass
+        batch.begin();
+        for (DroneAI drone : drones) {
+            float dx = drone.getPosition().x;
+            float dy = drone.getPosition().y;
+            boolean chasing = "CHASE".equals(drone.getStateName());
+            boolean searching = "SEARCH".equals(drone.getStateName());
+            // Blue = patrol, yellow = search, red = chase
+            if (chasing)       batch.setColor(1f, 0.25f, 0.15f, 0.95f);
+            else if (searching) batch.setColor(1f, 0.85f, 0.1f,  0.95f);
+            else                batch.setColor(0.35f, 0.75f, 1f,  0.92f);
+
+            float half = dSize * 0.5f;
+            batch.draw(sprites.hunter,
+                dx - half, dy - half,
+                half, half,
+                dSize, dSize, 1f, 1f,
+                drone.getFacingAngle() - 90f,
+                0, 0, sprites.hunter.getWidth(), sprites.hunter.getHeight(),
+                false, false);
+            batch.setColor(1f, 1f, 1f, 1f);
+        }
+        batch.end();
+    }
+
+    /**
+     * Phone/wifi badge: pulsing icon above each terminal when the player is
+     * within interact range, signalling "this device is broadcasting – hack it".
+     */
+    private void renderTerminalWifiBadge(float ts) {
+        if (sprites.phoneWifi == null) return;
+        TransformComponent tc = playerEntity.getComponent(TransformComponent.class);
+        if (tc == null) return;
+        Vector2 pp = tc.getPosition();
+
+        batch.begin();
+        for (int i = 0; i < terminalTiles.length; i++) {
+            if (terminalSolved[i]) continue;
+            float tx = TileMap.tileCentreX(terminalTiles[i][0]);
+            float ty = TileMap.tileCentreY(terminalTiles[i][1]);
+            float d  = dist(pp.x, pp.y, tx, ty);
+
+            if (d < ts * 3.5f) {
+                // Fade in as the player approaches
+                float proximity = 1f - (d / (ts * 3.5f));
+                float pulse = 0.7f + 0.3f * (float)Math.sin(stateTime * 5f + i);
+                float bob   = (float)Math.sin(stateTime * 3f + i * 1.1f) * 4f;
+                float alpha = proximity * pulse;
+
+                // Glow ring behind the icon
+                sr.begin(ShapeRenderer.ShapeType.Filled);
+                sr.setColor(0.2f, 0.9f, 1f, alpha * 0.18f);
+                sr.circle(tx, ty + ts * 1.15f + bob, ts * 0.55f, 18);
+                sr.end();
+
+                sprites.drawCentered(batch, sprites.phoneWifi,
+                    tx, ty + ts * 1.15f + bob,
+                    ts * 0.65f, alpha);
+            }
+        }
+        batch.end();
+    }
+
+    /** Ceiling light tile positions per level (room centres). */
+    private int[][] getLightPositions() {
+        switch (level) {
+            case 2: return new int[][]{ {7,6},{30,6},{19,11},{7,17},{30,17} };
+            case 3: return new int[][]{ {7,5},{32,5},{19,11},{7,17},{32,17} };
+            case 4: return new int[][]{ {4,5},{35,5},{19,10},{4,17},{35,17} };
+            case 5: return new int[][]{ {4,3},{35,3},{19,9},{4,18},{35,18} };
+            default: return new int[][]{ {19,5},{19,12},{19,18} };
+        }
+    }
+
+    /** Barrier crate tile positions per level. */
+    private int[][] getBarrierPositions() {
+        switch (level) {
+            case 2: return new int[][]{ {13,11},{15,11},{24,11},{26,11} };
+            case 3: return new int[][]{ {14,10},{18,13},{22,10},{26,13} };
+            case 4: return new int[][]{ {12,10},{16,10},{22,10},{26,10} };
+            case 5: return new int[][]{ {14,8},{18,12},{22,8},{26,12} };
+            default: return new int[][]{ {18,12},{20,12} };
+        }
+    }
+
+    /**
+     * Security camera mount positions per level.
+     * Each entry: { col, row, baseFacingDegrees }
+     * Mounted above corridor entrances, facing inward so the cone covers the doorway.
+     */
+    private int[][] getCameraPositions() {
+        switch (level) {
+            case 2: return new int[][]{ {8,8,270}, {27,8,270}, {8,14,90}, {27,14,90} };
+            case 3: return new int[][]{ {13,5,0},  {26,5,180}, {13,14,0}, {26,14,180} };
+            case 4: return new int[][]{ {8,9,0},   {31,9,180}, {8,13,0},  {31,13,180} };
+            case 5: return new int[][]{ {9,6,0},   {30,6,180}, {9,14,0},  {30,14,180} };
+            default: return new int[][]{ {19,8,270} };
         }
     }
 
@@ -903,8 +1199,15 @@ public class CyberGameScene extends Scene {
         sr.end();
 
         batch.begin();
+        // camera.png icon prefix on the alert bar — instant "surveillance" readability
+        if (sprites.camera != null) {
+            float iconSize = 14f;
+            sprites.drawCentered(batch, sprites.camera,
+                bx + iconSize * 0.5f, TileMap.WORLD_H - 27f - 5f, iconSize,
+                chasing ? 1f : 0.7f);
+        }
         hudFont.setColor(chasing ? Color.RED : new Color(0.25f, 1f, 0.55f, 1f));
-        hudFont.draw(batch, chasing ? "!! DRONE ALERT !!" : "ALERT", bx, TileMap.WORLD_H - 27f);
+        hudFont.draw(batch, chasing ? "!! DRONE ALERT !!" : "ALERT", bx + 18f, TileMap.WORLD_H - 27f);
         hudFont.setColor(Color.YELLOW);
         hudFont.draw(batch, "KEYS: " + keysCollected + " / " + KEYS_REQUIRED, bx, TileMap.WORLD_H - 48f);
         hudFont.setColor(new Color(0.55f, 0.95f, 1f, 1f));
@@ -1013,14 +1316,28 @@ public class CyberGameScene extends Scene {
             }
         }
 
-        // Unsolved terminals
+        // Unsolved terminals — map_pin sprite instead of plain circle
+        sr.end();
+        batch.begin();
         for (int i = 0; i < terminalTiles.length; i++) {
             if (terminalSolved[i]) continue;
             float tx = TileMap.tileCentreX(terminalTiles[i][0]) * scaleX + mmX;
             float ty = TileMap.tileCentreY(terminalTiles[i][1]) * scaleY + mmY;
-            sr.setColor(0f, 1f, 0.4f, 0.9f);
-            sr.circle(tx, ty, 3f, 6);
+            float pinSize = 7f;
+            if (sprites.mapPin != null) {
+                sprites.drawCentered(batch, sprites.mapPin, tx, ty + 2f, pinSize, 1f);
+            } else {
+                // Fallback: plain circle if texture not loaded
+                batch.end();
+                sr.begin(ShapeRenderer.ShapeType.Filled);
+                sr.setColor(0f, 1f, 0.4f, 0.9f);
+                sr.circle(tx, ty, 3f, 6);
+                sr.end();
+                batch.begin();
+            }
         }
+        batch.end();
+        sr.begin(ShapeRenderer.ShapeType.Filled);
 
         // Exit
         for (int row = 0; row < TileMap.ROWS; row++) {
