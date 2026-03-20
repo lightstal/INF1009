@@ -159,6 +159,8 @@ public class InputOutputManager implements IInputController, IAudioController{
                 case Input.Buttons.LEFT:   return "L-CLICK";
                 case Input.Buttons.RIGHT:  return "R-CLICK";
                 case Input.Buttons.MIDDLE: return "M-CLICK";
+                case Input.Buttons.BACK:   return "BACK-BUTTON";
+                case Input.Buttons.FORWARD:return "FORWARD-BUTTON";
                 default: return "MOUSE-" + button;
             }
         }
