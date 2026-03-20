@@ -1,6 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.inputoutput;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 
 /**
  * A concrete implementation of {@link DeviceInput} for Keyboard handling.
@@ -22,11 +23,22 @@ public class KeyboardDevice extends DeviceInput {
     private boolean[] previousKeys = new boolean[256];
     
     /**
-     * Initializes the keyboard device with ID 0.
+     * Initializes the keyboard device with ID 0 and base offset as 0.
      */
 	public KeyboardDevice() {
         this.deviceID = 0;
         this.deviceName = "Keyboard";
+        this.baseOffset = 0;
+    }
+	
+	/**
+     * {@inheritDoc}
+     * <p>
+     * Delegates the naming of the key back to the LibGDX Input class.
+     */
+    @Override
+    public String getKeyName(int localCode) {
+        return Input.Keys.toString(localCode);
     }
 	
 	/**

@@ -19,9 +19,10 @@ public class KeyBindingButton extends TextButton {
      * Constructs for KeyBindingButton
      * </p>
      *
-     * @param action Get action name ("UP" , "DOWN")
-     * @param skin For UI Skin
-     * @param ctrl Input controller for binding
+     * @param action      The logical action name (e.g., "UP", "JUMP").
+     * @param displayName The text displayed on the button (e.g., "Move Up").
+     * @param skin        The UI Skin for styling.
+     * @param ctrl        The central Input Controller.
      */
     public KeyBindingButton(String action, String displayName, Skin skin, IInputController ctrl) {
         super("", skin);
@@ -44,12 +45,8 @@ public class KeyBindingButton extends TextButton {
                 listening = true;
                 setText(displayName + ": ...");
 
-                controller.listenForNextKey(k -> {
-                    if (k >= 300) {
-                        controller.bindMouseButton(actionName, k - 300);
-                    } else {
-                        controller.bindKey(actionName, k);
-                    }
+                controller.listenForNextKey((deviceID, localCode) -> {
+                	controller.bindInput(actionName, deviceID, localCode);
 
                     refreshLabel();
                     listening = false;
@@ -62,12 +59,18 @@ public class KeyBindingButton extends TextButton {
         });
     }
 
+    /**
+     * Updates the button text to reflect the currently bound key.
+     */
     private void refreshLabel() {
         String currentKey = controller.getKeyName(actionName);
         setText(displayName + ": " + shortKey(currentKey == null ? "?" : currentKey));
     }
 
 
+    /**
+     * Shortens common key names so they fit nicely on the UI buttons.
+     */
     private String shortKey(String key) {
         switch (key) {
             case "Escape": return "ESC";

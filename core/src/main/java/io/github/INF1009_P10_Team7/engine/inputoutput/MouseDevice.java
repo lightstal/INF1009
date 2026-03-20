@@ -1,6 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.inputoutput;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 
 /**
  * A concrete implementation of {@link DeviceInput} for Mouse handling.
@@ -28,11 +29,29 @@ public class MouseDevice extends DeviceInput {
     private boolean[] previousButtons = new boolean[5];
     
     /**
-     * Initializes the mouse device with ID 1.
+     * Initializes the mouse device with ID 1 and base offset as 300.
      */
     public MouseDevice() {
         this.deviceID = 1;
         this.deviceName = "Mouse";
+        this.baseOffset = 300;
+    }
+    
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Translates local mouse button integers into standard human-readable strings.
+     */
+    @Override
+    public String getKeyName(int localCode) {
+        switch (localCode) {
+            case Input.Buttons.LEFT:   return "L-CLICK";
+            case Input.Buttons.RIGHT:  return "R-CLICK";
+            case Input.Buttons.MIDDLE: return "M-CLICK";
+            case Input.Buttons.BACK:   return "BACK-BUTTON";
+            case Input.Buttons.FORWARD:return "FORWARD-BUTTON";
+            default: return "MOUSE-" + localCode;
+        }
     }
 
     /**

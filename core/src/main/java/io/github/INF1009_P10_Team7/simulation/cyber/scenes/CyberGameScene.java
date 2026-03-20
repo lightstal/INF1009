@@ -684,9 +684,6 @@ public class CyberGameScene extends Scene {
         if (input.isActionJustPressed("SETTINGS")) {
             nav.pushScene(factory.createSettingsScene()); return;
         }
-        if (input.isActionJustPressed("BACK")) {
-            nav.requestScene(factory.createMainMenuScene()); return;
-        }
         if (input.isActionJustPressed("HELP")) {
             triggerSignalPing();
         }

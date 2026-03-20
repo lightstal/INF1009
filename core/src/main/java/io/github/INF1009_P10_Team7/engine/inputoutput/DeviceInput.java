@@ -20,6 +20,41 @@ abstract class DeviceInput {
     /** * Human-readable name of the device (e.g., "Keyboard", "Mouse"). 
      */
     protected String deviceName;
+    
+    /** * The starting integer code for this specific device in the global binding map.
+     * <p>
+     * For example, if a Keyboard starts at 0 and a Mouse starts at 300, a global code 
+     * of 302 represents local button 2 on the Mouse.
+     */
+    protected int baseOffset;
+
+    /**
+     * Retrieves the base offset used to route global key bindings to this specific device.
+     * * @return The integer offset for this device.
+     */
+    public int getBaseOffset() {
+        return baseOffset;
+    }
+    
+    /**
+     * Retrieves the unique identifier for this hardware device.
+     * <p>
+     * This ID is used by the engine to dynamically route input bindings to the 
+     * correct device without relying on hardcoded method names.
+     * * @return The integer device ID (e.g., 0 for Keyboard, 1 for Mouse, 2 for Gamepad).
+     */
+    public int getDeviceID() {
+        return deviceID;
+    }
+
+    /**
+     * Translates a device-specific local code into a human-readable string.
+     * <p>
+     * Devices are responsible for naming their own keys/buttons to maintain encapsulation.
+     * * @param localCode The button/key code <b>without</b> the device offset applied.
+     * @return The string representation of the input (e.g., "SPACE", "L-CLICK", "CROSS-BTN").
+     */
+    public abstract String getKeyName(int localCode);
 
     /**
      * Updates the internal state of the device.

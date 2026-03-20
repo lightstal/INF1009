@@ -7,25 +7,24 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
 public interface IInputController {
 	
 	// --- Input Binding ---
-	
+
 	/**
-     * Binds a physical keyboard key to a logical action name.
+     * Binds a physical input from any registered device to a logical action name.
      * <p>
-     * Example: {@code bindKey("JUMP", Input.Keys.SPACE);}
+     * This unified method replaces device-specific binding methods. It uses the 
+     * {@code deviceID} to dynamically route the input to the correct hardware 
+     * and calculates the global routing code automatically.
+     * <p>
+     * Example Uses:
+     * <ul>
+     * <li>{@code bindInput("JUMP", 0, Input.Keys.SPACE);} - Binds Keyboard Spacebar to "JUMP" action</li>
+     * <li>{@code bindInput("SHOOT", 1, Input.Buttons.LEFT);} - Binds Mouse Left-Click to "SHOOT" action</li>
+     * </ul>
      * @param actionName The string identifier for the action (case-sensitive).
-     * @param keyCode The integer code of the key (from {@link com.badlogic.gdx.Input.Keys}).
+     * @param deviceID The unique ID of the target device (e.g., 0 for Keyboard, 1 for Mouse).
+     * @param localCode The raw integer code of the button/key from LibGDX.
      */
-    void bindKey(String actionName, int keyCode);
-    
-    /**
-     * Binds a mouse button to a logical action name.
-     * <p>
-     * Example: {@code bindMouseButton("SHOOT", Input.Buttons.LEFT);}
-     * @param actionName The string identifier for the action.
-     * @param buttonCode The integer code of the button (from {@link com.badlogic.gdx.Input.Buttons}).
-     */
-    void bindMouseButton(String actionName, int buttonCode);
-    
+    void bindInput(String actionName, int deviceID, int localCode);
     
     
     // --- Input Checking ---
@@ -70,6 +69,6 @@ public interface IInputController {
     
     // interface for callback for better oop
     interface InputCallback {
-        void onInputReceived(int keycode);
+        void onInputReceived(int keycode, int localCode);
     }
 }
