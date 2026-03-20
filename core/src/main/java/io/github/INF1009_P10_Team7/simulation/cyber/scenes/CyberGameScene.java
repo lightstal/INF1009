@@ -576,7 +576,7 @@ public class CyberGameScene extends Scene {
     protected void onUpdate(float delta) {
         stateTime += delta;
         rotorAngle += delta * 200f;
-        missionElapsed += delta;
+        if (!gameOver && !victory) missionElapsed += delta;
 
         // Screen transition fade-in
         if (transitionAlpha > 0f) transitionAlpha = Math.max(0f, transitionAlpha - delta * 1.8f);
@@ -598,8 +598,10 @@ public class CyberGameScene extends Scene {
             return;
         }
 
-        if (activeChallenge != null && activeChallenge.isOpen()) {
-            activeChallenge.update(delta);
+        if (activeChallenge != null) {
+            if (activeChallenge.isOpen()) {
+                activeChallenge.update(delta);
+            }
             if (!activeChallenge.isOpen()) {
                 if (activeChallenge.isSolved()) {
                     terminalSolved[activeChallengeIdx] = true;
@@ -627,14 +629,14 @@ public class CyberGameScene extends Scene {
                                     spawnParticles(TileMap.tileCentreX(c), TileMap.tileCentreY(r),
                                                    0.7f, 0f, 1f, 20);
                     }
-                }
-                if (activeChallenge != null && !activeChallenge.isSolved()) {
+                } else {
                     String msg = activeChallenge.wasPanicked() ? "Disconnected safely. Re-enter when the area is clear." : "You can re-enter the terminal whenever you are ready.";
-            showBanner("TERMINAL DISCONNECTED", msg, 1.8f);
+                    showBanner("TERMINAL DISCONNECTED", msg, 1.8f);
                 }
                 activeChallenge = null; activeChallengeIdx = -1;
+            } else {
+                return;
             }
-            return;
         }
 
         if (input.isActionJustPressed("SETTINGS")) {
@@ -1279,69 +1281,102 @@ public class CyberGameScene extends Scene {
     private void renderHUD() {
         float alert  = maxAlert();
         boolean chasing = alert > 0.55f;
+        float W = TileMap.WORLD_W, H = TileMap.WORLD_H;
 
+        // ── Left panel: dark rounded-feel background ──────────────────────
+        float panelX = 6f, panelY = H - 102f, panelW = 200f, panelH = 96f;
         sr.begin(ShapeRenderer.ShapeType.Filled);
-        sr.setColor(0f, 0f, 0f, 0.70f); sr.rect(5f, TileMap.WORLD_H - 136f, 280f, 130f);
-        float bx = 12f, by = TileMap.WORLD_H - 24f, barW = 220f, barH = 9f;
-        sr.setColor(0.10f, 0.10f, 0.12f, 1f); sr.rect(bx, by, barW, barH);
-        sr.setColor(alert, 0.12f * (1f - alert), 0f, 1f); sr.rect(bx, by, barW * alert, barH);
-        sr.setColor(0f, 0f, 0f, 0.70f); sr.rect(TileMap.WORLD_W - 240f, TileMap.WORLD_H - 32f, 235f, 27f);
-        sr.setColor(0f, 0f, 0f, 0.70f); sr.rect(TileMap.WORLD_W - 240f, TileMap.WORLD_H - 64f, 235f, 27f);
+        sr.setColor(0.02f, 0.03f, 0.06f, 0.82f);
+        sr.rect(panelX, panelY, panelW, panelH);
+        // Accent border left edge
+        sr.setColor(0.15f, 0.55f, 0.9f, 0.6f);
+        sr.rect(panelX, panelY, 2f, panelH);
+
+        // ── Alert bar (top of panel) ──────────────────────────────────────
+        float barX = panelX + 8f, barY = H - 16f, barW = panelW - 16f, barH = 6f;
+        sr.setColor(0.08f, 0.08f, 0.10f, 1f);
+        sr.rect(barX, barY, barW, barH);
+        if (alert > 0.01f) {
+            float r = alert, g = 0.3f * (1f - alert), b = 0f;
+            sr.setColor(r, g, b, 1f);
+            sr.rect(barX, barY, barW * alert, barH);
+        }
+
+        // ── Top-right: level name + timer ─────────────────────────────────
+        float trX = W - 160f, trY = H - 8f;
+        sr.setColor(0.02f, 0.03f, 0.06f, 0.75f);
+        sr.rect(trX - 6f, H - 40f, 162f, 38f);
+        sr.setColor(0.15f, 0.55f, 0.9f, 0.5f);
+        sr.rect(trX - 6f + 162f - 2f, H - 40f, 2f, 38f);
         sr.end();
 
+        // ── Text ──────────────────────────────────────────────────────────
         batch.begin();
-        // camera.png icon prefix on the alert bar — instant "surveillance" readability
-        if (sprites.camera != null) {
-            float iconSize = 14f;
-            sprites.drawCentered(batch, sprites.camera,
-                bx + iconSize * 0.5f, TileMap.WORLD_H - 27f - 5f, iconSize,
-                chasing ? 1f : 0.7f);
-        }
-        hudFont.setColor(chasing ? Color.RED : new Color(0.25f, 1f, 0.55f, 1f));
-        hudFont.draw(batch, chasing ? "!! DRONE ALERT !!" : "ALERT", bx + 18f, TileMap.WORLD_H - 27f);
-        hudFont.setColor(Color.YELLOW);
-        hudFont.draw(batch, "KEYS: " + keysCollected + " / " + KEYS_REQUIRED, bx, TileMap.WORLD_H - 48f);
-        hudFont.setColor(new Color(0.55f, 0.95f, 1f, 1f));
-        hudFont.draw(batch, "LIVES: " + respawnsRemaining + " / " + maxRespawns, bx, TileMap.WORLD_H - 70f);
-        hudFont.setColor(new Color(0.65f, 1f, 0.7f, 1f));
-        hudFont.draw(batch, "PINGS: " + signalPingsRemaining + "   [H]", bx, TileMap.WORLD_H - 92f);
-        if (protectionTimer > 0f) {
-            hudFont.setColor(new Color(0.35f, 0.9f, 1f, 1f));
-            hudFont.draw(batch, String.format("CLOAK: %.1fs", protectionTimer), bx, TileMap.WORLD_H - 114f);
+        float lx = panelX + 10f, ly = H - 26f;
+
+        // Alert label
+        if (chasing) {
+            hudFont.setColor(1f, 0.2f, 0.15f, 1f);
+            hudFont.draw(batch, "ALERT", lx, ly);
         } else {
-            hudFont.setColor(new Color(0.75f, 0.85f, 0.95f, 1f));
-            hudFont.draw(batch, String.format("TIME: %d:%02d", (int)(missionElapsed / 60f), (int)(missionElapsed % 60f)), bx, TileMap.WORLD_H - 114f);
+            hudFont.setColor(0.4f, 0.7f, 0.5f, 0.7f);
+            hudFont.draw(batch, "CLEAR", lx, ly);
         }
 
-        promptFont.setColor(chasing ? Color.RED : new Color(0.4f, 0.82f, 1f, 1f));
-        StringBuilder droneStr = new StringBuilder();
-        for (int i = 0; i < drones.length; i++) {
-            if (i > 0) droneStr.append("  ");
-            droneStr.append("D").append(i + 1).append(":").append(drones[i].getStateName());
+        // Keys
+        hudFont.setColor(0.9f, 0.85f, 0.3f, 1f);
+        hudFont.draw(batch, "KEYS  " + keysCollected + "/" + KEYS_REQUIRED, lx, ly - 18f);
+
+        // Lives
+        if (respawnsRemaining <= 1) {
+            hudFont.setColor(1f, 0.25f, 0.2f, 1f);
+        } else {
+            hudFont.setColor(0.5f, 0.85f, 0.95f, 1f);
         }
-        if (drones.length == 0) droneStr.append("No drones");
-        promptFont.draw(batch, droneStr.toString(), bx, TileMap.WORLD_H - 126f);
+        hudFont.draw(batch, "LIVES " + respawnsRemaining + "/" + maxRespawns, lx, ly - 36f);
 
-        alertFont.setColor(respawnsRemaining <= 1 ? Color.RED : Color.WHITE);
-        alertFont.draw(batch, "LIVES " + respawnsRemaining,
-            TileMap.WORLD_W - 238f, TileMap.WORLD_H - 12f);
+        // Pings
+        hudFont.setColor(0.55f, 0.9f, 0.65f, 1f);
+        hudFont.draw(batch, "PINGS " + signalPingsRemaining + "  [H]", lx, ly - 54f);
 
+        // Timer or cloak
+        if (protectionTimer > 0f) {
+            hudFont.setColor(0.3f, 0.85f, 1f, 1f);
+            hudFont.draw(batch, String.format("CLOAK %.1fs", protectionTimer), lx, ly - 72f);
+        } else {
+            hudFont.setColor(0.6f, 0.65f, 0.75f, 0.85f);
+            hudFont.draw(batch, String.format("%d:%02d", (int)(missionElapsed / 60f), (int)(missionElapsed % 60f)), lx, ly - 72f);
+        }
+
+        // ── Top-right text ────────────────────────────────────────────────
         int lvIdx = Math.max(0, Math.min(level - 1, LEVEL_NAMES.length - 1));
-        promptFont.setColor(new Color(0.4f, 0.75f, 1.0f, 1f));
-        promptFont.draw(batch, LEVEL_NAMES[lvIdx], TileMap.WORLD_W - 238f, TileMap.WORLD_H - 42f);
-        promptFont.setColor(new Color(0.85f, 0.92f, 1f, 1f));
-        promptFont.draw(batch, String.format("MISSION %d:%02d", (int)(missionElapsed / 60f), (int)(missionElapsed % 60f)),
-            TileMap.WORLD_W - 238f, TileMap.WORLD_H - 62f);
+        alertFont.setColor(0.45f, 0.8f, 1f, 1f);
+        String lvName = LEVEL_NAMES[lvIdx];
+        layout.setText(alertFont, lvName);
+        alertFont.draw(batch, lvName, W - 10f - layout.width, H - 12f);
 
+        promptFont.setColor(0.65f, 0.72f, 0.82f, 0.9f);
+        String timeStr = String.format("%d:%02d", (int)(missionElapsed / 60f), (int)(missionElapsed % 60f));
+        layout.setText(promptFont, timeStr);
+        promptFont.draw(batch, timeStr, W - 10f - layout.width, H - 32f);
+
+        // ── Bottom prompts ────────────────────────────────────────────────
         if (activeChallenge == null || !activeChallenge.isOpen()) {
             TransformComponent tc2 = playerEntity.getComponent(TransformComponent.class);
             if (tc2 != null) {
                 int nearbyIdx = getNearbyTerminalIndex(tc2.getPosition(), TileMap.TILE_SIZE * 1.6f);
                 if (nearbyIdx >= 0) {
-                    float p = 0.55f + 0.45f * (float) Math.sin(stateTime * 5f);
-                    promptFont.setColor(0f, p, 0.4f, 1f);
-                    promptFont.draw(batch, "[ E ] JACK IN   [ H ] PING   [ ESC ] SETTINGS",
-                        TileMap.WORLD_W / 2f - 190f, 44f);
+                    // Interaction prompt background
+                    sr.begin(ShapeRenderer.ShapeType.Filled);
+                    sr.setColor(0.02f, 0.04f, 0.08f, 0.8f);
+                    sr.rect(W / 2f - 180f, 6f, 360f, 42f);
+                    sr.end();
+                    batch.end();
+                    batch.begin();
+                    float p = 0.6f + 0.4f * (float) Math.sin(stateTime * 5f);
+                    promptFont.setColor(0.2f, 0.85f * p, 0.5f, 1f);
+                    promptFont.draw(batch, "[E] JACK IN    [H] PING    [ESC] MENU",
+                        W / 2f - 155f, 40f);
                     smallFontSafe(promptFont, batch, nearbyIdx);
                 }
             }
@@ -1349,9 +1384,16 @@ public class CyberGameScene extends Scene {
 
         if (exitUnlocked) {
             float p = 0.5f + 0.5f * (float) Math.sin(stateTime * 4f);
-            promptFont.setColor(p, 0f, p, 1f);
-            promptFont.draw(batch, ">>> EXIT UNLOCKED  -  REACH THE MAGENTA DOOR <<<",
-                TileMap.WORLD_W / 2f - 220f, 14f);
+            sr.begin(ShapeRenderer.ShapeType.Filled);
+            sr.setColor(0.15f * p, 0f, 0.2f * p, 0.7f);
+            sr.rect(W / 2f - 200f, 2f, 400f, 18f);
+            sr.end();
+            batch.end();
+            batch.begin();
+            promptFont.setColor(0.85f * p, 0.3f, 1f * p, 1f);
+            String exitMsg = "EXIT UNLOCKED - REACH THE MAGENTA DOOR";
+            layout.setText(promptFont, exitMsg);
+            promptFont.draw(batch, exitMsg, W / 2f - layout.width / 2f, 16f);
         }
         batch.end();
     }
