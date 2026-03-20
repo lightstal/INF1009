@@ -903,6 +903,13 @@ public class CyberGameScene extends Scene {
         renderTerminalWifiBadge(ts);
     }
 
+    private boolean isNearTerminal(int col, int row) {
+        for (int[] t : terminalTiles) {
+            if (Math.abs(t[0] - col) <= 1 && Math.abs(t[1] - row) <= 1) return true;
+        }
+        return false;
+    }
+
     /** Ceiling light: draws a soft glow pool on the floor, then the fixture above it. */
     private void renderCeilingLights(float ts) {
         int[][] lights = getLightPositions();
@@ -912,6 +919,7 @@ public class CyberGameScene extends Scene {
         // Draw floor glow pools with ShapeRenderer (filled circles, additive feel)
         sr.begin(ShapeRenderer.ShapeType.Filled);
         for (int[] lt : lights) {
+            if (isNearTerminal(lt[0], lt[1])) continue;
             float cx = TileMap.tileCentreX(lt[0]);
             float cy = TileMap.tileCentreY(lt[1]);
             // Outer dim halo
@@ -930,6 +938,7 @@ public class CyberGameScene extends Scene {
         if (sprites.ceilingLight != null) {
             batch.begin();
             for (int[] lt : lights) {
+                if (isNearTerminal(lt[0], lt[1])) continue;
                 float cx = TileMap.tileCentreX(lt[0]);
                 float cy = TileMap.tileCentreY(lt[1]);
                 sprites.drawCentered(batch, sprites.ceilingLight,
@@ -1154,13 +1163,25 @@ public class CyberGameScene extends Scene {
         sr.begin(ShapeRenderer.ShapeType.Filled);
         for (int i = 0; i < terminalTiles.length; i++) {
             if (terminalSolved[i]) continue;
-            float tx = TileMap.tileCentreX(terminalTiles[i][0]);
-            float ty = TileMap.tileCentreY(terminalTiles[i][1]);
+            float tx = TileMap.tileLeft(terminalTiles[i][0]) + ts * 0.5f;
+            float ty = TileMap.tileBottom(terminalTiles[i][1]) + ts * 0.5f;
             sr.setColor(0f, 0.75f, 0.35f, pulse * 0.18f); sr.circle(tx, ty, ts * 0.72f, 20);
             sr.setColor(0f, 0.90f, 0.45f, pulse * 0.28f); sr.circle(tx, ty, ts * 0.54f, 18);
             sr.setColor(0f, 1f, 0.5f, 0.65f + 0.25f * pulse); sr.circle(tx, ty, 3.5f, 10);
         }
         sr.end();
+
+        // Draw terminal sprite centered on each unsolved terminal tile
+        if (sprites.terminal != null) {
+            batch.begin();
+            for (int i = 0; i < terminalTiles.length; i++) {
+                if (terminalSolved[i]) continue;
+                float tx = TileMap.tileLeft(terminalTiles[i][0]) + ts * 0.5f;
+                float ty = TileMap.tileBottom(terminalTiles[i][1]) + ts * 0.5f;
+                sprites.drawCentered(batch, sprites.terminal, tx, ty, ts * 0.85f, 1f);
+            }
+            batch.end();
+        }
     }
 
     private void renderTerminalHints() {
