@@ -217,7 +217,14 @@ public class CyberGameScene extends Scene {
             tmxRenderer  = new OrthogonalTiledMapRenderer(tmxMap);
             collisionMgr = new TiledObjectCollisionManager();
             collisionMgr.build(tmxMap, "collision", "Walls");
-            tmxExitX     = TileMap.tileCentreX(24);
+            tmxExitX     = TileMap.tileCentreX(23);
+            tmxExitY     = TileMap.tileCentreY(2);
+        } else if (level == 2) {
+            tmxMap       = new TmxMapLoader().load("maps/Level2.tmx");
+            tmxRenderer  = new OrthogonalTiledMapRenderer(tmxMap);
+            collisionMgr = new TiledObjectCollisionManager();
+            collisionMgr.build(tmxMap, "collision", "Walls");
+            tmxExitX     = TileMap.tileCentreX(36);
             tmxExitY     = TileMap.tileCentreY(2);
         } else {
             tileMap = new TileMap(level);
@@ -241,7 +248,7 @@ public class CyberGameScene extends Scene {
     }
 
     private IMapCollision getMapCollision() {
-        return (level == 1) ? collisionMgr : tileMap;
+        return (tmxMap != null) ? collisionMgr : tileMap;
     }
 
     // =========================================================================
@@ -492,7 +499,7 @@ public class CyberGameScene extends Scene {
         for (int radius = 0; radius <= 6; radius++) {
             for (int row = Math.max(0, startRow - radius); row <= Math.min(TileMap.ROWS - 1, startRow + radius); row++) {
                 for (int col = Math.max(0, startCol - radius); col <= Math.min(TileMap.COLS - 1, startCol + radius); col++) {
-                    boolean isWall = (level == 1) ? collisionMgr.isWall(col, row) : tileMap.isWall(col, row);
+                    boolean isWall = (tmxMap != null) ? collisionMgr.isWall(col, row) : tileMap.isWall(col, row);
                     if (isWall) continue;
                     if (level != 1) {
                         TileType type = tileMap.getType(col, row);
@@ -579,6 +586,9 @@ public class CyberGameScene extends Scene {
     }
 
     private float[] getExitCentre() {
+        if (tmxMap != null) {
+            return new float[]{tmxExitX, tmxExitY};
+        }
         for (int row = 0; row < TileMap.ROWS; row++) {
             for (int col = 0; col < TileMap.COLS; col++) {
                 if (tileMap.getType(col, row) == TileType.EXIT) {
@@ -651,7 +661,7 @@ public class CyberGameScene extends Scene {
                         exitUnlocked = true;
                         showBanner("EXIT UNLOCKED", "All terminals secured. Reach the magenta extraction door.", 3.0f);
                         // Purple energy burst at exit
-                        if (level == 1) {
+                        if (tmxMap != null) {
                             spawnParticles(tmxExitX, tmxExitY, 0.7f, 0f, 1f, 20);
                         } else {
                             for (int r = 0; r < TileMap.ROWS; r++)
@@ -781,7 +791,7 @@ public class CyberGameScene extends Scene {
         }
 
         if (exitUnlocked && tc != null) {
-            if (level == 1) {
+            if (tmxMap != null) {
                 if (dist(tc.getPosition().x, tc.getPosition().y, tmxExitX, tmxExitY)
                         < TileMap.TILE_SIZE * 1.5f) {
                     victory = true; return;
@@ -821,9 +831,10 @@ public class CyberGameScene extends Scene {
         sr.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(camera.combined);
 
-        if (level == 1) {
+        if (tmxMap != null) {
             tmxRenderer.setView(camera);
             tmxRenderer.render();
+            renderTmxExitDoor();
         } else {
             tileMap.render(sr, batch, exitUnlocked);
         }
@@ -1270,6 +1281,29 @@ public class CyberGameScene extends Scene {
         sr.end();
     }
 
+    private void renderTmxExitDoor() {
+        float ts = TileMap.TILE_SIZE;
+        float x = tmxExitX - ts / 2f;
+        float y = tmxExitY - ts / 2f;
+        sr.begin(ShapeRenderer.ShapeType.Filled);
+        if (exitUnlocked) {
+            float ep = 0.5f + 0.5f * (float)Math.sin(stateTime * 5f);
+            sr.setColor(ep * 0.8f, 0f, ep, 0.9f); sr.rect(x - 4, y - 4, ts + 8, ts + 8);
+            sr.setColor(0.45f, 0f, 0.65f, 1f);    sr.rect(x, y, ts, ts);
+            sr.setColor(0.7f + 0.3f * ep, 0.15f * ep, 1f, 1f); sr.rect(x + 4, y + 4, ts - 8, ts - 8);
+            float cx = x + ts / 2f, cy = y + ts / 2f;
+            sr.setColor(1f, 0.6f * ep, 1f, 1f);
+            sr.triangle(cx, cy + 8f, cx - 7f, cy, cx + 7f, cy);
+            sr.triangle(cx, cy - 8f, cx - 7f, cy, cx + 7f, cy);
+        } else {
+            sr.setColor(0.10f, 0.02f, 0.02f, 1f); sr.rect(x, y, ts, ts);
+            sr.setColor(0.25f, 0.05f, 0.05f, 1f); sr.rect(x + 4, y + 4, ts - 8, ts - 8);
+            sr.setColor(0.45f, 0.08f, 0.08f, 1f);
+            sr.rect(x + 11, y + 18, 10, 5); sr.rect(x + 11, y + 23, 4, 5); sr.rect(x + 17, y + 23, 4, 5);
+        }
+        sr.end();
+    }
+
     private void renderExitGuidance() {
         if (!exitUnlocked) return;
         TransformComponent tc = playerEntity.getComponent(TransformComponent.class);
@@ -1480,7 +1514,7 @@ public class CyberGameScene extends Scene {
         // Draw walls as tiny dots
         for (int row = 0; row < TileMap.ROWS; row += 2) {
             for (int col = 0; col < TileMap.COLS; col += 2) {
-                boolean isWallCell = (level == 1) ? collisionMgr.isWall(col, row) : tileMap.isWall(col, row);
+                boolean isWallCell = (tmxMap != null) ? collisionMgr.isWall(col, row) : tileMap.isWall(col, row);
                 if (isWallCell) {
                     sr.setColor(0.2f, 0.25f, 0.3f, 0.8f);
                 } else {
@@ -1516,7 +1550,7 @@ public class CyberGameScene extends Scene {
         sr.begin(ShapeRenderer.ShapeType.Filled);
 
         // Exit
-        if (level == 1) {
+        if (tmxMap != null) {
             float ex = tmxExitX * scaleX + mmX;
             float ey = tmxExitY * scaleY + mmY;
             sr.setColor(exitUnlocked ? new Color(0.8f, 0f, 1f, 1f)
@@ -1731,9 +1765,9 @@ public class CyberGameScene extends Scene {
         if (hudFont    != null) hudFont.dispose();
         if (alertFont  != null) alertFont.dispose();
         if (promptFont != null) promptFont.dispose();
-        if (level == 1) {
+        if (tmxMap != null) {
             if (tmxRenderer != null) tmxRenderer.dispose();
-            if (tmxMap      != null) tmxMap.dispose();
+            tmxMap.dispose();
         } else {
             if (tileMap != null) tileMap.disposeTileset();
         }
