@@ -2,7 +2,7 @@ package io.github.INF1009_P10_Team7.simulation.cyber.drone;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import io.github.INF1009_P10_Team7.simulation.cyber.TileMap;
+import io.github.INF1009_P10_Team7.simulation.cyber.IMapCollision;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
@@ -50,14 +50,14 @@ public class DroneAI {
     }
 
     public DroneAI(float startX, float startY, float[][] waypoints) {
-        this(startX, startY, waypoints, 48f, 65f, 110f, 65f);
+        this(startX, startY, waypoints, 48f, 84f, 110f, 65f);
     }
 
     public DroneAI(float startX, float startY) {
-        this(startX, startY, null, 48f, 65f, 110f, 65f);
+        this(startX, startY, null, 48f, 84f, 110f, 65f);
     }
 
-    public void update(TileMap map, Vector2 playerPos, float dt) {
+    public void update(IMapCollision map, Vector2 playerPos, float dt) {
         stateTime  += dt;
         rotorAngle += dt * (currentState.getName().equals("CHASE") ? 900f : 400f);
         if (detectionSuppressedTimer > 0f) {

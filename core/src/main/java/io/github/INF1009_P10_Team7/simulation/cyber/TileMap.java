@@ -25,7 +25,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
  * 10  ROOM_D    -  amber
  * 11  ROOM_E    -  deep violet
  */
-public class TileMap {
+public class TileMap implements IMapCollision {
 
     public static final int   COLS      = 40;
     public static final int   ROWS      = 22;

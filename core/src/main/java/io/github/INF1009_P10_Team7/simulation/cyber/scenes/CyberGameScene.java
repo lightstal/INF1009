@@ -35,6 +35,12 @@ import io.github.INF1009_P10_Team7.simulation.cyber.CyberSprites;
 import io.github.INF1009_P10_Team7.simulation.cyber.PlayerInventory;
 import io.github.INF1009_P10_Team7.simulation.cyber.SpriteAnimator;
 import io.github.INF1009_P10_Team7.simulation.cyber.TileMap;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+
+import io.github.INF1009_P10_Team7.simulation.cyber.IMapCollision;
+import io.github.INF1009_P10_Team7.simulation.cyber.TiledObjectCollisionManager;
 import io.github.INF1009_P10_Team7.simulation.cyber.TileType;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.NmapReconChallenge;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.SqlInjectionChallenge;
@@ -85,6 +91,12 @@ public class CyberGameScene extends Scene {
     private Viewport           hudViewport;
 
     private TileMap tileMap;
+
+    // TMX map support (level 1)
+    private TiledMap                   tmxMap;
+    private OrthogonalTiledMapRenderer tmxRenderer;
+    private TiledObjectCollisionManager collisionMgr;
+    private float tmxExitX, tmxExitY;
     private float   stateTime  = 0f;
     private float   rotorAngle = 0f;
 
@@ -200,8 +212,17 @@ public class CyberGameScene extends Scene {
         alertFont  = makeBitmapFont(1.5f);
         promptFont = makeBitmapFont(1.0f);
 
-        tileMap = new TileMap(level);
-        tileMap.loadTileset();
+        if (level == 1) {
+            tmxMap       = new TmxMapLoader().load("maps/Level1.tmx");
+            tmxRenderer  = new OrthogonalTiledMapRenderer(tmxMap);
+            collisionMgr = new TiledObjectCollisionManager();
+            collisionMgr.build(tmxMap, "collision", "Walls");
+            tmxExitX     = TileMap.tileCentreX(24);
+            tmxExitY     = TileMap.tileCentreY(2);
+        } else {
+            tileMap = new TileMap(level);
+            tileMap.loadTileset();
+        }
 
         sprites.load();
         playerAnimator = new SpriteAnimator("niceguy.png", 9, 4, 64, 64, 0.10f);
@@ -217,6 +238,10 @@ public class CyberGameScene extends Scene {
 
     private BitmapFont makeBitmapFont(float scale) {
         return FontManager.create(scale);
+    }
+
+    private IMapCollision getMapCollision() {
+        return (level == 1) ? collisionMgr : tileMap;
     }
 
     // =========================================================================
@@ -370,7 +395,7 @@ public class CyberGameScene extends Scene {
         playerEntity = new GameEntity("CyberPlayer");
         float startX = TileMap.tileCentreX(playerStartTile[0]);
         float startY = TileMap.tileCentreY(playerStartTile[1]);
-        float[] safeStart = tileMap.resolveCircleVsWalls(startX, startY, PLAYER_RADIUS);
+        float[] safeStart = getMapCollision().resolveCircleVsWalls(startX, startY, PLAYER_RADIUS);
         startX = safeStart[0];
         startY = safeStart[1];
         playerEntity.addComponent(new TransformComponent(startX, startY));
@@ -446,7 +471,7 @@ public class CyberGameScene extends Scene {
         checkpointY = safePoint[1];
 
         tc.getPosition().set(checkpointX, checkpointY);
-        float[] resolved = tileMap.resolveCircleVsWalls(tc.getPosition().x, tc.getPosition().y, PLAYER_RADIUS);
+        float[] resolved = getMapCollision().resolveCircleVsWalls(tc.getPosition().x, tc.getPosition().y, PLAYER_RADIUS);
         tc.getPosition().set(resolved[0], resolved[1]);
 
         PhysicComponent phys = playerEntity.getComponent(PhysicComponent.class);
@@ -467,9 +492,12 @@ public class CyberGameScene extends Scene {
         for (int radius = 0; radius <= 6; radius++) {
             for (int row = Math.max(0, startRow - radius); row <= Math.min(TileMap.ROWS - 1, startRow + radius); row++) {
                 for (int col = Math.max(0, startCol - radius); col <= Math.min(TileMap.COLS - 1, startCol + radius); col++) {
-                    if (tileMap.isWall(col, row)) continue;
-                    TileType type = tileMap.getType(col, row);
-                    if (type == TileType.EXIT) continue;
+                    boolean isWall = (level == 1) ? collisionMgr.isWall(col, row) : tileMap.isWall(col, row);
+                    if (isWall) continue;
+                    if (level != 1) {
+                        TileType type = tileMap.getType(col, row);
+                        if (type == TileType.EXIT) continue;
+                    }
                     boolean terminalTile = false;
                     for (int[] terminalTilePos : terminalTiles) {
                         if (terminalTilePos[0] == col && terminalTilePos[1] == row) { terminalTile = true; break; }
@@ -478,14 +506,14 @@ public class CyberGameScene extends Scene {
 
                     float worldX = TileMap.tileCentreX(col);
                     float worldY = TileMap.tileCentreY(row);
-                    float[] resolved = tileMap.resolveCircleVsWalls(worldX, worldY, PLAYER_RADIUS);
+                    float[] resolved = getMapCollision().resolveCircleVsWalls(worldX, worldY, PLAYER_RADIUS);
                     if (Math.abs(resolved[0] - worldX) > 0.75f || Math.abs(resolved[1] - worldY) > 0.75f) continue;
 
                     float droneSeparation = Float.MAX_VALUE;
                     float losPenalty = 0f;
                     for (DroneAI drone : drones) {
                         droneSeparation = Math.min(droneSeparation, dist(worldX, worldY, drone.getPosition().x, drone.getPosition().y));
-                        if (tileMap.hasLineOfSight(worldX, worldY, drone.getPosition().x, drone.getPosition().y)) {
+                        if (getMapCollision().hasLineOfSight(worldX, worldY, drone.getPosition().x, drone.getPosition().y)) {
                             losPenalty += 90f;
                         }
                     }
@@ -607,7 +635,7 @@ public class CyberGameScene extends Scene {
                     terminalSolved[activeChallengeIdx] = true;
                     keysCollected++;
                     eventSystem.notifyKeyCollected(keysCollected, KEYS_REQUIRED);
-                    tileMap.setTile(terminalTiles[activeChallengeIdx][0],
+                    if (tileMap != null) tileMap.setTile(terminalTiles[activeChallengeIdx][0],
                                     terminalTiles[activeChallengeIdx][1], TileType.FLOOR);
                     // Particle burst: green sparks
                     spawnParticles(TileMap.tileCentreX(terminalTiles[activeChallengeIdx][0]),
@@ -623,11 +651,15 @@ public class CyberGameScene extends Scene {
                         exitUnlocked = true;
                         showBanner("EXIT UNLOCKED", "All terminals secured. Reach the magenta extraction door.", 3.0f);
                         // Purple energy burst at exit
-                        for (int r = 0; r < TileMap.ROWS; r++)
-                            for (int c = 0; c < TileMap.COLS; c++)
-                                if (tileMap.getType(c, r) == TileType.EXIT)
-                                    spawnParticles(TileMap.tileCentreX(c), TileMap.tileCentreY(r),
-                                                   0.7f, 0f, 1f, 20);
+                        if (level == 1) {
+                            spawnParticles(tmxExitX, tmxExitY, 0.7f, 0f, 1f, 20);
+                        } else {
+                            for (int r = 0; r < TileMap.ROWS; r++)
+                                for (int c = 0; c < TileMap.COLS; c++)
+                                    if (tileMap.getType(c, r) == TileType.EXIT)
+                                        spawnParticles(TileMap.tileCentreX(c), TileMap.tileCentreY(r),
+                                                       0.7f, 0f, 1f, 20);
+                        }
                     }
                 } else {
                     String msg = activeChallenge.wasPanicked() ? "Disconnected safely. Re-enter when the area is clear." : "You can re-enter the terminal whenever you are ready.";
@@ -649,11 +681,11 @@ public class CyberGameScene extends Scene {
             triggerSignalPing();
         }
 
-        tileMap.update(delta);
+        if (tileMap != null) tileMap.update(delta);
 
         TransformComponent tc = playerEntity.getComponent(TransformComponent.class);
         if (tc != null) {
-            float[] resolved = tileMap.resolveCircleVsWalls(
+            float[] resolved = getMapCollision().resolveCircleVsWalls(
                 tc.getPosition().x, tc.getPosition().y, PLAYER_RADIUS);
             tc.getPosition().set(resolved[0], resolved[1]);
         }
@@ -676,7 +708,7 @@ public class CyberGameScene extends Scene {
         if (tc != null) {
             for (DroneAI drone : drones) {
                 boolean wasChasing = "CHASE".equals(drone.getStateName());
-                drone.update(tileMap, tc.getPosition(), delta);
+                drone.update(getMapCollision(), tc.getPosition(), delta);
 
                 boolean nowChasing = "CHASE".equals(drone.getStateName());
                 if (!wasChasing && nowChasing) {
@@ -720,7 +752,7 @@ public class CyberGameScene extends Scene {
                     while (angleDiff < -180f) angleDiff += 360f;
                     if (Math.abs(angleDiff) > halfFov) { cctvAlerted[ci] = false; continue; }
 
-                    if (!tileMap.hasLineOfSight(cx, cy, pp.x, pp.y)) { cctvAlerted[ci] = false; continue; }
+                    if (!getMapCollision().hasLineOfSight(cx, cy, pp.x, pp.y)) { cctvAlerted[ci] = false; continue; }
 
                     // Player is visible to this camera
                     cctvAlerted[ci] = true;
@@ -749,7 +781,12 @@ public class CyberGameScene extends Scene {
         }
 
         if (exitUnlocked && tc != null) {
-            for (int row = 0; row < TileMap.ROWS; row++) {
+            if (level == 1) {
+                if (dist(tc.getPosition().x, tc.getPosition().y, tmxExitX, tmxExitY)
+                        < TileMap.TILE_SIZE * 1.5f) {
+                    victory = true; return;
+                }
+            } else for (int row = 0; row < TileMap.ROWS; row++) {
                 for (int col = 0; col < TileMap.COLS; col++) {
                     if (tileMap.getType(col, row) != TileType.EXIT) continue;
                     float ex = TileMap.tileCentreX(col), ey = TileMap.tileCentreY(row);
@@ -784,7 +821,12 @@ public class CyberGameScene extends Scene {
         sr.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(camera.combined);
 
-        tileMap.render(sr, batch, exitUnlocked);
+        if (level == 1) {
+            tmxRenderer.setView(camera);
+            tmxRenderer.render();
+        } else {
+            tileMap.render(sr, batch, exitUnlocked);
+        }
         renderRoomProps();          // FIX: render unused assets as room decorations
         renderCheckpointBeacon();
         renderDronePatrolRoutes();
@@ -1438,7 +1480,8 @@ public class CyberGameScene extends Scene {
         // Draw walls as tiny dots
         for (int row = 0; row < TileMap.ROWS; row += 2) {
             for (int col = 0; col < TileMap.COLS; col += 2) {
-                if (tileMap.isWall(col, row)) {
+                boolean isWallCell = (level == 1) ? collisionMgr.isWall(col, row) : tileMap.isWall(col, row);
+                if (isWallCell) {
                     sr.setColor(0.2f, 0.25f, 0.3f, 0.8f);
                 } else {
                     sr.setColor(0.05f, 0.08f, 0.1f, 0.5f);
@@ -1473,14 +1516,22 @@ public class CyberGameScene extends Scene {
         sr.begin(ShapeRenderer.ShapeType.Filled);
 
         // Exit
-        for (int row = 0; row < TileMap.ROWS; row++) {
-            for (int col = 0; col < TileMap.COLS; col++) {
-                if (tileMap.getType(col, row) == TileType.EXIT) {
-                    float ex = TileMap.tileCentreX(col) * scaleX + mmX;
-                    float ey = TileMap.tileCentreY(row) * scaleY + mmY;
-                    sr.setColor(exitUnlocked ? new Color(0.8f, 0f, 1f, 1f)
-                                             : new Color(0.3f, 0.05f, 0.05f, 0.8f));
-                    sr.rect(ex - 2, ey - 2, 4, 4);
+        if (level == 1) {
+            float ex = tmxExitX * scaleX + mmX;
+            float ey = tmxExitY * scaleY + mmY;
+            sr.setColor(exitUnlocked ? new Color(0.8f, 0f, 1f, 1f)
+                                     : new Color(0.3f, 0.05f, 0.05f, 0.8f));
+            sr.rect(ex - 2, ey - 2, 4, 4);
+        } else {
+            for (int row = 0; row < TileMap.ROWS; row++) {
+                for (int col = 0; col < TileMap.COLS; col++) {
+                    if (tileMap.getType(col, row) == TileType.EXIT) {
+                        float ex = TileMap.tileCentreX(col) * scaleX + mmX;
+                        float ey = TileMap.tileCentreY(row) * scaleY + mmY;
+                        sr.setColor(exitUnlocked ? new Color(0.8f, 0f, 1f, 1f)
+                                                 : new Color(0.3f, 0.05f, 0.05f, 0.8f));
+                        sr.rect(ex - 2, ey - 2, 4, 4);
+                    }
                 }
             }
         }
@@ -1680,7 +1731,12 @@ public class CyberGameScene extends Scene {
         if (hudFont    != null) hudFont.dispose();
         if (alertFont  != null) alertFont.dispose();
         if (promptFont != null) promptFont.dispose();
-        tileMap.disposeTileset();
+        if (level == 1) {
+            if (tmxRenderer != null) tmxRenderer.dispose();
+            if (tmxMap      != null) tmxMap.dispose();
+        } else {
+            if (tileMap != null) tileMap.disposeTileset();
+        }
         sprites.dispose();
     }
 
