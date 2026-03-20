@@ -6,11 +6,18 @@ import io.github.INF1009_P10_Team7.simulation.cyber.TileMap;
 public class SearchState implements DroneState {
     private final float targetX;
     private final float targetY;
-    private float timer = 1.2f;
+    private final float duration;
+    private float timer;
 
     public SearchState(float targetX, float targetY) {
+        this(targetX, targetY, 1.2f);
+    }
+
+    public SearchState(float targetX, float targetY, float duration) {
         this.targetX = targetX;
         this.targetY = targetY;
+        this.duration = duration;
+        this.timer = duration;
     }
 
     @Override
@@ -33,9 +40,16 @@ public class SearchState implements DroneState {
             float[] resolved = map.resolveCircleVsWalls(nextX, nextY, ai.getRadius());
             pos.x = resolved[0];
             pos.y = resolved[1];
-            ai.setFacingAngle((float)Math.toDegrees(Math.atan2(dy, dx)));
+            float targetAngle = (float)Math.toDegrees(Math.atan2(dy, dx));
+            float diff = angleDiff(targetAngle, ai.getFacingAngle());
+            float rotSpeed = 100f;
+            if (Math.abs(diff) > rotSpeed * dt) {
+                ai.setFacingAngle(ai.getFacingAngle() + Math.signum(diff) * rotSpeed * dt);
+            } else {
+                ai.setFacingAngle(targetAngle);
+            }
         } else {
-            ai.setFacingAngle(ai.getFacingAngle() + 110f * dt);
+            ai.setFacingAngle(ai.getFacingAngle() + 55f * dt);
         }
 
         float pdx = playerPos.x - pos.x;
@@ -57,7 +71,7 @@ public class SearchState implements DroneState {
         }
 
         timer -= dt;
-        ai.setAlertLevel(Math.max(0.2f, timer / 1.2f * 0.55f));
+        ai.setAlertLevel(Math.max(0.2f, timer / duration * 0.55f));
         if (timer <= 0f) {
             ai.transitionTo(new PatrolState(ai.getPatrolWaypoints()));
         }

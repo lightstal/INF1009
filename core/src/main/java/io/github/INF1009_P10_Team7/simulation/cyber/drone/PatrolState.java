@@ -67,6 +67,7 @@ public class PatrolState implements DroneState {
 
     private static final float ROT_SWEEP_DEG_S = 30f;
     private static final float ROT_SNAP_DEG_S  = 80f;
+    private static final float ROT_MOVE_DEG_S  = 90f;
 
     public PatrolState(float[][] patrolTiles) {
         if (patrolTiles != null && patrolTiles.length > 0) {
@@ -116,7 +117,44 @@ public class PatrolState implements DroneState {
     public void update(DroneAI ai, TileMap map, Vector2 playerPos, float dt) {
         Vector2 pos = ai.getPosition();
 
-        // Fix 2: periodic speed perturbation
+        // ── Sight check first — decides whether we patrol or approach ──────
+        boolean seesPlayer = false;
+        float pdx = 0f, pdy = 0f, pDist = 0f;
+
+        if (!ai.isDetectionSuppressed()) {
+            pdx   = playerPos.x - pos.x;
+            pdy   = playerPos.y - pos.y;
+            pDist = (float) Math.sqrt(pdx * pdx + pdy * pdy);
+
+            if (pDist < ai.getSightRange() && pDist > 0.001f) {
+                float angleToPlayer = (float) Math.toDegrees(Math.atan2(pdy, pdx));
+                float dAngle = Math.abs(angleDiff(angleToPlayer, ai.getFacingAngle()));
+                if (dAngle < ai.getSightAngle() / 2f) {
+                    seesPlayer = map.hasLineOfSight(pos.x, pos.y, playerPos.x, playerPos.y);
+                }
+            }
+        } else {
+            detectTimer = 0f;
+            ai.setAlertLevel(0f);
+        }
+
+        // ── Detection: lock facing on player but keep patrolling normally ───
+        if (seesPlayer) {
+            detectTimer = Math.min(DETECT_CONFIRM_TIME, detectTimer + dt);
+            ai.setAlertLevel(Math.min(0.78f, detectTimer / DETECT_CONFIRM_TIME));
+            // Sticky: lock facing toward player
+            ai.setFacingAngle((float) Math.toDegrees(Math.atan2(pdy, pdx)));
+            if (detectTimer >= DETECT_CONFIRM_TIME) {
+                ai.transitionTo(new ChaseState());
+            }
+            // Don't return — let normal patrol movement continue below
+        } else if (detectTimer > 0f) {
+            // Cooling down — hold facing, slow decay
+            detectTimer = Math.max(0f, detectTimer - dt * 0.8f);
+            ai.setAlertLevel(Math.max(0f, detectTimer / DETECT_CONFIRM_TIME * 0.5f));
+        }
+
+        // ── Normal patrol movement ─────────────────────────────────────────
         speedChangeTimer -= dt;
         if (speedChangeTimer <= 0f) {
             speedMult        = 1.0f + (float)(Math.random() * 2.0 - 1.0) * SPEED_JITTER;
@@ -133,20 +171,19 @@ public class PatrolState implements DroneState {
         if (dwelling) {
             updateDwelling(ai, dt);
         } else if (dist < 7f) {
-            // Arrived - begin dwelling with fresh random pause
             dwelling           = true;
             waypointPauseTimer = randomBetween(PAUSE_MIN, PAUSE_MAX);
             resetGlanceWait();
         } else {
-            // Moving toward current waypoint
             float speed = ai.getPatrolSpeed() * speedMult;
             float nextX = pos.x + (dx / dist) * speed * dt;
             float nextY = pos.y + (dy / dist) * speed * dt;
 
             float[] resolved = map.resolveCircleVsWalls(nextX, nextY, ai.getRadius());
             float moved = Math.abs(resolved[0] - pos.x) + Math.abs(resolved[1] - pos.y);
+            float blockThreshold = speed * dt * 0.25f;
 
-            if (moved < 0.5f) {
+            if (moved < blockThreshold) {
                 float[] slideX = map.resolveCircleVsWalls(
                     pos.x + (dx / dist) * speed * dt, pos.y, ai.getRadius());
                 float[] slideY = map.resolveCircleVsWalls(
@@ -166,7 +203,16 @@ public class PatrolState implements DroneState {
                 pos.y = resolved[1];
             }
 
-            ai.setFacingAngle((float) Math.toDegrees(Math.atan2(dy, dx)));
+            // Only rotate toward waypoint if not currently detecting the player
+            if (detectTimer <= 0f) {
+                float targetAngle = (float) Math.toDegrees(Math.atan2(dy, dx));
+                float diff = angleDiff(targetAngle, ai.getFacingAngle());
+                if (Math.abs(diff) > ROT_MOVE_DEG_S * dt) {
+                    ai.setFacingAngle(ai.getFacingAngle() + Math.signum(diff) * ROT_MOVE_DEG_S * dt);
+                } else {
+                    ai.setFacingAngle(targetAngle);
+                }
+            }
         }
 
         // Stuck detection
@@ -184,37 +230,6 @@ public class PatrolState implements DroneState {
         }
         lastX = pos.x;
         lastY = pos.y;
-
-        // Sight check
-        if (ai.isDetectionSuppressed()) {
-            detectTimer = 0f;
-            ai.setAlertLevel(0f);
-            return;
-        }
-
-        float pdx   = playerPos.x - pos.x;
-        float pdy   = playerPos.y - pos.y;
-        float pDist = (float) Math.sqrt(pdx * pdx + pdy * pdy);
-
-        boolean seesPlayer = false;
-        if (pDist < ai.getSightRange()) {
-            float angleToPlayer = (float) Math.toDegrees(Math.atan2(pdy, pdx));
-            float dAngle = Math.abs(angleDiff(angleToPlayer, ai.getFacingAngle()));
-            if (dAngle < ai.getSightAngle() / 2f) {
-                seesPlayer = map.hasLineOfSight(pos.x, pos.y, playerPos.x, playerPos.y);
-            }
-        }
-
-        if (seesPlayer) {
-            detectTimer = Math.min(DETECT_CONFIRM_TIME, detectTimer + dt);
-            ai.setAlertLevel(Math.min(0.78f, detectTimer / DETECT_CONFIRM_TIME));
-            if (detectTimer >= DETECT_CONFIRM_TIME) {
-                ai.transitionTo(new ChaseState());
-            }
-        } else {
-            detectTimer = Math.max(0f, detectTimer - dt * 1.5f);
-            ai.setAlertLevel(Math.max(0f, detectTimer / DETECT_CONFIRM_TIME * 0.5f));
-        }
     }
 
     /**

@@ -40,6 +40,7 @@ import io.github.INF1009_P10_Team7.simulation.cyber.ctf.NmapReconChallenge;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.SqlInjectionChallenge;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.TerminalEmulator;
 import io.github.INF1009_P10_Team7.simulation.cyber.drone.DroneAI;
+import io.github.INF1009_P10_Team7.simulation.cyber.drone.SearchState;
 import io.github.INF1009_P10_Team7.simulation.cyber.minigame.*;
 import io.github.INF1009_P10_Team7.simulation.cyber.observer.GameEventSystem;
 import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
@@ -120,6 +121,9 @@ public class CyberGameScene extends Scene {
     private int respawnsUsed = 0;
     private float protectionTimer = 0f;
     private float terminalPingTimer = 0f;
+    private float cctvAlertCooldown = 0f;
+    private static final float CCTV_ALERT_INTERVAL = 5f;
+    private boolean[] cctvAlerted;
     private int signalPingsRemaining;
     private int hintsUsed = 0;
     private String bannerTitle = "";
@@ -389,6 +393,7 @@ public class CyberGameScene extends Scene {
         respawnsRemaining = maxRespawns;
         signalPingsRemaining = (level <= 2) ? 4 : 3;
         protectionTimer = 2.6f;
+        cctvAlerted = new boolean[getCameraPositions().length];
         resetDroneAwareness(2.6f);
         String introSubtitle;
         switch (level) {
@@ -502,13 +507,14 @@ public class CyberGameScene extends Scene {
     }
 
     private void handleDroneCatch() {
-        if (respawnsRemaining > 0) {
+        if (respawnsRemaining > 1) {
             respawnsRemaining--;
             respawnsUsed++;
             respawnAtCheckpoint();
             showBanner("INTEGRITY BREACH", "Respawned at checkpoint. Cloak active briefly  -  break line of sight and re-route.", 2.9f);
             return;
         }
+        respawnsRemaining = 0;
         gameOver = true;
     }
 
@@ -681,6 +687,61 @@ public class CyberGameScene extends Scene {
                 if (protectionTimer <= 0f && drone.isCatchingPlayer(tc.getPosition(), PLAYER_RADIUS + DRONE_CONTACT_RADIUS_BONUS)) {
                     handleDroneCatch();
                     return;
+                }
+            }
+
+            // CCTV detection: cameras spot the player and attract the nearest drone
+            cctvAlertCooldown = Math.max(0f, cctvAlertCooldown - delta);
+            {
+                int[][] camPositions = getCameraPositions();
+                float ts = TileMap.TILE_SIZE;
+                Vector2 pp = tc.getPosition();
+                for (int ci = 0; ci < camPositions.length; ci++) {
+                    int[] cam = camPositions[ci];
+                    float cx = TileMap.tileCentreX(cam[0]);
+                    float cy = TileMap.tileCentreY(cam[1]);
+                    float baseAng = cam[2];
+                    float phase = ci * 1.3f;
+                    float panAng = (float) Math.sin(stateTime * 0.7f + phase) * 40f;
+                    float totalAng = baseAng + panAng;
+                    float coneLen = ts * 2.6f;
+                    float halfFov = 28f;
+
+                    float pdx = pp.x - cx;
+                    float pdy = pp.y - cy;
+                    float pDist = (float) Math.sqrt(pdx * pdx + pdy * pdy);
+                    if (pDist > coneLen) { cctvAlerted[ci] = false; continue; }
+
+                    float angleToPlayer = (float) Math.toDegrees(Math.atan2(pdy, pdx));
+                    float angleDiff = angleToPlayer - totalAng;
+                    while (angleDiff > 180f) angleDiff -= 360f;
+                    while (angleDiff < -180f) angleDiff += 360f;
+                    if (Math.abs(angleDiff) > halfFov) { cctvAlerted[ci] = false; continue; }
+
+                    if (!tileMap.hasLineOfSight(cx, cy, pp.x, pp.y)) { cctvAlerted[ci] = false; continue; }
+
+                    // Player is visible to this camera
+                    cctvAlerted[ci] = true;
+
+                    if (cctvAlertCooldown > 0f) continue;
+
+                    // Find nearest patrolling drone and send it to the player's general area
+                    DroneAI nearest = null;
+                    float bestDist = Float.MAX_VALUE;
+                    for (DroneAI d : drones) {
+                        if (!"PATROL".equals(d.getStateName())) continue;
+                        float ddx = d.getPosition().x - cx;
+                        float ddy = d.getPosition().y - cy;
+                        float dd = ddx * ddx + ddy * ddy;
+                        if (dd < bestDist) { bestDist = dd; nearest = d; }
+                    }
+                    if (nearest != null) {
+                        float offsetX = (float)(Math.random() * 40 - 20);
+                        float offsetY = (float)(Math.random() * 40 - 20);
+                        nearest.transitionTo(new SearchState(pp.x + offsetX, pp.y + offsetY, 4.5f));
+                        cctvAlertCooldown = CCTV_ALERT_INTERVAL;
+                        showBanner("CAMERA ALERT", "Security camera detected you! Drones are investigating.", 2.2f);
+                    }
                 }
             }
         }
@@ -928,11 +989,16 @@ public class CyberGameScene extends Scene {
             float totalAng = baseAng + panAng;
             float radAng = (float)Math.toRadians(totalAng);
 
-            // Draw scan cone
+            // Draw scan cone - red when player detected, yellow otherwise
+            boolean alerted = cctvAlerted != null && i < cctvAlerted.length && cctvAlerted[i];
             float coneLen = ts * 2.6f;
             float halfFov = (float)Math.toRadians(28f);
             sr.begin(ShapeRenderer.ShapeType.Filled);
-            sr.setColor(1f, 0.95f, 0.3f, 0.10f);
+            if (alerted) {
+                sr.setColor(1f, 0.1f, 0.05f, 0.18f);
+            } else {
+                sr.setColor(1f, 0.95f, 0.3f, 0.10f);
+            }
             int steps = 14;
             for (int s = 0; s < steps; s++) {
                 float a1 = radAng - halfFov + (2f * halfFov * s / steps);
@@ -943,7 +1009,11 @@ public class CyberGameScene extends Scene {
             }
             sr.end();
             sr.begin(ShapeRenderer.ShapeType.Line);
-            sr.setColor(1f, 0.9f, 0.2f, 0.35f);
+            if (alerted) {
+                sr.setColor(1f, 0.15f, 0.1f, 0.55f);
+            } else {
+                sr.setColor(1f, 0.9f, 0.2f, 0.35f);
+            }
             sr.line(cx, cy, cx + (float)Math.cos(radAng - halfFov) * coneLen,
                              cy + (float)Math.sin(radAng - halfFov) * coneLen);
             sr.line(cx, cy, cx + (float)Math.cos(radAng + halfFov) * coneLen,
@@ -1088,7 +1158,7 @@ public class CyberGameScene extends Scene {
             float ty = TileMap.tileCentreY(terminalTiles[i][1]);
             sr.setColor(0f, 0.75f, 0.35f, pulse * 0.18f); sr.circle(tx, ty, ts * 0.72f, 20);
             sr.setColor(0f, 0.90f, 0.45f, pulse * 0.28f); sr.circle(tx, ty, ts * 0.54f, 18);
-            sr.setColor(0f, 1f, 0.5f, 0.65f + 0.25f * pulse); sr.circle(tx, ty - ts * 0.28f, 3.5f, 10);
+            sr.setColor(0f, 1f, 0.5f, 0.65f + 0.25f * pulse); sr.circle(tx, ty, 3.5f, 10);
         }
         sr.end();
     }
