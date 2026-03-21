@@ -12,7 +12,7 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
  * It enforces a standard interface so that the {@link InputOutputManager} can treat
  * all devices uniformly (Polymorphism).
  */
-abstract class DeviceInput {
+public abstract class DeviceInput {
 	/** * Unique integer identifier for the device (e.g., 0 for Keyboard, 1 for Mouse). 
      */
     protected int deviceID;

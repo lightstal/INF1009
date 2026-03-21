@@ -54,13 +54,9 @@ public class InputOutputManager implements IInputController, IAudioController{
 	}
 	
 	/**
-     * Registers a new hardware device into the input engine.
-     * <p>
-     * The list is automatically sorted in descending order based on the device's {@code baseOffset}.
-     * This ensures that higher offset devices (e.g., Mouse at 300) are evaluated before lower
-     * offset devices (e.g., Keyboard at 0) during routing.
-     * * @param device The implemented {@link DeviceInput} to add to the system.
+     * {@inheritDoc}
      */
+    @Override
     public void registerDevice(DeviceInput device) {
         registeredDevices.add(device);
         registeredDevices.sort((d1, d2) -> Integer.compare(d2.getBaseOffset(), d1.getBaseOffset()));

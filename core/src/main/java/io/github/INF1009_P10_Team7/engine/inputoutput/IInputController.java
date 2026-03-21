@@ -6,6 +6,17 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
  */
 public interface IInputController {
 	
+	// --- Device Management ---
+    
+    /**
+     * Registers a new hardware device into the input engine dynamically.
+     * <p>
+     * Allows external modules to inject custom input handlers (e.g., Gamepads, 
+     * Steering Wheels, VR Controllers) without modifying engine internals.
+     * * @param device The implemented {@link DeviceInput} to add to the system.
+     */
+    void registerDevice(DeviceInput device);
+	
 	// --- Input Binding ---
 
 	/**
