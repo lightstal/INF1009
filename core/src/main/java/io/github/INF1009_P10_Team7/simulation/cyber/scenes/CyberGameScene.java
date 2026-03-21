@@ -1,7 +1,6 @@
 package io.github.INF1009_P10_Team7.simulation.cyber.scenes;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.GL20;
@@ -237,7 +236,7 @@ public class CyberGameScene extends Scene {
         initLevelConfig();
         createPlayer();
         setupSupportSystems();
-        audio.setMusic("Music_Game.mp3");
+        audio.setMusic("audio/Music_Game.mp3");
 
         transitionAlpha = 1f;  // fade-in from black
         missionElapsed = 0f;
@@ -987,13 +986,13 @@ public class CyberGameScene extends Scene {
         sr.end();
 
         // Draw the fixture sprite itself just above the pool centre
-        if (sprites.ceilingLight != null) {
+        if (sprites.get("ceilingLight") != null) {
             batch.begin();
             for (int[] lt : lights) {
                 if (isNearTerminal(lt[0], lt[1])) continue;
                 float cx = TileMap.tileCentreX(lt[0]);
                 float cy = TileMap.tileCentreY(lt[1]);
-                sprites.drawCentered(batch, sprites.ceilingLight,
+                sprites.drawCentered(batch, "ceilingLight",
                     cx, cy + ts * 0.35f,          // slightly above pool centre
                     ts * 0.7f, 0.85f * flicker);
             }
@@ -1021,12 +1020,12 @@ public class CyberGameScene extends Scene {
         batch.begin();
         for (int i = 0; i < barriers.length; i++) {
             boolean large = (i % 3 != 2);
-            Texture bTex = large ? sprites.barrierLg : sprites.barrierSm;
-            if (bTex == null) continue;
+            String bTexKey = large ? "barrierLg" : "barrierSm";
+            if (sprites.get(bTexKey) == null) continue;
             float bx = TileMap.tileCentreX(barriers[i][0]);
             float by = TileMap.tileCentreY(barriers[i][1]);
             float size = large ? ts * 0.85f : ts * 0.62f;
-            sprites.drawCentered(batch, bTex, bx, by + ts * 0.08f, size, 1.0f);
+            sprites.drawCentered(batch, bTexKey, bx, by + ts * 0.08f, size, 1.0f);
         }
         batch.end();
     }
@@ -1036,7 +1035,7 @@ public class CyberGameScene extends Scene {
      * The sprite pans back and forth like real CCTV and a scan cone is shown.
      */
     private void renderSecurityCameras(float ts) {
-        if (sprites.secCamera == null) return;
+        if (sprites.get("secCamera") == null) return;
         int[][] camPositions = getCameraPositions();
 
         for (int i = 0; i < camPositions.length; i++) {
@@ -1083,7 +1082,7 @@ public class CyberGameScene extends Scene {
 
             // Draw mounted camera sprite, rotated to match pan
             batch.begin();
-            sprites.drawCenteredRotated(batch, sprites.secCamera,
+            sprites.drawCenteredRotated(batch, "secCamera",
                 cx, cy, ts * 0.72f, totalAng - 90f, 0.92f);
             batch.end();
         }
@@ -1095,7 +1094,7 @@ public class CyberGameScene extends Scene {
      * blue tint in patrol, red tint when chasing, with a subtle drop-shadow.
      */
     private void renderDroneSprites(float ts) {
-        if (sprites.hunter == null) return;
+        if (sprites.get("hunter") == null) return;
         float dSize = ts * 1.05f;
 
         // Shadow pass
@@ -1121,12 +1120,12 @@ public class CyberGameScene extends Scene {
             else                batch.setColor(0.35f, 0.75f, 1f,  0.92f);
 
             float half = dSize * 0.5f;
-            batch.draw(sprites.hunter,
+            batch.draw(sprites.get("hunter"),
                 dx - half, dy - half,
                 half, half,
                 dSize, dSize, 1f, 1f,
                 drone.getFacingAngle() - 90f,
-                0, 0, sprites.hunter.getWidth(), sprites.hunter.getHeight(),
+                0, 0, sprites.get("hunter").getWidth(), sprites.get("hunter").getHeight(),
                 false, false);
             batch.setColor(1f, 1f, 1f, 1f);
         }
@@ -1138,7 +1137,7 @@ public class CyberGameScene extends Scene {
      * within interact range, signalling "this device is broadcasting – hack it".
      */
     private void renderTerminalWifiBadge(float ts) {
-        if (sprites.phoneWifi == null) return;
+        if (sprites.get("phoneWifi") == null) return;
         TransformComponent tc = playerEntity.getComponent(TransformComponent.class);
         if (tc == null) return;
         Vector2 pp = tc.getPosition();
@@ -1163,7 +1162,7 @@ public class CyberGameScene extends Scene {
                 sr.circle(tx, ty + ts * 1.15f + bob, ts * 0.55f, 18);
                 sr.end();
 
-                sprites.drawCentered(batch, sprites.phoneWifi,
+                sprites.drawCentered(batch, "phoneWifi",
                     tx, ty + ts * 1.15f + bob,
                     ts * 0.65f, alpha);
             }
@@ -1224,13 +1223,13 @@ public class CyberGameScene extends Scene {
         sr.end();
 
         // Draw terminal sprite centered on each unsolved terminal tile
-        if (sprites.terminal != null) {
+        if (sprites.get("terminal") != null) {
             batch.begin();
             for (int i = 0; i < terminalTiles.length; i++) {
                 if (terminalSolved[i]) continue;
                 float tx = TileMap.tileLeft(terminalTiles[i][0]) + ts * 0.5f;
                 float ty = TileMap.tileBottom(terminalTiles[i][1]) + ts * 0.5f;
-                sprites.drawCentered(batch, sprites.terminal, tx, ty, ts * 0.85f, 1f);
+                sprites.drawCentered(batch, "terminal", tx, ty, ts * 0.85f, 1f);
             }
             batch.end();
         }
@@ -1531,8 +1530,8 @@ public class CyberGameScene extends Scene {
             float tx = TileMap.tileCentreX(terminalTiles[i][0]) * scaleX + mmX;
             float ty = TileMap.tileCentreY(terminalTiles[i][1]) * scaleY + mmY;
             float pinSize = 7f;
-            if (sprites.mapPin != null) {
-                sprites.drawCentered(batch, sprites.mapPin, tx, ty + 2f, pinSize, 1f);
+            if (sprites.get("mapPin") != null) {
+                sprites.drawCentered(batch, "mapPin", tx, ty + 2f, pinSize, 1f);
             } else {
                 // Fallback: plain circle if texture not loaded
                 batch.end();
