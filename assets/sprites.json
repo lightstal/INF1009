@@ -1,0 +1,14 @@
+{
+  "terminal": "Textures/terminal.png",
+  "player": "Textures/player.png",
+  "hunter": "Textures/hunter.png",
+  "osint": "Textures/osint.png",
+  "phoneWifi": "Textures/phone_wifi.png",
+  "camera": "Textures/camera.png",
+  "mapPin": "Textures/map_pin.png",
+  "secCamera": "Textures/sec_camera.png",
+  "lightBulb": "Textures/lightbulb.png",
+  "ceilingLight": "Textures/ceiling_light.png",
+  "barrierLg": "Textures/barrier_large.png",
+  "barrierSm": "Textures/barrier_small.png"
+}

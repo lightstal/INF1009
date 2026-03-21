@@ -161,7 +161,7 @@ class CyberVictoryScene extends Scene {
         smallFont = makeFont(0.95f);
         layout = new GlyphLayout();
         audio.stopMusic();
-        audio.playSound("bell.mp3");
+        audio.playSound("audio/bell.mp3");
     }
 
     private BitmapFont makeFont(float s) {
