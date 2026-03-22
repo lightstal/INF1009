@@ -2,7 +2,6 @@ package io.github.INF1009_P10_Team7.simulation.cyber.scenes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -34,9 +33,12 @@ import io.github.INF1009_P10_Team7.simulation.cyber.CyberSprites;
 import io.github.INF1009_P10_Team7.simulation.cyber.PlayerInventory;
 import io.github.INF1009_P10_Team7.simulation.cyber.SpriteAnimator;
 import io.github.INF1009_P10_Team7.simulation.cyber.TileMap;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTile;
+import com.badlogic.gdx.maps.tiled.TiledMapTileSet;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 
@@ -95,6 +97,7 @@ public class CyberGameScene extends Scene {
     private OrthogonalTiledMapRenderer tmxRenderer;
     private TiledObjectCollisionManager collisionMgr;
     private float tmxExitX, tmxExitY;
+    private TextureRegion doorClosedRegion, doorOpenedRegion;
     private float   stateTime  = 0f;
     private float   rotorAngle = 0f;
 
@@ -212,15 +215,13 @@ public class CyberGameScene extends Scene {
             tmxRenderer  = new OrthogonalTiledMapRenderer(tmxMap);
             collisionMgr = new TiledObjectCollisionManager();
             collisionMgr.build(tmxMap, "collision", "Walls");
-            tmxExitX     = TileMap.tileCentreX(23);
-            tmxExitY     = TileMap.tileCentreY(2);
+            loadDoorFromTmx("doors");
         } else if (level == 2) {
             tmxMap       = new TmxMapLoader().load("maps/Level2.tmx");
             tmxRenderer  = new OrthogonalTiledMapRenderer(tmxMap);
             collisionMgr = new TiledObjectCollisionManager();
             collisionMgr.build(tmxMap, "collision", "Walls");
-            tmxExitX     = TileMap.tileCentreX(36);
-            tmxExitY     = TileMap.tileCentreY(2);
+            loadDoorFromTmx("door");
         }
 
         sprites.load();
@@ -268,6 +269,32 @@ public class CyberGameScene extends Scene {
             list.add(new int[]{ col, row });
         }
         return list.toArray(new int[0][]);
+    }
+
+    private void loadDoorFromTmx(String layerName) {
+        if (tmxMap == null) return;
+        MapLayer layer = tmxMap.getLayers().get(layerName);
+        if (layer == null) {
+            Gdx.app.log("CyberGameScene", "Door layer '" + layerName + "' not found in TMX");
+            return;
+        }
+        for (MapObject obj : layer.getObjects()) {
+            if ("closed door".equals(obj.getName())) {
+                float x = obj.getProperties().get("x", Float.class);
+                float y = obj.getProperties().get("y", Float.class);
+                int col = (int)(x / TileMap.TILE_SIZE);
+                int row = TileMap.ROWS - 1 - (int)(y / TileMap.TILE_SIZE);
+                tmxExitX = TileMap.tileCentreX(col);
+                tmxExitY = TileMap.tileCentreY(row);
+            }
+        }
+        TiledMapTileSet doorSet = tmxMap.getTileSets().getTileSet("doors");
+        if (doorSet != null) {
+            TiledMapTile closed = doorSet.getTile(853);
+            TiledMapTile opened = doorSet.getTile(854);
+            if (closed != null) doorClosedRegion = closed.getTextureRegion();
+            if (opened != null) doorOpenedRegion = opened.getTextureRegion();
+        }
     }
 
     private void initLevelConfig() {
@@ -1152,26 +1179,12 @@ public class CyberGameScene extends Scene {
     }
 
     private void renderTmxExitDoor() {
+        TextureRegion region = exitUnlocked ? doorOpenedRegion : doorClosedRegion;
+        if (region == null) return;
         float ts = TileMap.TILE_SIZE;
-        float x = tmxExitX - ts / 2f;
-        float y = tmxExitY - ts / 2f;
-        sr.begin(ShapeRenderer.ShapeType.Filled);
-        if (exitUnlocked) {
-            float ep = 0.5f + 0.5f * (float)Math.sin(stateTime * 5f);
-            sr.setColor(ep * 0.8f, 0f, ep, 0.9f); sr.rect(x - 4, y - 4, ts + 8, ts + 8);
-            sr.setColor(0.45f, 0f, 0.65f, 1f);    sr.rect(x, y, ts, ts);
-            sr.setColor(0.7f + 0.3f * ep, 0.15f * ep, 1f, 1f); sr.rect(x + 4, y + 4, ts - 8, ts - 8);
-            float cx = x + ts / 2f, cy = y + ts / 2f;
-            sr.setColor(1f, 0.6f * ep, 1f, 1f);
-            sr.triangle(cx, cy + 8f, cx - 7f, cy, cx + 7f, cy);
-            sr.triangle(cx, cy - 8f, cx - 7f, cy, cx + 7f, cy);
-        } else {
-            sr.setColor(0.10f, 0.02f, 0.02f, 1f); sr.rect(x, y, ts, ts);
-            sr.setColor(0.25f, 0.05f, 0.05f, 1f); sr.rect(x + 4, y + 4, ts - 8, ts - 8);
-            sr.setColor(0.45f, 0.08f, 0.08f, 1f);
-            sr.rect(x + 11, y + 18, 10, 5); sr.rect(x + 11, y + 23, 4, 5); sr.rect(x + 17, y + 23, 4, 5);
-        }
-        sr.end();
+        batch.begin();
+        batch.draw(region, tmxExitX - ts / 2f, tmxExitY - ts / 2f, ts, ts);
+        batch.end();
     }
 
     private void renderExitGuidance() {
@@ -1381,18 +1394,19 @@ public class CyberGameScene extends Scene {
         sr.setColor(0f, 0f, 0f, 0.6f);
         sr.rect(mmX - 2, mmY - 2, mmW + 4, mmH + 4);
 
-        // Draw walls as tiny dots
-        for (int row = 0; row < TileMap.ROWS; row += 2) {
-            for (int col = 0; col < TileMap.COLS; col += 2) {
-                boolean isWallCell = collisionMgr.isWall(col, row);
-                if (isWallCell) {
+        // Draw walls — every tile so no rows/cols are skipped
+        float tileW = scaleX * TileMap.TILE_SIZE;
+        float tileH = scaleY * TileMap.TILE_SIZE;
+        for (int row = 0; row < TileMap.ROWS; row++) {
+            for (int col = 0; col < TileMap.COLS; col++) {
+                if (collisionMgr.isWall(col, row)) {
                     sr.setColor(0.2f, 0.25f, 0.3f, 0.8f);
                 } else {
                     sr.setColor(0.05f, 0.08f, 0.1f, 0.5f);
                 }
-                sr.rect(mmX + col * scaleX * TileMap.TILE_SIZE,
+                sr.rect(mmX + col * tileW,
                         mmY + (TileMap.WORLD_H - (row + 1) * TileMap.TILE_SIZE) * scaleY,
-                        2 * scaleX * TileMap.TILE_SIZE, 2 * scaleY * TileMap.TILE_SIZE);
+                        tileW, tileH);
             }
         }
 
