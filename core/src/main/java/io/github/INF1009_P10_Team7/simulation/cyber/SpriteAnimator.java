@@ -8,10 +8,10 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
  * SpriteAnimator  -  animates a grid-based sprite sheet.
  *
  * niceguy.png layout  (576 x 256, 9 cols x 4 rows, each frame 64x64):
- *   Row 0   -  walk DOWN  (frames 0-8)
+ *   Row 0   -  walk UP    (frames 0-8)
  *   Row 1   -  walk LEFT  (frames 0-8)
- *   Row 2   -  walk RIGHT (frames 0-8)
- *   Row 3   -  walk UP    (frames 0-8)
+ *   Row 2   -  walk DOWN  (frames 0-8)
+ *   Row 3   -  walk RIGHT (frames 0-8)
  *
  * Usage:
  *   // In your scene / onLoad():
@@ -26,26 +26,29 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
  */
 public class SpriteAnimator {
 
-    // ---- Direction row indices (match your sheet layout) ----
-    private static final int ROW_UP  = 0;
-    private static final int ROW_LEFT = 1;
-    private static final int ROW_DOWN = 2;
-    private static final int ROW_RIGHT = 3;
+    /** Facing directions used for animation row selection and setDirection(). */
+    public enum Direction { UP, DOWN, LEFT, RIGHT }
 
-    private final Texture        sheet;
+    private final Texture           sheet;
     private final TextureRegion[][] frames;  // [row][col]
 
     private final int   cols;
     private final int   rows;
     private final float frameDuration;  // seconds per frame
 
-    private float stateTime   = 0f;
-    private int   currentRow  = ROW_DOWN;   // facing down by default
-    private boolean moving    = false;
+    // Row indices per direction — set via constructor (OCP: no code change needed for new sheets)
+    private final int rowUp, rowDown, rowLeft, rowRight;
+
+    private float     stateTime  = 0f;
+    private int       currentRow;
+    private boolean   moving     = false;
 
     // -------------------------------------------------------------------------
 
     /**
+     * Convenience constructor using the default niceguy.png row layout:
+     *   UP=0, LEFT=1, DOWN=2, RIGHT=3
+     *
      * @param assetPath     path inside assets folder, e.g. "niceguy.png"
      * @param cols          number of columns in the sprite sheet
      * @param rows          number of rows  in the sprite sheet
@@ -57,9 +60,37 @@ public class SpriteAnimator {
                           int cols, int rows,
                           int frameW, int frameH,
                           float frameDuration) {
+        this(assetPath, cols, rows, frameW, frameH, frameDuration, 0, 2, 1, 3);
+    }
+
+    /**
+     * Full constructor — use this when your sprite sheet has a different row order.
+     * Satisfies OCP: new sheet layouts need no changes to this class.
+     *
+     * @param assetPath     path inside assets folder
+     * @param cols          number of columns in the sprite sheet
+     * @param rows          number of rows  in the sprite sheet
+     * @param frameW        width  of each frame in pixels
+     * @param frameH        height of each frame in pixels
+     * @param frameDuration seconds each frame is shown (0.1f = 10 fps)
+     * @param rowUp         sheet row index for the UP walk cycle
+     * @param rowDown       sheet row index for the DOWN walk cycle
+     * @param rowLeft       sheet row index for the LEFT walk cycle
+     * @param rowRight      sheet row index for the RIGHT walk cycle
+     */
+    public SpriteAnimator(String assetPath,
+                          int cols, int rows,
+                          int frameW, int frameH,
+                          float frameDuration,
+                          int rowUp, int rowDown, int rowLeft, int rowRight) {
         this.cols          = cols;
         this.rows          = rows;
         this.frameDuration = frameDuration;
+        this.rowUp         = rowUp;
+        this.rowDown       = rowDown;
+        this.rowLeft       = rowLeft;
+        this.rowRight      = rowRight;
+        this.currentRow    = rowDown;   // facing down by default
 
         sheet  = new Texture(com.badlogic.gdx.Gdx.files.internal(assetPath));
         frames = TextureRegion.split(sheet, frameW, frameH);
@@ -86,9 +117,9 @@ public class SpriteAnimator {
 
             // Prefer the axis with the larger magnitude for direction
             if (Math.abs(vx) >= Math.abs(vy)) {
-                currentRow = (vx > 0) ? ROW_RIGHT : ROW_LEFT;
+                currentRow = (vx > 0) ? rowRight : rowLeft;
             } else {
-                currentRow = (vy > 0) ? ROW_UP : ROW_DOWN;
+                currentRow = (vy > 0) ? rowUp : rowDown;
             }
         } else {
             // Standing still  -  show first frame of current direction
@@ -137,8 +168,13 @@ public class SpriteAnimator {
     }
 
     /** Force a facing direction (useful for cutscenes / idle). */
-    public void setDirection(boolean facingRight) {
-        currentRow = facingRight ? ROW_RIGHT : ROW_LEFT;
+    public void setDirection(Direction dir) {
+        switch (dir) {
+            case UP:    currentRow = rowUp;    break;
+            case DOWN:  currentRow = rowDown;  break;
+            case LEFT:  currentRow = rowLeft;  break;
+            case RIGHT: currentRow = rowRight; break;
+        }
     }
 
     public void dispose() {

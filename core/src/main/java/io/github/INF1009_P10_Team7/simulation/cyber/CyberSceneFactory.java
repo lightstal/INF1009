@@ -64,8 +64,9 @@ public class CyberSceneFactory implements SceneFactory {
     }
 
     public Scene createGameScene(int level) {
+        LevelConfig config = (level == 2) ? new Level2Config() : new Level1Config();
         return new CyberGameScene(input, audio, nav,
-            entitySystem, collisionSystem, movementSystem, this, level);
+            entitySystem, collisionSystem, movementSystem, this, config);
     }
 
     public Scene createCutsceneScene(int level) {

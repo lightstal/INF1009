@@ -44,14 +44,13 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 
 import io.github.INF1009_P10_Team7.simulation.cyber.IMapCollision;
 import io.github.INF1009_P10_Team7.simulation.cyber.TiledObjectCollisionManager;
-import io.github.INF1009_P10_Team7.simulation.cyber.ctf.NmapReconChallenge;
-import io.github.INF1009_P10_Team7.simulation.cyber.ctf.SqlInjectionChallenge;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.TerminalEmulator;
 import io.github.INF1009_P10_Team7.simulation.cyber.drone.DroneAI;
 import io.github.INF1009_P10_Team7.simulation.cyber.drone.SearchState;
 import io.github.INF1009_P10_Team7.simulation.cyber.minigame.*;
 import io.github.INF1009_P10_Team7.simulation.cyber.observer.GameEventSystem;
 import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
+import io.github.INF1009_P10_Team7.simulation.cyber.LevelConfig;
 
 /**
  * CyberGameScene  -  main gameplay scene for all 5 levels.
@@ -75,7 +74,7 @@ public class CyberGameScene extends Scene {
     private final ICollisionSystem collisionSystem;
     private final IMovementSystem  movementSystem;
     private final CyberSceneFactory factory;
-    private final int level;
+    private final LevelConfig config;
 
     private final CyberSprites sprites = new CyberSprites();
     private SpriteAnimator playerAnimator;
@@ -158,33 +157,19 @@ public class CyberGameScene extends Scene {
     private final float[] pB = new float[MAX_PARTICLES];
     private int particleCount = 0;
 
-    private static final String[] LEVEL_NAMES = {
-        "LEVEL 1  -  RECON LAB",
-        "LEVEL 2  -  NETWORK HUB",
-    };
-
     public CyberGameScene(IInputController input, IAudioController audio,
                           SceneNavigator nav,
                           IEntitySystem entitySystem,
                           ICollisionSystem collisionSystem,
                           IMovementSystem movementSystem,
                           CyberSceneFactory factory,
-                          int level) {
+                          LevelConfig config) {
         super(input, audio, nav);
         this.entitySystem    = entitySystem;
         this.collisionSystem = collisionSystem;
         this.movementSystem  = movementSystem;
         this.factory         = factory;
-        this.level           = Math.max(1, Math.min(level, 2));
-    }
-
-    public CyberGameScene(IInputController input, IAudioController audio,
-                          SceneNavigator nav,
-                          IEntitySystem entitySystem,
-                          ICollisionSystem collisionSystem,
-                          IMovementSystem movementSystem,
-                          CyberSceneFactory factory) {
-        this(input, audio, nav, entitySystem, collisionSystem, movementSystem, factory, 1);
+        this.config          = config;
     }
 
     // =========================================================================
@@ -210,19 +195,11 @@ public class CyberGameScene extends Scene {
         alertFont  = makeBitmapFont(1.5f);
         promptFont = makeBitmapFont(1.0f);
 
-        if (level == 1) {
-            tmxMap       = new TmxMapLoader().load("maps/Level1.tmx");
-            tmxRenderer  = new OrthogonalTiledMapRenderer(tmxMap);
-            collisionMgr = new TiledObjectCollisionManager();
-            collisionMgr.build(tmxMap, "collision", "Walls");
-            loadDoorFromTmx("doors");
-        } else if (level == 2) {
-            tmxMap       = new TmxMapLoader().load("maps/Level2.tmx");
-            tmxRenderer  = new OrthogonalTiledMapRenderer(tmxMap);
-            collisionMgr = new TiledObjectCollisionManager();
-            collisionMgr.build(tmxMap, "collision", "Walls");
-            loadDoorFromTmx("door");
-        }
+        tmxMap       = new TmxMapLoader().load(config.getMapFile());
+        tmxRenderer  = new OrthogonalTiledMapRenderer(tmxMap);
+        collisionMgr = new TiledObjectCollisionManager();
+        collisionMgr.build(tmxMap, config.getCollisionLayer(), config.getWallLayer());
+        loadDoorFromTmx(config.getDoorLayer());
 
         sprites.load();
         playerAnimator = new SpriteAnimator("niceguy.png", 9, 4, 64, 64, 0.10f);
@@ -298,51 +275,13 @@ public class CyberGameScene extends Scene {
     }
 
     private void initLevelConfig() {
-        switch (level) {
-
-            case 1:
-                terminalTiles  = loadTerminalsFromTmx("terminal");
-                challenges     = new IMiniGame[]{
-                    new BinaryDecodeGame(),
-                    new CaesarCipherGame(),
-                    new PortMatchGame(),
-                    new LogAnalysisGame(),
-                    new TerminalMiniGame(new NmapReconChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 360f;
-                drones         = new DroneAI[]{};
-                playerStartTile = new int[]{ 19, 12 };
-                break;
-
-            case 2:
-                terminalTiles  = loadTerminalsFromTmx("terminal");
-                challenges     = new IMiniGame[]{
-                    new BinaryDecodeGame(),
-                    new PacketSnifferGame(),
-                    new PortMatchGame(),
-                    new LogAnalysisGame(),
-                    new TerminalMiniGame(new SqlInjectionChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 390f;
-                // BUG-4 FIX: level-appropriate waypoints
-                // DRONE-WALL FIX: waypoints moved into open corridor tiles (cols 11-28, rows 10-12)
-                // MAP_2 corridor (room 9) runs cols 10-29, rows 9-13.
-                // Spawn drones at tile centres well inside open floor to avoid wall embedding.
-                drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(13),  TileMap.tileCentreY(11),
-                        new float[][]{ {11,10}, {17,10}, {17,12}, {11,12} }),
-                    new DroneAI(TileMap.tileCentreX(25), TileMap.tileCentreY(11),
-                        new float[][]{ {22,10}, {28,10}, {28,12}, {22,12} })
-                };
-                playerStartTile = new int[]{ 19, 11 };
-                break;
-
-        }
-
-        terminalSolved = new boolean[terminalTiles.length];
-        for (int i = 0; i < terminalSolved.length; i++) terminalSolved[i] = false;
+        terminalTiles   = loadTerminalsFromTmx("terminal");
+        challenges      = config.createChallenges(terminal);
+        KEYS_REQUIRED   = config.getKeysRequired();
+        timeRemaining   = config.getTimeLimit();
+        drones          = config.createDrones();
+        playerStartTile = config.getPlayerStartTile();
+        terminalSolved  = new boolean[terminalTiles.length];
     }
 
     private void createPlayer() {
@@ -374,10 +313,7 @@ public class CyberGameScene extends Scene {
         protectionTimer = 2.6f;
         cctvAlerted = new boolean[getCameraPositions().length];
         resetDroneAwareness(2.6f);
-        String introSubtitle = (level == 1)
-            ? "No drones yet. Learn the terminals, checkpoints, and signal ping."
-            : "Break line of sight at corners and do not rush into the center lane.";
-        showBanner(LEVEL_NAMES[level - 1], introSubtitle, 5.8f);
+        showBanner(config.getLevelName(), config.getIntroSubtitle(), 5.8f);
     }
 
     private void resetDroneAwareness(float suppressSeconds) {
@@ -556,9 +492,9 @@ public class CyberGameScene extends Scene {
         if (gameOver || victory) {
             if (input.isActionJustPressed("INTERACT") || input.isActionJustPressed("MENU_CONFIRM") || input.isActionJustPressed("START_GAME")) {
                 if (victory)
-                    nav.requestScene(factory.createVictoryScene(keysCollected, KEYS_REQUIRED, (int) missionElapsed, level, respawnsUsed, hintsUsed));
+                    nav.requestScene(factory.createVictoryScene(keysCollected, KEYS_REQUIRED, (int) missionElapsed, config.getLevelNumber(), respawnsUsed, hintsUsed));
                 else
-                    nav.requestScene(factory.createGameOverScene(level));
+                    nav.requestScene(factory.createGameOverScene(config.getLevelNumber()));
             }
             return;
         }
@@ -1071,42 +1007,9 @@ public class CyberGameScene extends Scene {
         batch.end();
     }
 
-    /** Ceiling light tile positions per level (room centres). */
-    private int[][] getLightPositions() {
-        switch (level) {
-            case 2: return new int[][]{ {7,6},{30,6},{19,11},{7,17},{30,17} };
-            case 3: return new int[][]{ {7,5},{32,5},{19,11},{7,17},{32,17} };
-            case 4: return new int[][]{ {4,5},{35,5},{19,10},{4,17},{35,17} };
-            case 5: return new int[][]{ {4,3},{35,3},{19,9},{4,18},{35,18} };
-            default: return new int[][]{ {19,5},{19,12},{19,18} };
-        }
-    }
-
-    /** Barrier crate tile positions per level. */
-    private int[][] getBarrierPositions() {
-        switch (level) {
-            case 2: return new int[][]{ {13,11},{15,11},{24,11},{26,11} };
-            case 3: return new int[][]{ {14,10},{18,13},{22,10},{26,13} };
-            case 4: return new int[][]{ {12,10},{16,10},{22,10},{26,10} };
-            case 5: return new int[][]{ {14,8},{18,12},{22,8},{26,12} };
-            default: return new int[][]{ {18,12},{20,12} };
-        }
-    }
-
-    /**
-     * Security camera mount positions per level.
-     * Each entry: { col, row, baseFacingDegrees }
-     * Mounted above corridor entrances, facing inward so the cone covers the doorway.
-     */
-    private int[][] getCameraPositions() {
-        switch (level) {
-            case 2: return new int[][]{ {8,8,270}, {27,8,270}, {8,14,90}, {27,14,90} };
-            case 3: return new int[][]{ {13,5,0},  {26,5,180}, {13,14,0}, {26,14,180} };
-            case 4: return new int[][]{ {8,9,0},   {31,9,180}, {8,13,0},  {31,13,180} };
-            case 5: return new int[][]{ {9,6,0},   {30,6,180}, {9,14,0},  {30,14,180} };
-            default: return new int[][]{ {19,8,270} };
-        }
-    }
+    private int[][] getLightPositions()   { return config.getLightPositions(); }
+    private int[][] getBarrierPositions() { return config.getBarrierPositions(); }
+    private int[][] getCameraPositions()  { return config.getCameraPositions(); }
 
     // ── Terminal glow & hints ────────────────────────────────────────────────
     private void renderTerminalGlow() {
@@ -1308,9 +1211,8 @@ public class CyberGameScene extends Scene {
         }
 
         // ── Top-right text ────────────────────────────────────────────────
-        int lvIdx = Math.max(0, Math.min(level - 1, LEVEL_NAMES.length - 1));
         alertFont.setColor(0.45f, 0.8f, 1f, 1f);
-        String lvName = LEVEL_NAMES[lvIdx];
+        String lvName = config.getLevelName();
         layout.setText(alertFont, lvName);
         alertFont.draw(batch, lvName, W - 10f - layout.width, H - 12f);
 
@@ -1628,7 +1530,7 @@ public class CyberGameScene extends Scene {
         if (viewport    != null) viewport.update(w, h, true);
         if (hudViewport != null) hudViewport.update(w, h, true);
     }
-    @Override protected void onUnload() { Gdx.app.log("CyberGame", "unloading level " + level); }
+    @Override protected void onUnload() { Gdx.app.log("CyberGame", "unloading level " + config.getLevelNumber()); }
     @Override protected void onDispose() {
         if (activeChallenge != null && activeChallenge.isOpen()) activeChallenge.close();
         if (playerAnimator != null) playerAnimator.dispose();

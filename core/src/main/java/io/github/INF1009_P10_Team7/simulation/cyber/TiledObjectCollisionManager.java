@@ -16,12 +16,6 @@ import com.badlogic.gdx.utils.Array;
  */
 public class TiledObjectCollisionManager implements IMapCollision {
 
-    public static final int   COLS      = 40;
-    public static final int   ROWS      = 22;
-    public static final int   TILE_SIZE = 32;
-    public static final float WORLD_W   = COLS * TILE_SIZE;
-    public static final float WORLD_H   = ROWS * TILE_SIZE;
-
     private final Array<Rectangle> walls = new Array<>();
     private boolean[][] wallGrid;          // [row][col], row 0 = top in Tiled coords
 
@@ -61,16 +55,16 @@ public class TiledObjectCollisionManager implements IMapCollision {
     }
 
     private void buildWallGrid(TiledMap map, String layerName) {
-        wallGrid = new boolean[ROWS][COLS];
+        wallGrid = new boolean[TileMap.ROWS][TileMap.COLS];
         TiledMapTileLayer layer = (TiledMapTileLayer) map.getLayers().get(layerName);
         if (layer == null) {
             System.out.println("[TiledObjectCollisionManager] Tile layer not found: " + layerName);
             return;
         }
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
+        for (int row = 0; row < TileMap.ROWS; row++) {
+            for (int col = 0; col < TileMap.COLS; col++) {
                 // libGDX tile rows are bottom-up; Tiled rows are top-down
-                wallGrid[row][col] = layer.getCell(col, ROWS - 1 - row) != null;
+                wallGrid[row][col] = layer.getCell(col, TileMap.ROWS - 1 - row) != null;
             }
         }
     }
@@ -110,13 +104,13 @@ public class TiledObjectCollisionManager implements IMapCollision {
         float dx = x2 - x1, dy = y2 - y1;
         float d = (float) Math.sqrt(dx * dx + dy * dy);
         if (d < 1f) return true;
-        float step = TILE_SIZE * 0.5f;
+        float step = TileMap.TILE_SIZE * 0.5f;
         float sx = dx / d * step, sy = dy / d * step;
         int steps = (int) (d / step);
         float cx = x1, cy = y1;
         for (int i = 0; i < steps; i++) {
             cx += sx; cy += sy;
-            if (isWall(worldToCol(cx), worldToRow(cy))) return false;
+            if (isWall(TileMap.worldToCol(cx), TileMap.worldToRow(cy))) return false;
         }
         return true;
     }
@@ -126,18 +120,7 @@ public class TiledObjectCollisionManager implements IMapCollision {
     // -------------------------------------------------------------------------
 
     public boolean isWall(int col, int row) {
-        if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return true;
+        if (col < 0 || col >= TileMap.COLS || row < 0 || row >= TileMap.ROWS) return true;
         return wallGrid != null && wallGrid[row][col];
     }
-
-    public static int worldToCol(float wx) {
-        return Math.max(0, Math.min(COLS - 1, (int) (wx / TILE_SIZE)));
-    }
-
-    public static int worldToRow(float wy) {
-        return Math.max(0, Math.min(ROWS - 1, ROWS - 1 - (int) (wy / TILE_SIZE)));
-    }
-
-    public static float tileCentreX(int col) { return col * TILE_SIZE + TILE_SIZE * 0.5f; }
-    public static float tileCentreY(int row) { return (ROWS - 1 - row) * TILE_SIZE + TILE_SIZE * 0.5f; }
 }
