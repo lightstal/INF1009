@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="22" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="17">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="22" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="23">
  <tileset firstgid="1" source="../tileset x1.tsx"/>
+ <tileset firstgid="852" source="../terminal.tsx"/>
  <layer id="1" name="ground" width="40" height="22">
   <data encoding="csv">
 72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,72,
@@ -96,5 +97,12 @@
   <object id="14" x="448" y="480" height="160"/>
   <object id="15" x="0" y="0" width="96" height="704"/>
   <object id="16" x="1184" y="0" width="96" height="704"/>
+ </objectgroup>
+ <objectgroup id="6" name="terminal">
+  <object id="18" name="terminal" gid="852" x="1056" y="416" width="32" height="32"/>
+  <object id="19" name="terminal" gid="852" x="192" y="416" width="32" height="32"/>
+  <object id="20" name="terminal" gid="852" x="608" y="608" width="32" height="32"/>
+  <object id="21" name="terminal" gid="852" x="640" y="384" width="32" height="32"/>
+  <object id="22" name="terminal" gid="852" x="608" y="160" width="32" height="32"/>
  </objectgroup>
 </map>

@@ -34,13 +34,14 @@ import io.github.INF1009_P10_Team7.simulation.cyber.CyberSprites;
 import io.github.INF1009_P10_Team7.simulation.cyber.PlayerInventory;
 import io.github.INF1009_P10_Team7.simulation.cyber.SpriteAnimator;
 import io.github.INF1009_P10_Team7.simulation.cyber.TileMap;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 
 import io.github.INF1009_P10_Team7.simulation.cyber.IMapCollision;
 import io.github.INF1009_P10_Team7.simulation.cyber.TiledObjectCollisionManager;
-import io.github.INF1009_P10_Team7.simulation.cyber.TileType;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.NmapReconChallenge;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.SqlInjectionChallenge;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.TerminalEmulator;
@@ -89,9 +90,7 @@ public class CyberGameScene extends Scene {
     private OrthographicCamera hudCamera;
     private Viewport           hudViewport;
 
-    private TileMap tileMap;
-
-    // TMX map support (level 1)
+    // TMX map support
     private TiledMap                   tmxMap;
     private OrthogonalTiledMapRenderer tmxRenderer;
     private TiledObjectCollisionManager collisionMgr;
@@ -159,9 +158,6 @@ public class CyberGameScene extends Scene {
     private static final String[] LEVEL_NAMES = {
         "LEVEL 1  -  RECON LAB",
         "LEVEL 2  -  NETWORK HUB",
-        "LEVEL 3  -  SERVER FARM",
-        "LEVEL 4  -  DATA CENTER",
-        "LEVEL 5  -  BLACK SITE",
     };
 
     public CyberGameScene(IInputController input, IAudioController audio,
@@ -176,7 +172,7 @@ public class CyberGameScene extends Scene {
         this.collisionSystem = collisionSystem;
         this.movementSystem  = movementSystem;
         this.factory         = factory;
-        this.level           = Math.max(1, Math.min(level, 5));
+        this.level           = Math.max(1, Math.min(level, 2));
     }
 
     public CyberGameScene(IInputController input, IAudioController audio,
@@ -225,9 +221,6 @@ public class CyberGameScene extends Scene {
             collisionMgr.build(tmxMap, "collision", "Walls");
             tmxExitX     = TileMap.tileCentreX(36);
             tmxExitY     = TileMap.tileCentreY(2);
-        } else {
-            tileMap = new TileMap(level);
-            tileMap.loadTileset();
         }
 
         sprites.load();
@@ -247,17 +240,41 @@ public class CyberGameScene extends Scene {
     }
 
     private IMapCollision getMapCollision() {
-        return (tmxMap != null) ? collisionMgr : tileMap;
+        return collisionMgr;
     }
 
     // =========================================================================
     // LEVEL CONFIG  -  all 5 levels with unique minigame mixes and drone waypoints
     // =========================================================================
+
+    /**
+     * Reads terminal tile positions from a Tiled object layer.
+     * Tile objects in TMX store y as the bottom of the tile in LibGDX world space (y-up).
+     * Conversion: col = x/TILE_SIZE,  row = ROWS-1 - y/TILE_SIZE  (row 0 = top of map).
+     */
+    private int[][] loadTerminalsFromTmx(String layerName) {
+        if (tmxMap == null) return new int[0][];
+        MapLayer layer = tmxMap.getLayers().get(layerName);
+        if (layer == null) {
+            Gdx.app.log("CyberGameScene", "Terminal layer '" + layerName + "' not found in TMX");
+            return new int[0][];
+        }
+        java.util.List<int[]> list = new java.util.ArrayList<>();
+        for (MapObject obj : layer.getObjects()) {
+            float x = obj.getProperties().get("x", Float.class);
+            float y = obj.getProperties().get("y", Float.class);
+            int col = (int)(x / TileMap.TILE_SIZE);
+            int row = TileMap.ROWS - 1 - (int)(y / TileMap.TILE_SIZE);
+            list.add(new int[]{ col, row });
+        }
+        return list.toArray(new int[0][]);
+    }
+
     private void initLevelConfig() {
         switch (level) {
 
             case 1:
-                terminalTiles  = new int[][]{ {19,4}, {6,12}, {20,11}, {32,12}, {19,18} };
+                terminalTiles  = loadTerminalsFromTmx("terminal");
                 challenges     = new IMiniGame[]{
                     new BinaryDecodeGame(),
                     new CaesarCipherGame(),
@@ -272,7 +289,7 @@ public class CyberGameScene extends Scene {
                 break;
 
             case 2:
-                terminalTiles  = new int[][]{ {7,5}, {31,5}, {19,11}, {7,17}, {31,17} };
+                terminalTiles  = loadTerminalsFromTmx("terminal");
                 challenges     = new IMiniGame[]{
                     new BinaryDecodeGame(),
                     new PacketSnifferGame(),
@@ -295,102 +312,6 @@ public class CyberGameScene extends Scene {
                 playerStartTile = new int[]{ 19, 11 };
                 break;
 
-            case 3:
-                terminalTiles  = new int[][]{ {6,4}, {32,4}, {19,10}, {6,16}, {32,16} };
-                challenges     = new IMiniGame[]{
-                    new CaesarCipherGame(),
-                    new PacketSnifferGame(),
-                    new FirewallACLGame(),
-                    new LogAnalysisGame(),
-                    new TerminalMiniGame(new NmapReconChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 420f;
-                drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(7),  TileMap.tileCentreY(6),
-                        new float[][]{ {3,2}, {12,2}, {12,7}, {3,7} }),
-                    new DroneAI(TileMap.tileCentreX(32), TileMap.tileCentreY(6),
-                        new float[][]{ {27,2}, {37,2}, {37,7}, {27,7} }),
-                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(14),
-                        new float[][]{ {8,13}, {16,13}, {24,13}, {32,13} })
-                };
-                playerStartTile = new int[]{ 19, 10 };
-                break;
-
-            // ── Level 4: DATA CENTER  -  H-layout ────────────────────────────
-            case 4:
-                terminalTiles  = new int[][]{ {5,3}, {36,3}, {19,10}, {5,16}, {36,16} };
-                challenges     = new IMiniGame[]{
-                    new PacketSnifferGame(),
-                    new FirewallACLGame(),
-                    new CaesarCipherGame(),
-                    new OsintHuntGame("OSINT: CVE LOOKUP",
-                        "https://nvd.nist.gov/vuln/detail/CVE-2017-0144",
-                        "What Microsoft Security Bulletin number covers EternalBlue?",
-                        "Look at the 'References to Advisories' section",
-                        "MS17-010"),
-                    new TerminalMiniGame(new SqlInjectionChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 450f;
-                drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(4),
-                        new float[][]{ {18,2}, {21,2}, {21,7}, {18,7} },
-                        42f, 64f, 116f, 82f),
-                    new DroneAI(TileMap.tileCentreX(9),  TileMap.tileCentreY(10),
-                        new float[][]{ {9,9}, {9,12}, {19,12}, {19,9} },
-                        41f, 62f, 112f, 80f),
-                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(17),
-                        new float[][]{ {18,15}, {21,15}, {21,20}, {18,20} },
-                        44f, 68f, 120f, 84f)
-                };
-                playerStartTile = new int[]{ 19, 10 };
-                break;
-
-            // ── Level 5: BLACK SITE  -  Ring layout ──────────────────────────
-            case 5:
-                terminalTiles  = new int[][]{ {5,3}, {35,3}, {19,9}, {5,17}, {35,17} };
-                challenges     = new IMiniGame[]{
-                    new FirewallACLGame(),
-                    new PacketSnifferGame(),
-                    new BinaryDecodeGame(),
-                    new OsintHuntGame("OSINT: OWASP",
-                        "https://owasp.org/Top10",
-                        "What is the #1 vulnerability in the OWASP Top 10 (2021)?",
-                        "Check the numbered list on the OWASP Top 10 page",
-                        "broken access control"),
-                    new TerminalMiniGame(new NmapReconChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 480f;
-                drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(5),  TileMap.tileCentreY(1),
-                        new float[][]{ {1,1}, {9,1}, {9,5}, {1,5} },
-                        42f, 64f, 116f, 80f),
-                    new DroneAI(TileMap.tileCentreX(35), TileMap.tileCentreY(1),
-                        new float[][]{ {31,1}, {38,1}, {38,5}, {31,5} },
-                        42f, 64f, 116f, 80f),
-                    new DroneAI(TileMap.tileCentreX(5),  TileMap.tileCentreY(15),
-                        new float[][]{ {1,15}, {9,15}, {9,20}, {1,20} },
-                        43f, 66f, 118f, 80f),
-                    new DroneAI(TileMap.tileCentreX(35), TileMap.tileCentreY(15),
-                        new float[][]{ {31,15}, {38,15}, {38,20}, {31,20} },
-                        48f, 78f, 130f, 86f)
-                };
-                playerStartTile = new int[]{ 19, 9 };
-                break;
-
-            default:
-                // Shouldn't happen  -  level is clamped 1-5, but fallback to level 1
-                terminalTiles  = new int[][]{ {19,4}, {6,12}, {20,11}, {32,12}, {19,18} };
-                challenges     = new IMiniGame[]{ new BinaryDecodeGame(), new CaesarCipherGame(),
-                    new PortMatchGame(), new LogAnalysisGame(),
-                    new TerminalMiniGame(new NmapReconChallenge(), terminal) };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 240f;
-                drones         = new DroneAI[]{};
-                playerStartTile = new int[]{ 19, 12 };
-                break;
         }
 
         terminalSolved = new boolean[terminalTiles.length];
@@ -420,21 +341,16 @@ public class CyberGameScene extends Scene {
     private void setupSupportSystems() {
         checkpointX = TileMap.tileCentreX(playerStartTile[0]);
         checkpointY = TileMap.tileCentreY(playerStartTile[1]);
-        maxRespawns = (level <= 2) ? 5 : (level == 3 ? 4 : 3);
+        maxRespawns = 5;
         respawnsRemaining = maxRespawns;
-        signalPingsRemaining = (level <= 2) ? 4 : 3;
+        signalPingsRemaining = 4;
         protectionTimer = 2.6f;
         cctvAlerted = new boolean[getCameraPositions().length];
         resetDroneAwareness(2.6f);
-        String introSubtitle;
-        switch (level) {
-            case 1: introSubtitle = "No drones yet. Learn the terminals, checkpoints, and signal ping."; break;
-            case 2: introSubtitle = "Break line of sight at corners and do not rush into the center lane."; break;
-            case 3: introSubtitle = "Use pings to route efficiently. Every two terminals can restore one life."; break;
-            case 4: introSubtitle = "Data Center drones are tougher. Play around checkpoints and stay patient."; break;
-            default: introSubtitle = "Black Site alert level is high. Cloak after respawn and chain your hacks."; break;
-        }
-        showBanner(LEVEL_NAMES[Math.max(0, Math.min(level - 1, LEVEL_NAMES.length - 1))], introSubtitle, 5.8f);
+        String introSubtitle = (level == 1)
+            ? "No drones yet. Learn the terminals, checkpoints, and signal ping."
+            : "Break line of sight at corners and do not rush into the center lane.";
+        showBanner(LEVEL_NAMES[level - 1], introSubtitle, 5.8f);
     }
 
     private void resetDroneAwareness(float suppressSeconds) {
@@ -498,12 +414,7 @@ public class CyberGameScene extends Scene {
         for (int radius = 0; radius <= 6; radius++) {
             for (int row = Math.max(0, startRow - radius); row <= Math.min(TileMap.ROWS - 1, startRow + radius); row++) {
                 for (int col = Math.max(0, startCol - radius); col <= Math.min(TileMap.COLS - 1, startCol + radius); col++) {
-                    boolean isWall = (tmxMap != null) ? collisionMgr.isWall(col, row) : tileMap.isWall(col, row);
-                    if (isWall) continue;
-                    if (level != 1) {
-                        TileType type = tileMap.getType(col, row);
-                        if (type == TileType.EXIT) continue;
-                    }
+                    if (collisionMgr.isWall(col, row)) continue;
                     boolean terminalTile = false;
                     for (int[] terminalTilePos : terminalTiles) {
                         if (terminalTilePos[0] == col && terminalTilePos[1] == row) { terminalTile = true; break; }
@@ -585,17 +496,7 @@ public class CyberGameScene extends Scene {
     }
 
     private float[] getExitCentre() {
-        if (tmxMap != null) {
-            return new float[]{tmxExitX, tmxExitY};
-        }
-        for (int row = 0; row < TileMap.ROWS; row++) {
-            for (int col = 0; col < TileMap.COLS; col++) {
-                if (tileMap.getType(col, row) == TileType.EXIT) {
-                    return new float[]{TileMap.tileCentreX(col), TileMap.tileCentreY(row)};
-                }
-            }
-        }
-        return new float[]{TileMap.WORLD_W - 64f, TileMap.WORLD_H - 64f};
+        return new float[]{tmxExitX, tmxExitY};
     }
 
     private void maybeRestoreIntegrity() {
@@ -644,8 +545,6 @@ public class CyberGameScene extends Scene {
                     terminalSolved[activeChallengeIdx] = true;
                     keysCollected++;
                     eventSystem.notifyKeyCollected(keysCollected, KEYS_REQUIRED);
-                    if (tileMap != null) tileMap.setTile(terminalTiles[activeChallengeIdx][0],
-                                    terminalTiles[activeChallengeIdx][1], TileType.FLOOR);
                     // Particle burst: green sparks
                     spawnParticles(TileMap.tileCentreX(terminalTiles[activeChallengeIdx][0]),
                                    TileMap.tileCentreY(terminalTiles[activeChallengeIdx][1]),
@@ -660,15 +559,7 @@ public class CyberGameScene extends Scene {
                         exitUnlocked = true;
                         showBanner("EXIT UNLOCKED", "All terminals secured. Reach the magenta extraction door.", 3.0f);
                         // Purple energy burst at exit
-                        if (tmxMap != null) {
-                            spawnParticles(tmxExitX, tmxExitY, 0.7f, 0f, 1f, 20);
-                        } else {
-                            for (int r = 0; r < TileMap.ROWS; r++)
-                                for (int c = 0; c < TileMap.COLS; c++)
-                                    if (tileMap.getType(c, r) == TileType.EXIT)
-                                        spawnParticles(TileMap.tileCentreX(c), TileMap.tileCentreY(r),
-                                                       0.7f, 0f, 1f, 20);
-                        }
+                        spawnParticles(tmxExitX, tmxExitY, 0.7f, 0f, 1f, 20);
                     }
                 } else {
                     String msg = activeChallenge.wasPanicked() ? "Disconnected safely. Re-enter when the area is clear." : "You can re-enter the terminal whenever you are ready.";
@@ -686,8 +577,6 @@ public class CyberGameScene extends Scene {
         if (input.isActionJustPressed("HELP")) {
             triggerSignalPing();
         }
-
-        if (tileMap != null) tileMap.update(delta);
 
         TransformComponent tc = playerEntity.getComponent(TransformComponent.class);
         if (tc != null) {
@@ -787,20 +676,9 @@ public class CyberGameScene extends Scene {
         }
 
         if (exitUnlocked && tc != null) {
-            if (tmxMap != null) {
-                if (dist(tc.getPosition().x, tc.getPosition().y, tmxExitX, tmxExitY)
-                        < TileMap.TILE_SIZE * 1.5f) {
-                    victory = true; return;
-                }
-            } else for (int row = 0; row < TileMap.ROWS; row++) {
-                for (int col = 0; col < TileMap.COLS; col++) {
-                    if (tileMap.getType(col, row) != TileType.EXIT) continue;
-                    float ex = TileMap.tileCentreX(col), ey = TileMap.tileCentreY(row);
-                    if (dist(tc.getPosition().x, tc.getPosition().y, ex, ey)
-                            < TileMap.TILE_SIZE * 1.5f) {
-                        victory = true; return;
-                    }
-                }
+            if (dist(tc.getPosition().x, tc.getPosition().y, tmxExitX, tmxExitY)
+                    < TileMap.TILE_SIZE * 1.5f) {
+                victory = true; return;
             }
         }
 
@@ -827,13 +705,9 @@ public class CyberGameScene extends Scene {
         sr.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(camera.combined);
 
-        if (tmxMap != null) {
-            tmxRenderer.setView(camera);
-            tmxRenderer.render();
-            renderTmxExitDoor();
-        } else {
-            tileMap.render(sr, batch, exitUnlocked);
-        }
+        tmxRenderer.setView(camera);
+        tmxRenderer.render();
+        renderTmxExitDoor();
         renderRoomProps();          // FIX: render unused assets as room decorations
         renderCheckpointBeacon();
         renderDronePatrolRoutes();
@@ -1510,7 +1384,7 @@ public class CyberGameScene extends Scene {
         // Draw walls as tiny dots
         for (int row = 0; row < TileMap.ROWS; row += 2) {
             for (int col = 0; col < TileMap.COLS; col += 2) {
-                boolean isWallCell = (tmxMap != null) ? collisionMgr.isWall(col, row) : tileMap.isWall(col, row);
+                boolean isWallCell = collisionMgr.isWall(col, row);
                 if (isWallCell) {
                     sr.setColor(0.2f, 0.25f, 0.3f, 0.8f);
                 } else {
@@ -1546,24 +1420,12 @@ public class CyberGameScene extends Scene {
         sr.begin(ShapeRenderer.ShapeType.Filled);
 
         // Exit
-        if (tmxMap != null) {
+        {
             float ex = tmxExitX * scaleX + mmX;
             float ey = tmxExitY * scaleY + mmY;
             sr.setColor(exitUnlocked ? new Color(0.8f, 0f, 1f, 1f)
                                      : new Color(0.3f, 0.05f, 0.05f, 0.8f));
             sr.rect(ex - 2, ey - 2, 4, 4);
-        } else {
-            for (int row = 0; row < TileMap.ROWS; row++) {
-                for (int col = 0; col < TileMap.COLS; col++) {
-                    if (tileMap.getType(col, row) == TileType.EXIT) {
-                        float ex = TileMap.tileCentreX(col) * scaleX + mmX;
-                        float ey = TileMap.tileCentreY(row) * scaleY + mmY;
-                        sr.setColor(exitUnlocked ? new Color(0.8f, 0f, 1f, 1f)
-                                                 : new Color(0.3f, 0.05f, 0.05f, 0.8f));
-                        sr.rect(ex - 2, ey - 2, 4, 4);
-                    }
-                }
-            }
         }
 
         // Checkpoint
@@ -1761,12 +1623,8 @@ public class CyberGameScene extends Scene {
         if (hudFont    != null) hudFont.dispose();
         if (alertFont  != null) alertFont.dispose();
         if (promptFont != null) promptFont.dispose();
-        if (tmxMap != null) {
-            if (tmxRenderer != null) tmxRenderer.dispose();
-            tmxMap.dispose();
-        } else {
-            if (tileMap != null) tileMap.disposeTileset();
-        }
+        if (tmxRenderer != null) tmxRenderer.dispose();
+        if (tmxMap     != null) tmxMap.dispose();
         sprites.dispose();
     }
 
