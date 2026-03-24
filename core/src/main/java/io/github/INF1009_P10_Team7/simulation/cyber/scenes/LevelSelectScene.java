@@ -107,7 +107,7 @@ public class LevelSelectScene extends Scene {
             selected = (selected + 1) % NUM_LEVELS; selectAnim = 1f;
         }
         if (input.isActionJustPressed("START_GAME") || input.isActionJustPressed("MENU_CONFIRM")) {
-            nav.setScene(factory.createGameScene(selected + 1));
+            nav.setScene(factory.createCutsceneScene(selected + 1));
         }
     }
 

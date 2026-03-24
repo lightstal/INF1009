@@ -80,7 +80,7 @@ public class CyberMainMenuScene extends Scene {
             rainChar[i]  = CHARS.charAt((int)(Math.random() * CHARS.length()));
         }
 
-        audio.setMusic("Music_Menu.mp3");
+        audio.setMusic("audio/Music_Menu.mp3");
     }
 
     @Override

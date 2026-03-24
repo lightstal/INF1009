@@ -78,7 +78,7 @@ public class MainMenuScene extends Scene {
         Gdx.app.log("Scene", "MainMenuScene loaded");
 
         // Set the background music for the menu
-        audio.setMusic("Music_Menu.mp3");
+        audio.setMusic("audio/Music_Menu.mp3");
         Gdx.app.log("AudioController", "MainMenu music loaded");
 
         // Create a stage with a StretchViewport to handle window resizing

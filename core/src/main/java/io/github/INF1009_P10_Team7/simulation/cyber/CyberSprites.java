@@ -4,100 +4,125 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * CyberSprites  -  central loader for all game sprite textures.
- *
- * Sprites are loaded from the assets folder at scene load time
- * and disposed when the scene unloads. Use drawCentered() helpers
- * to render sprites aligned to world-space positions.
- *
- * Sprite catalogue:
- *   terminal      -  hacking terminal station (shown on terminal tiles)
- *   player        -  top-down player character
- *   hunter        -  the hunter / security guard enemy
- *   osint         -  OSINT challenge icon
- *   phoneWifi     -  wifi/network device icon
- *   camera        -  surveillance camera icon
- *   mapPin        -  map / location icon
- *   secCamera     -  security camera on tripod (used for room decoration)
- *   lightBulb     -  hanging light bulb (room prop)
- *   ceilingLight  -  ceiling light strip (room prop)
- *   barrierLg     -  large barrier / crate
- *   barrierSm     -  small barrier / crate
+ * CyberSprites - central registry for all game sprite textures.
+ * <p>
+ * Uses a Registry Pattern (Map) to store and manage textures dynamically.
+ * Sprites are loaded from the assets folder at scene load time and disposed 
+ * automatically when the scene unloads.
  */
 public class CyberSprites implements Disposable {
 
-    // ---- Public texture references (null until load() is called) ----
-    public Texture terminal;
-    public Texture player;
-    public Texture hunter;
-    public Texture osint;
-    public Texture phoneWifi;
-    public Texture camera;
-    public Texture mapPin;
-    public Texture secCamera;
-    public Texture lightBulb;
-    public Texture ceilingLight;
-    public Texture barrierLg;
-    public Texture barrierSm;
-
+    /** The dynamic registry storing all active textures by their String key. */
+    private final Map<String, Texture> textureRegistry;
     private boolean loaded = false;
+
+    public CyberSprites() {
+        this.textureRegistry = new HashMap<>();
+    }
 
     // =========================================================================
     // LOAD / DISPOSE
     // =========================================================================
 
     /**
-     * Load all sprite textures from disk.
+     * Load all sprite textures from disk into the registry.
      * Call once inside Scene.onLoad().
      */
     public void load() {
-        terminal     = loadSafe("terminal.png");
-        player       = loadSafe("player.png");
-        hunter       = loadSafe("hunter.png");
-        osint        = loadSafe("osint.png");
-        phoneWifi    = loadSafe("phone_wifi.png");
-        camera       = loadSafe("camera.png");
-        mapPin       = loadSafe("map_pin.png");
-        secCamera    = loadSafe("sec_camera.png");
-        lightBulb    = loadSafe("lightbulb.png");
-        ceilingLight = loadSafe("ceiling_light.png");
-        barrierLg    = loadSafe("barrier_large.png");
-        barrierSm    = loadSafe("barrier_small.png");
-        loaded = true;
+        if (loaded) return;
+        
+        try {
+            // 1. Read the JSON file from the assets folder
+            JsonReader reader = new JsonReader();
+            JsonValue spriteData = reader.parse(Gdx.files.internal("sprites.json"));
+
+            // 2. Loop through every entry in the JSON file
+            for (JsonValue entry : spriteData) {
+                String key = entry.name;           // e.g., "player"
+                String path = entry.asString();    // e.g., "player.png"
+                
+                // 3. Register it using your existing helper
+                registerTexture(key, path);
+            }
+            
+            loaded = true;
+            Gdx.app.log("CyberSprites", "Successfully loaded " + textureRegistry.size() + " sprites from JSON.");
+            
+        } catch (Exception e) {
+            Gdx.app.error("CyberSprites", "Failed to parse sprites.json: " + e.getMessage());
+        }
     }
 
+    /**
+     * Safely clears and disposes of every texture in the registry.
+     */
     @Override
     public void dispose() {
-        disposeTexture(terminal);
-        disposeTexture(player);
-        disposeTexture(hunter);
-        disposeTexture(osint);
-        disposeTexture(phoneWifi);
-        disposeTexture(camera);
-        disposeTexture(mapPin);
-        disposeTexture(secCamera);
-        disposeTexture(lightBulb);
-        disposeTexture(ceilingLight);
-        disposeTexture(barrierLg);
-        disposeTexture(barrierSm);
+        for (Texture tex : textureRegistry.values()) {
+            disposeTexture(tex);
+        }
+        textureRegistry.clear();
         loaded = false;
+        Gdx.app.log("CyberSprites", "All sprite textures disposed.");
     }
 
-    public boolean isLoaded() { return loaded; }
+    public boolean isLoaded() { 
+        return loaded; 
+    }
+
+    // =========================================================================
+    // REGISTRY ACCESS
+    // =========================================================================
+
+    /**
+     * Retrieves a texture from the registry by its key.
+     * @param key The string identifier (e.g., "player").
+     * @return The Texture, or null if it was not found/loaded.
+     */
+    public Texture get(String key) {
+        Texture tex = textureRegistry.get(key);
+        if (tex == null) {
+            Gdx.app.error("CyberSprites", "WARNING: Texture not found in registry: " + key);
+        }
+        return tex;
+    }
+
+    /**
+     * Internal helper to load and store a texture in the registry.
+     */
+    private void registerTexture(String key, String path) {
+        try {
+            if (Gdx.files.internal(path).exists()) {
+                Texture t = new Texture(Gdx.files.internal(path));
+                t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+                textureRegistry.put(key, t);
+            } else {
+                Gdx.app.error("CyberSprites", "Missing file: " + path);
+            }
+        } catch (Exception e) {
+            Gdx.app.error("CyberSprites", "Failed to load: " + path + " - " + e.getMessage());
+        }
+    }
 
     // =========================================================================
     // DRAW HELPERS
     // =========================================================================
 
     /**
-     * Draw a texture centred at world position (cx, cy) with the given size.
-     * Alpha controls transparency (1f = fully opaque).
+     * Draw a texture retrieved via its Registry Key, centred at world position (cx, cy).
      */
-    public void drawCentered(SpriteBatch batch, Texture tex,
+    public void drawCentered(SpriteBatch batch, String textureKey,
                              float cx, float cy, float size, float alpha) {
+        Texture tex = get(textureKey);
         if (tex == null) return;
+        
         batch.setColor(1f, 1f, 1f, alpha);
         float half = size * 0.5f;
         batch.draw(tex, cx - half, cy - half, size, size);
@@ -105,12 +130,14 @@ public class CyberSprites implements Disposable {
     }
 
     /**
-     * Draw a texture centred at (cx, cy), rotated by angleDeg, with given size.
+     * Draw a texture retrieved via its Registry Key, centred at (cx, cy), rotated by angleDeg.
      */
-    public void drawCenteredRotated(SpriteBatch batch, Texture tex,
+    public void drawCenteredRotated(SpriteBatch batch, String textureKey,
                                     float cx, float cy, float size,
                                     float angleDeg, float alpha) {
+        Texture tex = get(textureKey);
         if (tex == null) return;
+        
         batch.setColor(1f, 1f, 1f, alpha);
         float half = size * 0.5f;
         batch.draw(tex,
@@ -123,23 +150,6 @@ public class CyberSprites implements Disposable {
             tex.getWidth(), tex.getHeight(),
             false, false);
         batch.setColor(1f, 1f, 1f, 1f);
-    }
-
-    // =========================================================================
-    // PRIVATE HELPERS
-    // =========================================================================
-
-    private Texture loadSafe(String path) {
-        try {
-            if (Gdx.files.internal(path).exists()) {
-                Texture t = new Texture(Gdx.files.internal(path));
-                t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-                return t;
-            }
-        } catch (Exception e) {
-            Gdx.app.log("CyberSprites", "Could not load: " + path + "  -  " + e.getMessage());
-        }
-        return null;
     }
 
     private void disposeTexture(Texture t) {

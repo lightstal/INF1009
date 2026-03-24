@@ -1,9 +1,7 @@
 package io.github.INF1009_P10_Team7.simulation.cyber.scenes;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -35,15 +33,24 @@ import io.github.INF1009_P10_Team7.simulation.cyber.CyberSprites;
 import io.github.INF1009_P10_Team7.simulation.cyber.PlayerInventory;
 import io.github.INF1009_P10_Team7.simulation.cyber.SpriteAnimator;
 import io.github.INF1009_P10_Team7.simulation.cyber.TileMap;
-import io.github.INF1009_P10_Team7.simulation.cyber.TileType;
-import io.github.INF1009_P10_Team7.simulation.cyber.ctf.NmapReconChallenge;
-import io.github.INF1009_P10_Team7.simulation.cyber.ctf.SqlInjectionChallenge;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTile;
+import com.badlogic.gdx.maps.tiled.TiledMapTileSet;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+
+import io.github.INF1009_P10_Team7.simulation.cyber.IMapCollision;
+import io.github.INF1009_P10_Team7.simulation.cyber.TiledObjectCollisionManager;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.TerminalEmulator;
 import io.github.INF1009_P10_Team7.simulation.cyber.drone.DroneAI;
 import io.github.INF1009_P10_Team7.simulation.cyber.drone.SearchState;
 import io.github.INF1009_P10_Team7.simulation.cyber.minigame.*;
 import io.github.INF1009_P10_Team7.simulation.cyber.observer.GameEventSystem;
 import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
+import io.github.INF1009_P10_Team7.simulation.cyber.LevelConfig;
 
 /**
  * CyberGameScene  -  main gameplay scene for all 5 levels.
@@ -67,7 +74,7 @@ public class CyberGameScene extends Scene {
     private final ICollisionSystem collisionSystem;
     private final IMovementSystem  movementSystem;
     private final CyberSceneFactory factory;
-    private final int level;
+    private final LevelConfig config;
 
     private final CyberSprites sprites = new CyberSprites();
     private SpriteAnimator playerAnimator;
@@ -84,7 +91,12 @@ public class CyberGameScene extends Scene {
     private OrthographicCamera hudCamera;
     private Viewport           hudViewport;
 
-    private TileMap tileMap;
+    // TMX map support
+    private TiledMap                   tmxMap;
+    private OrthogonalTiledMapRenderer tmxRenderer;
+    private TiledObjectCollisionManager collisionMgr;
+    private float tmxExitX, tmxExitY;
+    private TextureRegion doorClosedRegion, doorOpenedRegion;
     private float   stateTime  = 0f;
     private float   rotorAngle = 0f;
 
@@ -145,36 +157,19 @@ public class CyberGameScene extends Scene {
     private final float[] pB = new float[MAX_PARTICLES];
     private int particleCount = 0;
 
-    private static final String[] LEVEL_NAMES = {
-        "LEVEL 1  -  RECON LAB",
-        "LEVEL 2  -  NETWORK HUB",
-        "LEVEL 3  -  SERVER FARM",
-        "LEVEL 4  -  DATA CENTER",
-        "LEVEL 5  -  BLACK SITE",
-    };
-
     public CyberGameScene(IInputController input, IAudioController audio,
                           SceneNavigator nav,
                           IEntitySystem entitySystem,
                           ICollisionSystem collisionSystem,
                           IMovementSystem movementSystem,
                           CyberSceneFactory factory,
-                          int level) {
+                          LevelConfig config) {
         super(input, audio, nav);
         this.entitySystem    = entitySystem;
         this.collisionSystem = collisionSystem;
         this.movementSystem  = movementSystem;
         this.factory         = factory;
-        this.level           = Math.max(1, Math.min(level, 5));
-    }
-
-    public CyberGameScene(IInputController input, IAudioController audio,
-                          SceneNavigator nav,
-                          IEntitySystem entitySystem,
-                          ICollisionSystem collisionSystem,
-                          IMovementSystem movementSystem,
-                          CyberSceneFactory factory) {
-        this(input, audio, nav, entitySystem, collisionSystem, movementSystem, factory, 1);
+        this.config          = config;
     }
 
     // =========================================================================
@@ -200,8 +195,11 @@ public class CyberGameScene extends Scene {
         alertFont  = makeBitmapFont(1.5f);
         promptFont = makeBitmapFont(1.0f);
 
-        tileMap = new TileMap(level);
-        tileMap.loadTileset();
+        tmxMap       = new TmxMapLoader().load(config.getMapFile());
+        tmxRenderer  = new OrthogonalTiledMapRenderer(tmxMap);
+        collisionMgr = new TiledObjectCollisionManager();
+        collisionMgr.build(tmxMap, config.getCollisionLayer(), config.getWallLayer());
+        loadDoorFromTmx(config.getDoorLayer());
 
         sprites.load();
         playerAnimator = new SpriteAnimator("niceguy.png", 9, 4, 64, 64, 0.10f);
@@ -209,7 +207,7 @@ public class CyberGameScene extends Scene {
         initLevelConfig();
         createPlayer();
         setupSupportSystems();
-        audio.setMusic("Music_Game.mp3");
+        audio.setMusic("audio/Music_Game.mp3");
 
         transitionAlpha = 1f;  // fade-in from black
         missionElapsed = 0f;
@@ -219,158 +217,78 @@ public class CyberGameScene extends Scene {
         return FontManager.create(scale);
     }
 
+    private IMapCollision getMapCollision() {
+        return collisionMgr;
+    }
+
     // =========================================================================
     // LEVEL CONFIG  -  all 5 levels with unique minigame mixes and drone waypoints
     // =========================================================================
-    private void initLevelConfig() {
-        switch (level) {
 
-            case 1:
-                terminalTiles  = new int[][]{ {19,4}, {6,12}, {20,11}, {32,12}, {19,18} };
-                challenges     = new IMiniGame[]{
-                    new BinaryDecodeGame(),
-                    new CaesarCipherGame(),
-                    new PortMatchGame(),
-                    new LogAnalysisGame(),
-                    new TerminalMiniGame(new NmapReconChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 360f;
-                drones         = new DroneAI[]{};
-                playerStartTile = new int[]{ 19, 12 };
-                break;
-
-            case 2:
-                terminalTiles  = new int[][]{ {7,5}, {31,5}, {19,11}, {7,17}, {31,17} };
-                challenges     = new IMiniGame[]{
-                    new BinaryDecodeGame(),
-                    new PacketSnifferGame(),
-                    new PortMatchGame(),
-                    new LogAnalysisGame(),
-                    new TerminalMiniGame(new SqlInjectionChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 390f;
-                // Drones patrol entire map: left Z-leg and right Z-leg
-                drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(5),  TileMap.tileCentreY(5),
-                        new float[][]{ {5,5}, {9,8}, {19,11}, {9,13}, {5,17}, {9,13}, {19,11}, {9,8} }),
-                    new DroneAI(TileMap.tileCentreX(33), TileMap.tileCentreY(17),
-                        new float[][]{ {33,5}, {28,8}, {19,11}, {28,13}, {33,17}, {28,13}, {19,11}, {28,8} })
-                };
-                playerStartTile = new int[]{ 19, 11 };
-                break;
-
-            case 3:
-                terminalTiles  = new int[][]{ {6,4}, {32,4}, {19,10}, {6,16}, {32,16} };
-                challenges     = new IMiniGame[]{
-                    new CaesarCipherGame(),
-                    new PacketSnifferGame(),
-                    new FirewallACLGame(),
-                    new LogAnalysisGame(),
-                    new TerminalMiniGame(new NmapReconChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 420f;
-                // Drones patrol entire map through corridors
-                drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(6),  TileMap.tileCentreY(3),
-                        new float[][]{ {6,3}, {14,5}, {19,10}, {14,13}, {6,17}, {14,13}, {19,10}, {14,5} }),
-                    new DroneAI(TileMap.tileCentreX(33), TileMap.tileCentreY(3),
-                        new float[][]{ {33,3}, {25,5}, {19,10}, {25,13}, {33,17}, {25,13}, {19,10}, {25,5} }),
-                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(13),
-                        new float[][]{ {8,13}, {19,13}, {32,13}, {19,10}, {14,5}, {6,3}, {14,5}, {25,5}, {33,3}, {25,5}, {19,10} })
-                };
-                playerStartTile = new int[]{ 19, 10 };
-                break;
-
-            // ── Level 4: DATA CENTER  -  H-layout ────────────────────────────
-            case 4:
-                terminalTiles  = new int[][]{ {5,3}, {36,3}, {19,10}, {5,16}, {36,16} };
-                challenges     = new IMiniGame[]{
-                    new PacketSnifferGame(),
-                    new FirewallACLGame(),
-                    new CaesarCipherGame(),
-                    new OsintHuntGame("OSINT: CVE LOOKUP",
-                        "https://nvd.nist.gov/vuln/detail/CVE-2017-0144",
-                        "What Microsoft Security Bulletin number covers EternalBlue?",
-                        "Look at the 'References to Advisories' section",
-                        "MS17-010"),
-                    new TerminalMiniGame(new SqlInjectionChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 450f;
-                // Drones patrol entire H-layout through corridors
-                drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(4), TileMap.tileCentreY(3),
-                        new float[][]{ {4,3}, {9,7}, {14,10}, {9,14}, {4,17}, {9,14}, {14,10}, {9,7} },
-                        42f, 64f, 116f, 82f),
-                    new DroneAI(TileMap.tileCentreX(36), TileMap.tileCentreY(3),
-                        new float[][]{ {36,3}, {30,7}, {25,10}, {30,14}, {36,17}, {30,14}, {25,10}, {30,7} },
-                        41f, 62f, 112f, 80f),
-                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(2),
-                        new float[][]{ {19,2}, {19,10}, {10,10}, {19,10}, {29,10}, {19,10}, {19,19} },
-                        44f, 68f, 120f, 84f)
-                };
-                playerStartTile = new int[]{ 19, 10 };
-                break;
-
-            // ── Level 5: BLACK SITE  -  Ring layout ──────────────────────────
-            case 5:
-                terminalTiles  = new int[][]{ {5,3}, {35,3}, {19,9}, {5,17}, {35,17} };
-                challenges     = new IMiniGame[]{
-                    new FirewallACLGame(),
-                    new PacketSnifferGame(),
-                    new BinaryDecodeGame(),
-                    new OsintHuntGame("OSINT: OWASP",
-                        "https://owasp.org/Top10",
-                        "What is the #1 vulnerability in the OWASP Top 10 (2021)?",
-                        "Check the numbered list on the OWASP Top 10 page",
-                        "broken access control"),
-                    new TerminalMiniGame(new NmapReconChallenge(), terminal)
-                };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 480f;
-                // Drones patrol entire ring layout through corridors
-                drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(4),  TileMap.tileCentreY(3),
-                        new float[][]{ {4,3}, {9,1}, {19,1}, {30,1}, {35,3}, {30,1}, {19,1}, {9,1} },
-                        42f, 64f, 116f, 80f),
-                    new DroneAI(TileMap.tileCentreX(35), TileMap.tileCentreY(3),
-                        new float[][]{ {35,3}, {30,6}, {19,9}, {9,6}, {4,3}, {9,6}, {19,9}, {30,6} },
-                        42f, 64f, 116f, 80f),
-                    new DroneAI(TileMap.tileCentreX(4),  TileMap.tileCentreY(17),
-                        new float[][]{ {4,17}, {9,14}, {19,14}, {30,14}, {35,17}, {30,14}, {19,14}, {9,14} },
-                        43f, 66f, 118f, 80f),
-                    new DroneAI(TileMap.tileCentreX(35), TileMap.tileCentreY(17),
-                        new float[][]{ {35,17}, {30,14}, {19,9}, {9,14}, {4,17}, {9,14}, {19,9}, {30,14} },
-                        48f, 78f, 130f, 86f)
-                };
-                playerStartTile = new int[]{ 19, 9 };
-                break;
-
-            default:
-                // Shouldn't happen  -  level is clamped 1-5, but fallback to level 1
-                terminalTiles  = new int[][]{ {19,4}, {6,12}, {20,11}, {32,12}, {19,18} };
-                challenges     = new IMiniGame[]{ new BinaryDecodeGame(), new CaesarCipherGame(),
-                    new PortMatchGame(), new LogAnalysisGame(),
-                    new TerminalMiniGame(new NmapReconChallenge(), terminal) };
-                KEYS_REQUIRED  = 5;
-                timeRemaining  = 240f;
-                drones         = new DroneAI[]{};
-                playerStartTile = new int[]{ 19, 12 };
-                break;
+    /**
+     * Reads terminal tile positions from a Tiled object layer.
+     * Tile objects in TMX store y as the bottom of the tile in LibGDX world space (y-up).
+     * Conversion: col = x/TILE_SIZE,  row = ROWS-1 - y/TILE_SIZE  (row 0 = top of map).
+     */
+    private int[][] loadTerminalsFromTmx(String layerName) {
+        if (tmxMap == null) return new int[0][];
+        MapLayer layer = tmxMap.getLayers().get(layerName);
+        if (layer == null) {
+            Gdx.app.log("CyberGameScene", "Terminal layer '" + layerName + "' not found in TMX");
+            return new int[0][];
         }
+        java.util.List<int[]> list = new java.util.ArrayList<>();
+        for (MapObject obj : layer.getObjects()) {
+            float x = obj.getProperties().get("x", Float.class);
+            float y = obj.getProperties().get("y", Float.class);
+            int col = (int)(x / TileMap.TILE_SIZE);
+            int row = TileMap.ROWS - 1 - (int)(y / TileMap.TILE_SIZE);
+            list.add(new int[]{ col, row });
+        }
+        return list.toArray(new int[0][]);
+    }
 
-        terminalSolved = new boolean[terminalTiles.length];
-        for (int i = 0; i < terminalSolved.length; i++) terminalSolved[i] = false;
+    private void loadDoorFromTmx(String layerName) {
+        if (tmxMap == null) return;
+        MapLayer layer = tmxMap.getLayers().get(layerName);
+        if (layer == null) {
+            Gdx.app.log("CyberGameScene", "Door layer '" + layerName + "' not found in TMX");
+            return;
+        }
+        for (MapObject obj : layer.getObjects()) {
+            if ("closed door".equals(obj.getName())) {
+                float x = obj.getProperties().get("x", Float.class);
+                float y = obj.getProperties().get("y", Float.class);
+                int col = (int)(x / TileMap.TILE_SIZE);
+                int row = TileMap.ROWS - 1 - (int)(y / TileMap.TILE_SIZE);
+                tmxExitX = TileMap.tileCentreX(col);
+                tmxExitY = TileMap.tileCentreY(row);
+            }
+        }
+        TiledMapTileSet doorSet = tmxMap.getTileSets().getTileSet("doors");
+        if (doorSet != null) {
+            TiledMapTile closed = doorSet.getTile(853);
+            TiledMapTile opened = doorSet.getTile(854);
+            if (closed != null) doorClosedRegion = closed.getTextureRegion();
+            if (opened != null) doorOpenedRegion = opened.getTextureRegion();
+        }
+    }
+
+    private void initLevelConfig() {
+        terminalTiles   = loadTerminalsFromTmx("terminal");
+        challenges      = config.createChallenges(terminal);
+        KEYS_REQUIRED   = config.getKeysRequired();
+        timeRemaining   = config.getTimeLimit();
+        drones          = config.createDrones();
+        playerStartTile = config.getPlayerStartTile();
+        terminalSolved  = new boolean[terminalTiles.length];
     }
 
     private void createPlayer() {
         playerEntity = new GameEntity("CyberPlayer");
         float startX = TileMap.tileCentreX(playerStartTile[0]);
         float startY = TileMap.tileCentreY(playerStartTile[1]);
-        float[] safeStart = tileMap.resolveCircleVsWalls(startX, startY, PLAYER_RADIUS);
+        float[] safeStart = getMapCollision().resolveCircleVsWalls(startX, startY, PLAYER_RADIUS);
         startX = safeStart[0];
         startY = safeStart[1];
         playerEntity.addComponent(new TransformComponent(startX, startY));
@@ -389,21 +307,13 @@ public class CyberGameScene extends Scene {
     private void setupSupportSystems() {
         checkpointX = TileMap.tileCentreX(playerStartTile[0]);
         checkpointY = TileMap.tileCentreY(playerStartTile[1]);
-        maxRespawns = (level <= 2) ? 5 : (level == 3 ? 4 : 3);
+        maxRespawns = 5;
         respawnsRemaining = maxRespawns;
-        signalPingsRemaining = (level <= 2) ? 4 : 3;
+        signalPingsRemaining = 4;
         protectionTimer = 2.6f;
         cctvAlerted = new boolean[getCameraPositions().length];
         resetDroneAwareness(2.6f);
-        String introSubtitle;
-        switch (level) {
-            case 1: introSubtitle = "No drones yet. Learn the terminals, checkpoints, and signal ping."; break;
-            case 2: introSubtitle = "Break line of sight at corners and do not rush into the center lane."; break;
-            case 3: introSubtitle = "Use pings to route efficiently. Every two terminals can restore one life."; break;
-            case 4: introSubtitle = "Data Center drones are tougher. Play around checkpoints and stay patient."; break;
-            default: introSubtitle = "Black Site alert level is high. Cloak after respawn and chain your hacks."; break;
-        }
-        showBanner(LEVEL_NAMES[Math.max(0, Math.min(level - 1, LEVEL_NAMES.length - 1))], introSubtitle, 5.8f);
+        showBanner(config.getLevelName(), config.getIntroSubtitle(), 5.8f);
     }
 
     private void resetDroneAwareness(float suppressSeconds) {
@@ -446,7 +356,7 @@ public class CyberGameScene extends Scene {
         checkpointY = safePoint[1];
 
         tc.getPosition().set(checkpointX, checkpointY);
-        float[] resolved = tileMap.resolveCircleVsWalls(tc.getPosition().x, tc.getPosition().y, PLAYER_RADIUS);
+        float[] resolved = getMapCollision().resolveCircleVsWalls(tc.getPosition().x, tc.getPosition().y, PLAYER_RADIUS);
         tc.getPosition().set(resolved[0], resolved[1]);
 
         PhysicComponent phys = playerEntity.getComponent(PhysicComponent.class);
@@ -467,9 +377,7 @@ public class CyberGameScene extends Scene {
         for (int radius = 0; radius <= 6; radius++) {
             for (int row = Math.max(0, startRow - radius); row <= Math.min(TileMap.ROWS - 1, startRow + radius); row++) {
                 for (int col = Math.max(0, startCol - radius); col <= Math.min(TileMap.COLS - 1, startCol + radius); col++) {
-                    if (tileMap.isWall(col, row)) continue;
-                    TileType type = tileMap.getType(col, row);
-                    if (type == TileType.EXIT) continue;
+                    if (collisionMgr.isWall(col, row)) continue;
                     boolean terminalTile = false;
                     for (int[] terminalTilePos : terminalTiles) {
                         if (terminalTilePos[0] == col && terminalTilePos[1] == row) { terminalTile = true; break; }
@@ -478,14 +386,14 @@ public class CyberGameScene extends Scene {
 
                     float worldX = TileMap.tileCentreX(col);
                     float worldY = TileMap.tileCentreY(row);
-                    float[] resolved = tileMap.resolveCircleVsWalls(worldX, worldY, PLAYER_RADIUS);
+                    float[] resolved = getMapCollision().resolveCircleVsWalls(worldX, worldY, PLAYER_RADIUS);
                     if (Math.abs(resolved[0] - worldX) > 0.75f || Math.abs(resolved[1] - worldY) > 0.75f) continue;
 
                     float droneSeparation = Float.MAX_VALUE;
                     float losPenalty = 0f;
                     for (DroneAI drone : drones) {
                         droneSeparation = Math.min(droneSeparation, dist(worldX, worldY, drone.getPosition().x, drone.getPosition().y));
-                        if (tileMap.hasLineOfSight(worldX, worldY, drone.getPosition().x, drone.getPosition().y)) {
+                        if (getMapCollision().hasLineOfSight(worldX, worldY, drone.getPosition().x, drone.getPosition().y)) {
                             losPenalty += 90f;
                         }
                     }
@@ -551,14 +459,7 @@ public class CyberGameScene extends Scene {
     }
 
     private float[] getExitCentre() {
-        for (int row = 0; row < TileMap.ROWS; row++) {
-            for (int col = 0; col < TileMap.COLS; col++) {
-                if (tileMap.getType(col, row) == TileType.EXIT) {
-                    return new float[]{TileMap.tileCentreX(col), TileMap.tileCentreY(row)};
-                }
-            }
-        }
-        return new float[]{TileMap.WORLD_W - 64f, TileMap.WORLD_H - 64f};
+        return new float[]{tmxExitX, tmxExitY};
     }
 
     private void maybeRestoreIntegrity() {
@@ -591,9 +492,9 @@ public class CyberGameScene extends Scene {
         if (gameOver || victory) {
             if (input.isActionJustPressed("INTERACT") || input.isActionJustPressed("MENU_CONFIRM") || input.isActionJustPressed("START_GAME")) {
                 if (victory)
-                    nav.requestScene(factory.createVictoryScene(keysCollected, KEYS_REQUIRED, (int) missionElapsed, level, respawnsUsed, hintsUsed));
+                    nav.requestScene(factory.createVictoryScene(keysCollected, KEYS_REQUIRED, (int) missionElapsed, config.getLevelNumber(), respawnsUsed, hintsUsed));
                 else
-                    nav.requestScene(factory.createGameOverScene(level));
+                    nav.requestScene(factory.createGameOverScene(config.getLevelNumber()));
             }
             return;
         }
@@ -607,8 +508,6 @@ public class CyberGameScene extends Scene {
                     terminalSolved[activeChallengeIdx] = true;
                     keysCollected++;
                     eventSystem.notifyKeyCollected(keysCollected, KEYS_REQUIRED);
-                    tileMap.setTile(terminalTiles[activeChallengeIdx][0],
-                                    terminalTiles[activeChallengeIdx][1], TileType.FLOOR);
                     // Particle burst: green sparks
                     spawnParticles(TileMap.tileCentreX(terminalTiles[activeChallengeIdx][0]),
                                    TileMap.tileCentreY(terminalTiles[activeChallengeIdx][1]),
@@ -623,11 +522,7 @@ public class CyberGameScene extends Scene {
                         exitUnlocked = true;
                         showBanner("EXIT UNLOCKED", "All terminals secured. Reach the magenta extraction door.", 3.0f);
                         // Purple energy burst at exit
-                        for (int r = 0; r < TileMap.ROWS; r++)
-                            for (int c = 0; c < TileMap.COLS; c++)
-                                if (tileMap.getType(c, r) == TileType.EXIT)
-                                    spawnParticles(TileMap.tileCentreX(c), TileMap.tileCentreY(r),
-                                                   0.7f, 0f, 1f, 20);
+                        spawnParticles(tmxExitX, tmxExitY, 0.7f, 0f, 1f, 20);
                     }
                 } else {
                     String msg = activeChallenge.wasPanicked() ? "Disconnected safely. Re-enter when the area is clear." : "You can re-enter the terminal whenever you are ready.";
@@ -642,18 +537,13 @@ public class CyberGameScene extends Scene {
         if (input.isActionJustPressed("SETTINGS")) {
             nav.pushScene(factory.createSettingsScene()); return;
         }
-        if (input.isActionJustPressed("BACK")) {
-            nav.requestScene(factory.createMainMenuScene()); return;
-        }
         if (input.isActionJustPressed("HELP")) {
             triggerSignalPing();
         }
 
-        tileMap.update(delta);
-
         TransformComponent tc = playerEntity.getComponent(TransformComponent.class);
         if (tc != null) {
-            float[] resolved = tileMap.resolveCircleVsWalls(
+            float[] resolved = getMapCollision().resolveCircleVsWalls(
                 tc.getPosition().x, tc.getPosition().y, PLAYER_RADIUS);
             tc.getPosition().set(resolved[0], resolved[1]);
         }
@@ -676,7 +566,7 @@ public class CyberGameScene extends Scene {
         if (tc != null) {
             for (DroneAI drone : drones) {
                 boolean wasChasing = "CHASE".equals(drone.getStateName());
-                drone.update(tileMap, tc.getPosition(), delta);
+                drone.update(getMapCollision(), tc.getPosition(), delta);
 
                 boolean nowChasing = "CHASE".equals(drone.getStateName());
                 if (!wasChasing && nowChasing) {
@@ -720,7 +610,7 @@ public class CyberGameScene extends Scene {
                     while (angleDiff < -180f) angleDiff += 360f;
                     if (Math.abs(angleDiff) > halfFov) { cctvAlerted[ci] = false; continue; }
 
-                    if (!tileMap.hasLineOfSight(cx, cy, pp.x, pp.y)) { cctvAlerted[ci] = false; continue; }
+                    if (!getMapCollision().hasLineOfSight(cx, cy, pp.x, pp.y)) { cctvAlerted[ci] = false; continue; }
 
                     // Player is visible to this camera
                     cctvAlerted[ci] = true;
@@ -749,15 +639,9 @@ public class CyberGameScene extends Scene {
         }
 
         if (exitUnlocked && tc != null) {
-            for (int row = 0; row < TileMap.ROWS; row++) {
-                for (int col = 0; col < TileMap.COLS; col++) {
-                    if (tileMap.getType(col, row) != TileType.EXIT) continue;
-                    float ex = TileMap.tileCentreX(col), ey = TileMap.tileCentreY(row);
-                    if (dist(tc.getPosition().x, tc.getPosition().y, ex, ey)
-                            < TileMap.TILE_SIZE * 1.5f) {
-                        victory = true; return;
-                    }
-                }
+            if (dist(tc.getPosition().x, tc.getPosition().y, tmxExitX, tmxExitY)
+                    < TileMap.TILE_SIZE * 1.5f) {
+                victory = true; return;
             }
         }
 
@@ -784,10 +668,12 @@ public class CyberGameScene extends Scene {
         sr.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(camera.combined);
 
-        tileMap.render(sr, batch, exitUnlocked);
+        tmxRenderer.setView(camera);
+        tmxRenderer.render();
+        renderTmxExitDoor();
         renderRoomProps();          // FIX: render unused assets as room decorations
         renderCheckpointBeacon();
-        // renderDronePatrolRoutes();  // removed: no blue patrol box
+        renderDronePatrolRoutes();
         renderTerminalGlow();
         renderTerminalHints();
         renderExitGuidance();
@@ -937,13 +823,13 @@ public class CyberGameScene extends Scene {
         sr.end();
 
         // Draw the fixture sprite itself just above the pool centre
-        if (sprites.ceilingLight != null) {
+        if (sprites.get("ceilingLight") != null) {
             batch.begin();
             for (int[] lt : lights) {
                 if (isNearTerminal(lt[0], lt[1])) continue;
                 float cx = TileMap.tileCentreX(lt[0]);
                 float cy = TileMap.tileCentreY(lt[1]);
-                sprites.drawCentered(batch, sprites.ceilingLight,
+                sprites.drawCentered(batch, "ceilingLight",
                     cx, cy + ts * 0.35f,          // slightly above pool centre
                     ts * 0.7f, 0.85f * flicker);
             }
@@ -971,12 +857,12 @@ public class CyberGameScene extends Scene {
         batch.begin();
         for (int i = 0; i < barriers.length; i++) {
             boolean large = (i % 3 != 2);
-            Texture bTex = large ? sprites.barrierLg : sprites.barrierSm;
-            if (bTex == null) continue;
+            String bTexKey = large ? "barrierLg" : "barrierSm";
+            if (sprites.get(bTexKey) == null) continue;
             float bx = TileMap.tileCentreX(barriers[i][0]);
             float by = TileMap.tileCentreY(barriers[i][1]);
             float size = large ? ts * 0.85f : ts * 0.62f;
-            sprites.drawCentered(batch, bTex, bx, by + ts * 0.08f, size, 1.0f);
+            sprites.drawCentered(batch, bTexKey, bx, by + ts * 0.08f, size, 1.0f);
         }
         batch.end();
     }
@@ -986,7 +872,7 @@ public class CyberGameScene extends Scene {
      * The sprite pans back and forth like real CCTV and a scan cone is shown.
      */
     private void renderSecurityCameras(float ts) {
-        if (sprites.secCamera == null) return;
+        if (sprites.get("secCamera") == null) return;
         int[][] camPositions = getCameraPositions();
 
         for (int i = 0; i < camPositions.length; i++) {
@@ -1033,7 +919,7 @@ public class CyberGameScene extends Scene {
 
             // Draw mounted camera sprite, rotated to match pan
             batch.begin();
-            sprites.drawCenteredRotated(batch, sprites.secCamera,
+            sprites.drawCenteredRotated(batch, "secCamera",
                 cx, cy, ts * 0.72f, totalAng - 90f, 0.92f);
             batch.end();
         }
@@ -1045,7 +931,7 @@ public class CyberGameScene extends Scene {
      * blue tint in patrol, red tint when chasing, with a subtle drop-shadow.
      */
     private void renderDroneSprites(float ts) {
-        if (sprites.hunter == null) return;
+        if (sprites.get("hunter") == null) return;
         float dSize = ts * 1.05f;
 
         // Shadow pass
@@ -1071,12 +957,12 @@ public class CyberGameScene extends Scene {
             else                batch.setColor(0.35f, 0.75f, 1f,  0.92f);
 
             float half = dSize * 0.5f;
-            batch.draw(sprites.hunter,
+            batch.draw(sprites.get("hunter"),
                 dx - half, dy - half,
                 half, half,
                 dSize, dSize, 1f, 1f,
                 drone.getFacingAngle() - 90f,
-                0, 0, sprites.hunter.getWidth(), sprites.hunter.getHeight(),
+                0, 0, sprites.get("hunter").getWidth(), sprites.get("hunter").getHeight(),
                 false, false);
             batch.setColor(1f, 1f, 1f, 1f);
         }
@@ -1088,42 +974,32 @@ public class CyberGameScene extends Scene {
      * within interact range, signalling "this device is broadcasting – hack it".
      */
     private void renderTerminalWifiBadge(float ts) {
-        if (sprites.phoneWifi == null) return;
+        if (sprites.get("phoneWifi") == null) return;
         TransformComponent tc = playerEntity.getComponent(TransformComponent.class);
         if (tc == null) return;
         Vector2 pp = tc.getPosition();
 
-        // Pass 1: glow rings (ShapeRenderer must not overlap with SpriteBatch)
-        sr.begin(ShapeRenderer.ShapeType.Filled);
-        for (int i = 0; i < terminalTiles.length; i++) {
-            if (terminalSolved[i]) continue;
-            float tx = TileMap.tileCentreX(terminalTiles[i][0]);
-            float ty = TileMap.tileCentreY(terminalTiles[i][1]);
-            float d  = dist(pp.x, pp.y, tx, ty);
-            if (d < ts * 3.5f) {
-                float proximity = 1f - (d / (ts * 3.5f));
-                float pulse = 0.7f + 0.3f * (float)Math.sin(stateTime * 5f + i);
-                float bob   = (float)Math.sin(stateTime * 3f + i * 1.1f) * 4f;
-                float alpha = proximity * pulse;
-                sr.setColor(0.2f, 0.9f, 1f, alpha * 0.18f);
-                sr.circle(tx, ty + ts * 1.15f + bob, ts * 0.55f, 18);
-            }
-        }
-        sr.end();
-
-        // Pass 2: phone_wifi.png sprites
         batch.begin();
         for (int i = 0; i < terminalTiles.length; i++) {
             if (terminalSolved[i]) continue;
             float tx = TileMap.tileCentreX(terminalTiles[i][0]);
             float ty = TileMap.tileCentreY(terminalTiles[i][1]);
             float d  = dist(pp.x, pp.y, tx, ty);
+
             if (d < ts * 3.5f) {
+                // Fade in as the player approaches
                 float proximity = 1f - (d / (ts * 3.5f));
                 float pulse = 0.7f + 0.3f * (float)Math.sin(stateTime * 5f + i);
                 float bob   = (float)Math.sin(stateTime * 3f + i * 1.1f) * 4f;
                 float alpha = proximity * pulse;
-                sprites.drawCentered(batch, sprites.phoneWifi,
+
+                // Glow ring behind the icon
+                sr.begin(ShapeRenderer.ShapeType.Filled);
+                sr.setColor(0.2f, 0.9f, 1f, alpha * 0.18f);
+                sr.circle(tx, ty + ts * 1.15f + bob, ts * 0.55f, 18);
+                sr.end();
+
+                sprites.drawCentered(batch, "phoneWifi",
                     tx, ty + ts * 1.15f + bob,
                     ts * 0.65f, alpha);
             }
@@ -1131,42 +1007,9 @@ public class CyberGameScene extends Scene {
         batch.end();
     }
 
-    /** Ceiling light tile positions per level (room centres). */
-    private int[][] getLightPositions() {
-        switch (level) {
-            case 2: return new int[][]{ {7,6},{30,6},{19,11},{7,17},{30,17} };
-            case 3: return new int[][]{ {7,5},{32,5},{19,11},{7,17},{32,17} };
-            case 4: return new int[][]{ {4,5},{35,5},{19,10},{4,17},{35,17} };
-            case 5: return new int[][]{ {4,3},{35,3},{19,9},{4,18},{35,18} };
-            default: return new int[][]{ {19,5},{19,12},{19,18} };
-        }
-    }
-
-    /** Barrier crate tile positions per level. */
-    private int[][] getBarrierPositions() {
-        switch (level) {
-            case 2: return new int[][]{ {13,11},{15,11},{24,11},{26,11} };
-            case 3: return new int[][]{ {14,10},{18,13},{22,10},{26,13} };
-            case 4: return new int[][]{ {12,10},{16,10},{22,10},{26,10} };
-            case 5: return new int[][]{ {14,8},{18,12},{22,8},{26,12} };
-            default: return new int[][]{ {18,12},{20,12} };
-        }
-    }
-
-    /**
-     * Security camera mount positions per level.
-     * Each entry: { col, row, baseFacingDegrees }
-     * Mounted above corridor entrances, facing inward so the cone covers the doorway.
-     */
-    private int[][] getCameraPositions() {
-        switch (level) {
-            case 2: return new int[][]{ {8,8,270}, {27,8,270}, {8,14,90}, {27,14,90} };
-            case 3: return new int[][]{ {13,5,0},  {26,5,180}, {13,14,0}, {26,14,180} };
-            case 4: return new int[][]{ {8,9,0},   {31,9,180}, {8,13,0},  {31,13,180} };
-            case 5: return new int[][]{ {9,6,0},   {30,6,180}, {9,14,0},  {30,14,180} };
-            default: return new int[][]{ {19,8,270} };
-        }
-    }
+    private int[][] getLightPositions()   { return config.getLightPositions(); }
+    private int[][] getBarrierPositions() { return config.getBarrierPositions(); }
+    private int[][] getCameraPositions()  { return config.getCameraPositions(); }
 
     // ── Terminal glow & hints ────────────────────────────────────────────────
     private void renderTerminalGlow() {
@@ -1184,13 +1027,13 @@ public class CyberGameScene extends Scene {
         sr.end();
 
         // Draw terminal sprite centered on each unsolved terminal tile
-        if (sprites.terminal != null) {
+        if (sprites.get("terminal") != null) {
             batch.begin();
             for (int i = 0; i < terminalTiles.length; i++) {
                 if (terminalSolved[i]) continue;
                 float tx = TileMap.tileLeft(terminalTiles[i][0]) + ts * 0.5f;
                 float ty = TileMap.tileBottom(terminalTiles[i][1]) + ts * 0.5f;
-                sprites.drawCentered(batch, sprites.terminal, tx, ty, ts * 0.85f, 1f);
+                sprites.drawCentered(batch, "terminal", tx, ty, ts * 0.85f, 1f);
             }
             batch.end();
         }
@@ -1236,6 +1079,15 @@ public class CyberGameScene extends Scene {
         sr.circle(checkpointX, checkpointY, TileMap.TILE_SIZE * 0.55f, 24);
         sr.circle(checkpointX, checkpointY, TileMap.TILE_SIZE * 0.85f, 24);
         sr.end();
+    }
+
+    private void renderTmxExitDoor() {
+        TextureRegion region = exitUnlocked ? doorOpenedRegion : doorClosedRegion;
+        if (region == null) return;
+        float ts = TileMap.TILE_SIZE;
+        batch.begin();
+        batch.draw(region, tmxExitX - ts / 2f, tmxExitY - ts / 2f, ts, ts);
+        batch.end();
     }
 
     private void renderExitGuidance() {
@@ -1359,9 +1211,8 @@ public class CyberGameScene extends Scene {
         }
 
         // ── Top-right text ────────────────────────────────────────────────
-        int lvIdx = Math.max(0, Math.min(level - 1, LEVEL_NAMES.length - 1));
         alertFont.setColor(0.45f, 0.8f, 1f, 1f);
-        String lvName = LEVEL_NAMES[lvIdx];
+        String lvName = config.getLevelName();
         layout.setText(alertFont, lvName);
         alertFont.draw(batch, lvName, W - 10f - layout.width, H - 12f);
 
@@ -1445,17 +1296,19 @@ public class CyberGameScene extends Scene {
         sr.setColor(0f, 0f, 0f, 0.6f);
         sr.rect(mmX - 2, mmY - 2, mmW + 4, mmH + 4);
 
-        // Draw walls as tiny dots
-        for (int row = 0; row < TileMap.ROWS; row += 2) {
-            for (int col = 0; col < TileMap.COLS; col += 2) {
-                if (tileMap.isWall(col, row)) {
+        // Draw walls — every tile so no rows/cols are skipped
+        float tileW = scaleX * TileMap.TILE_SIZE;
+        float tileH = scaleY * TileMap.TILE_SIZE;
+        for (int row = 0; row < TileMap.ROWS; row++) {
+            for (int col = 0; col < TileMap.COLS; col++) {
+                if (collisionMgr.isWall(col, row)) {
                     sr.setColor(0.2f, 0.25f, 0.3f, 0.8f);
                 } else {
                     sr.setColor(0.05f, 0.08f, 0.1f, 0.5f);
                 }
-                sr.rect(mmX + col * scaleX * TileMap.TILE_SIZE,
+                sr.rect(mmX + col * tileW,
                         mmY + (TileMap.WORLD_H - (row + 1) * TileMap.TILE_SIZE) * scaleY,
-                        2 * scaleX * TileMap.TILE_SIZE, 2 * scaleY * TileMap.TILE_SIZE);
+                        tileW, tileH);
             }
         }
 
@@ -1467,8 +1320,8 @@ public class CyberGameScene extends Scene {
             float tx = TileMap.tileCentreX(terminalTiles[i][0]) * scaleX + mmX;
             float ty = TileMap.tileCentreY(terminalTiles[i][1]) * scaleY + mmY;
             float pinSize = 7f;
-            if (sprites.mapPin != null) {
-                sprites.drawCentered(batch, sprites.mapPin, tx, ty + 2f, pinSize, 1f);
+            if (sprites.get("mapPin") != null) {
+                sprites.drawCentered(batch, "mapPin", tx, ty + 2f, pinSize, 1f);
             } else {
                 // Fallback: plain circle if texture not loaded
                 batch.end();
@@ -1483,16 +1336,12 @@ public class CyberGameScene extends Scene {
         sr.begin(ShapeRenderer.ShapeType.Filled);
 
         // Exit
-        for (int row = 0; row < TileMap.ROWS; row++) {
-            for (int col = 0; col < TileMap.COLS; col++) {
-                if (tileMap.getType(col, row) == TileType.EXIT) {
-                    float ex = TileMap.tileCentreX(col) * scaleX + mmX;
-                    float ey = TileMap.tileCentreY(row) * scaleY + mmY;
-                    sr.setColor(exitUnlocked ? new Color(0.8f, 0f, 1f, 1f)
-                                             : new Color(0.3f, 0.05f, 0.05f, 0.8f));
-                    sr.rect(ex - 2, ey - 2, 4, 4);
-                }
-            }
+        {
+            float ex = tmxExitX * scaleX + mmX;
+            float ey = tmxExitY * scaleY + mmY;
+            sr.setColor(exitUnlocked ? new Color(0.8f, 0f, 1f, 1f)
+                                     : new Color(0.3f, 0.05f, 0.05f, 0.8f));
+            sr.rect(ex - 2, ey - 2, 4, 4);
         }
 
         // Checkpoint
@@ -1681,7 +1530,7 @@ public class CyberGameScene extends Scene {
         if (viewport    != null) viewport.update(w, h, true);
         if (hudViewport != null) hudViewport.update(w, h, true);
     }
-    @Override protected void onUnload() { Gdx.app.log("CyberGame", "unloading level " + level); }
+    @Override protected void onUnload() { Gdx.app.log("CyberGame", "unloading level " + config.getLevelNumber()); }
     @Override protected void onDispose() {
         if (activeChallenge != null && activeChallenge.isOpen()) activeChallenge.close();
         if (playerAnimator != null) playerAnimator.dispose();
@@ -1690,7 +1539,8 @@ public class CyberGameScene extends Scene {
         if (hudFont    != null) hudFont.dispose();
         if (alertFont  != null) alertFont.dispose();
         if (promptFont != null) promptFont.dispose();
-        tileMap.disposeTileset();
+        if (tmxRenderer != null) tmxRenderer.dispose();
+        if (tmxMap     != null) tmxMap.dispose();
         sprites.dispose();
     }
 

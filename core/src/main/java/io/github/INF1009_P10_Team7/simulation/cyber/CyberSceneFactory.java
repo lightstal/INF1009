@@ -14,6 +14,7 @@ import io.github.INF1009_P10_Team7.simulation.cyber.scenes.CyberMainMenuScene;
 import io.github.INF1009_P10_Team7.simulation.cyber.scenes.CyberEndScenesFactory;
 import io.github.INF1009_P10_Team7.simulation.cyber.scenes.LinuxBootScene;
 import io.github.INF1009_P10_Team7.simulation.cyber.scenes.LevelSelectScene;
+import io.github.INF1009_P10_Team7.simulation.cyber.scenes.LevelCutsceneScene;
 import io.github.INF1009_P10_Team7.simulation.SettingsScene;
 
 /**
@@ -63,8 +64,13 @@ public class CyberSceneFactory implements SceneFactory {
     }
 
     public Scene createGameScene(int level) {
+        LevelConfig config = (level == 2) ? new Level2Config() : new Level1Config();
         return new CyberGameScene(input, audio, nav,
-            entitySystem, collisionSystem, movementSystem, this, level);
+            entitySystem, collisionSystem, movementSystem, this, config);
+    }
+
+    public Scene createCutsceneScene(int level) {
+        return LevelCutsceneScene.create(input, audio, nav, this, level);
     }
 
     @Override

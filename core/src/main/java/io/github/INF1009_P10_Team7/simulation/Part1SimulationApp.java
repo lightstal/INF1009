@@ -12,6 +12,7 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
+import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory;
 
 /**
@@ -28,6 +29,9 @@ import io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory;
  * </ul>
  */
 public class Part1SimulationApp extends ApplicationAdapter {
+	
+	// Toggle this to true when you want to bypass the main game and load Part1Simulation scene
+    private static final boolean IS_TESTING = false;
 
     /** <p>The game engine that manages all engine subsystems.</p> */
     private GameEngine engine;
@@ -39,8 +43,13 @@ public class Part1SimulationApp extends ApplicationAdapter {
      */
     @Override
     public void create() {
-        Gdx.app.log("SIM", "Cyber Maze Escape app create(): start (engine init)");
-
+    	if (!IS_TESTING) {
+    		Gdx.app.log("SIM", "Cyber Maze Escape app create(): start (engine init)");
+    	} else {
+    		 Gdx.app.log("SIM", "Part1SimulationApp create(): start (engine init)");
+    	}
+    		
+    		
         // Print control instructions and scaling note to the console
         SimulationTestScript.printInstructions();
         SimulationTestScript.printScalingNote();
@@ -58,30 +67,57 @@ public class Part1SimulationApp extends ApplicationAdapter {
         IMovementSystem movementSystem = engine.getMovementSystem();
 
         // Key bindings for Cyber Maze Escape
-        input.bindKey("START_GAME",  Input.Keys.SPACE);
-        input.bindKey("SETTINGS",    Input.Keys.ESCAPE);
-        input.bindKey("BACK",        Input.Keys.Q);
-        input.bindKey("LEFT",        Input.Keys.A);
-        input.bindKey("RIGHT",       Input.Keys.D);
-        input.bindKey("UP",          Input.Keys.W);
-        input.bindKey("DOWN",        Input.Keys.S);
-        input.bindKey("INTERACT",    Input.Keys.E);
-        input.bindKey("HELP",        Input.Keys.H);
+        
+        if (!IS_TESTING) {
+	        // Parameter format: bindInput(String action, int deviceID, int keycode)
+	        // Note: Device ID 0 = Keyboard
+	        input.bindInput("START_GAME",  0, Input.Keys.SPACE);
+	        input.bindInput("SETTINGS",    0, Input.Keys.ESCAPE);
+	        input.bindInput("LEFT",        0, Input.Keys.A);
+	        input.bindInput("RIGHT",       0, Input.Keys.D);
+	        input.bindInput("UP",          0, Input.Keys.W);
+	        input.bindInput("DOWN",        0, Input.Keys.S);
+	        input.bindInput("INTERACT",    0, Input.Keys.E);
+	        input.bindInput("HELP",        0, Input.Keys.H);
+	
+	        // Menu navigation bindings kept separate from gameplay bindings
+	        input.bindInput("MENU_LEFT",   0, Input.Keys.LEFT);
+	        input.bindInput("MENU_RIGHT",  0, Input.Keys.RIGHT);
+	        input.bindInput("MENU_CONFIRM",0, Input.Keys.ENTER);
+	        input.bindInput("MENU_BACK",   0, Input.Keys.ESCAPE);
+	        
 
-        // Menu navigation bindings kept separate from gameplay bindings
-        input.bindKey("MENU_LEFT",   Input.Keys.LEFT);
-        input.bindKey("MENU_RIGHT",  Input.Keys.RIGHT);
-        input.bindKey("MENU_CONFIRM",Input.Keys.ENTER);
-        input.bindKey("MENU_BACK",   Input.Keys.ESCAPE);
+	        // Create the Cyber Maze Escape scene factory (Part 2 game)
+	        CyberSceneFactory factory = new CyberSceneFactory(
+	            input, audio, nav, entityQuery,
+	            entitySystem, collisionSystem, movementSystem
+	        );
+	        
+	        // Launch with the Linux boot splash, then → main menu → level select → game
+	        nav.setScene(factory.createBootScene());
+	        
+        } else {
+        	// Bind simulation-specific keys to named actions
+            input.bindInput("START_GAME",   0, Input.Keys.SPACE);
+            input.bindInput("RESTART_GAME", 0, Input.Keys.R);
+            input.bindInput("SETTINGS",     0, Input.Keys.ESCAPE);
+            input.bindInput("BACK",         0, Input.Keys.BACKSPACE);
+            input.bindInput("LEFT",         0, Input.Keys.A);
+            input.bindInput("RIGHT",        0, Input.Keys.D);
+            input.bindInput("UP",           0, Input.Keys.W);
+            input.bindInput("DOWN",         0, Input.Keys.S);
+            input.bindInput("SHOOT",        1, Input.Buttons.LEFT);
+            
 
-        // Create the Cyber Maze Escape scene factory (Part 2 game)
-        CyberSceneFactory factory = new CyberSceneFactory(
-            input, audio, nav, entityQuery,
-            entitySystem, collisionSystem, movementSystem
-        );
+            // Create the Cyber Maze Escape scene factory (Part 2 game)
+            SceneFactory factory = new Part1SceneFactory(
+                input, audio, nav, entityQuery,
+                entitySystem, collisionSystem, movementSystem
+            );
 
-        // Launch with the Linux boot splash, then → main menu → level select → game
-        nav.setScene(factory.createBootScene());
+            // Set the initial scene to the main menu
+            nav.setScene(factory.createMainMenuScene());
+        }
     }
 
     /**
@@ -113,7 +149,11 @@ public class Part1SimulationApp extends ApplicationAdapter {
      */
     @Override
     public void dispose() {
-        Gdx.app.log("SIM", "Cyber Maze Escape app dispose(): clean shutdown");
+    	if (!IS_TESTING) {
+    		Gdx.app.log("SIM", "Cyber Maze Escape app dispose(): clean shutdown");
+    	} else {
+    		Gdx.app.log("SIM", "Part1SimulationApp dispose(): clean shutdown");
+    	}
         if (engine != null) engine.dispose();
     }
 }

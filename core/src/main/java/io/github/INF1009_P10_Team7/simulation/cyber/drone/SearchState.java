@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.simulation.cyber.drone;
 
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
-import io.github.INF1009_P10_Team7.simulation.cyber.TileMap;
+import io.github.INF1009_P10_Team7.simulation.cyber.IMapCollision;
 
 public class SearchState implements DroneState {
     private final float targetX;
@@ -14,10 +14,10 @@ public class SearchState implements DroneState {
     }
 
     public SearchState(float targetX, float targetY, float duration) {
-        this.targetX = targetX;
-        this.targetY = targetY;
+        this.targetX  = targetX;
+        this.targetY  = targetY;
         this.duration = duration;
-        this.timer = duration;
+        this.timer    = duration;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class SearchState implements DroneState {
     }
 
     @Override
-    public void update(DroneAI ai, TileMap map, Vector2 playerPos, float dt) {
+    public void update(DroneAI ai, IMapCollision map, Vector2 playerPos, float dt) {
         Vector2 pos = ai.getPosition();
 
         float dx = targetX - pos.x;
@@ -40,16 +40,9 @@ public class SearchState implements DroneState {
             float[] resolved = map.resolveCircleVsWalls(nextX, nextY, ai.getRadius());
             pos.x = resolved[0];
             pos.y = resolved[1];
-            float targetAngle = (float)Math.toDegrees(Math.atan2(dy, dx));
-            float diff = angleDiff(targetAngle, ai.getFacingAngle());
-            float rotSpeed = 100f;
-            if (Math.abs(diff) > rotSpeed * dt) {
-                ai.setFacingAngle(ai.getFacingAngle() + Math.signum(diff) * rotSpeed * dt);
-            } else {
-                ai.setFacingAngle(targetAngle);
-            }
+            ai.setFacingAngle((float)Math.toDegrees(Math.atan2(dy, dx)));
         } else {
-            ai.setFacingAngle(ai.getFacingAngle() + 55f * dt);
+            ai.setFacingAngle(ai.getFacingAngle() + 110f * dt);
         }
 
         float pdx = playerPos.x - pos.x;

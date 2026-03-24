@@ -1,10 +1,11 @@
 package io.github.INF1009_P10_Team7.engine.inputoutput;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 
 
@@ -22,17 +23,13 @@ import com.badlogic.gdx.InputAdapter;
  */
 public class InputOutputManager implements IInputController, IAudioController{
 	
-	/**
-     * An arbitrary offset added to mouse button codes to distinguish them from keyboard key codes.
-     * <p>
-     * Keyboard keys usually range from 0-255. By adding 300 to mouse buttons,
-     * we ensure a mouse click (code 0) acts as code 300, preventing overlap with keyboard key 0.
-     */
-    private static final int MOUSE_OFFSET = 300;
-	
 	private AudioOutput audioOutput;
-	private DeviceInput keyboard;
-    private DeviceInput mouse;
+	
+	/**
+     * The registry containing all active input devices.
+     * Devices are sorted descending by their base offset.
+     */
+    private List<DeviceInput> registeredDevices;
 
     /**
      * Stores the current input bindings.
@@ -47,11 +44,53 @@ public class InputOutputManager implements IInputController, IAudioController{
      */
 	public InputOutputManager() {
 		this.audioOutput = new AudioOutput();
-		this.keyboard = new KeyboardDevice();
-        this.mouse = new MouseDevice();
-        
+		
         this.keyBindings = new HashMap<>();
+        this.registeredDevices = new ArrayList<>();
+        
+        // Register default devices
+        registerDevice(new KeyboardDevice());
+        registerDevice(new MouseDevice());
 	}
+	
+	/**
+     * {@inheritDoc}
+     */
+    @Override
+    public void registerDevice(DeviceInput device) {
+        registeredDevices.add(device);
+        registeredDevices.sort((d1, d2) -> Integer.compare(d2.getBaseOffset(), d1.getBaseOffset()));
+    }
+
+    /**
+     * Routes a global key code to the correct registered hardware device.
+     * * @param globalCode The integer code retrieved from the key bindings map.
+     * @return The {@link DeviceInput} responsible for handling this code, or {@code null} if none match.
+     */
+    private DeviceInput getTargetDevice(int globalCode) {
+        for (DeviceInput device : registeredDevices) {
+            if (globalCode >= device.getBaseOffset()) {
+                return device;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Retrieves a registered device by its unique ID.
+     * <p>
+     * Used internally to route dynamic binding requests to the correct hardware.
+     * * @param id The integer ID of the device to find.
+     * @return The {@link DeviceInput} matching the ID, or {@code null} if no such device is registered.
+     */
+    private DeviceInput getDeviceByID(int id) {
+        for (DeviceInput device : registeredDevices) {
+            if (device.getDeviceID() == id) {
+                return device;
+            }
+        }
+        return null; 
+    }
 
 	// --- Lifecycle Methods ---
     
@@ -63,8 +102,9 @@ public class InputOutputManager implements IInputController, IAudioController{
      * their internal "Current" and "Previous" state arrays to allow for "Just Pressed" detection.
      */
 	public void update() {
-		keyboard.pollInput();
-        mouse.pollInput();
+		for (DeviceInput device : registeredDevices) {
+            device.pollInput();
+        }
 	}
 	
 	/**
@@ -77,25 +117,31 @@ public class InputOutputManager implements IInputController, IAudioController{
     
     
     // --- Input Binding Implementation ---
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void bindKey(String actionName, int keyCode) {
-        keyBindings.put(actionName, keyCode);
-    }
-
+    
     /**
      * {@inheritDoc}
      * <p>
-     * Internally adds {@link #MOUSE_OFFSET} to the button code to store it uniquely in the map.
+     * <b>Dynamic Routing Logic:</b> 
+     * <ol>
+     * <li>Finds the target device in the registry using the {@code deviceID}.</li>
+     * <li>Retrieves the device's specific {@code baseOffset}.</li>
+     * <li>Mathematically combines the offset with the {@code localCode} to create a 
+     * unique global code (e.g., Mouse Offset 300 + Left Click 0 = Global Code 300).</li>
+     * <li>Stores the global code in the {@code keyBindings} map.</li>
+     * </ol>
      */
     @Override
-    public void bindMouseButton(String actionName, int buttonCode) {
-        keyBindings.put(actionName, MOUSE_OFFSET + buttonCode);
+    public void bindInput(String actionName, int deviceID, int localCode) {
+        DeviceInput targetDevice = getDeviceByID(deviceID);
+        
+        if (targetDevice != null) {
+            int globalCode = targetDevice.getBaseOffset() + localCode;
+            keyBindings.put(actionName, globalCode);
+            Gdx.app.log("InputManager", "Bound " + actionName + " to global code: " + globalCode);
+        } else {
+            Gdx.app.error("InputManager", "Failed to bind " + actionName + ". Device ID " + deviceID + " not found.");
+        }
     }
-    
     
     
     // --- Input Checking Implementation ---
@@ -112,13 +158,12 @@ public class InputOutputManager implements IInputController, IAudioController{
      */
     @Override
     public boolean isActionPressed(String actionName) {
-        if (keyBindings.containsKey(actionName)) {
-            int key = keyBindings.get(actionName);
-            if (key >= MOUSE_OFFSET) {
-                return mouse.getButton(key - MOUSE_OFFSET);                 
-            } else {
-                return keyboard.getButton(key);
-            }
+    	Integer code = keyBindings.get(actionName);
+        if (code == null) return false;
+
+        DeviceInput device = getTargetDevice(code);
+        if (device != null) {
+            return device.getButton(code - device.getBaseOffset());
         }
         return false;
     }
@@ -128,13 +173,12 @@ public class InputOutputManager implements IInputController, IAudioController{
      */
     @Override
     public boolean isActionJustPressed(String actionName) {
-        if (keyBindings.containsKey(actionName)) {
-            int key = keyBindings.get(actionName);
-            if (key >= MOUSE_OFFSET) {
-                return mouse.isButtonJustPressed(key - MOUSE_OFFSET);                 
-            } else {
-                return keyboard.isButtonJustPressed(key);
-            }
+    	Integer code = keyBindings.get(actionName);
+        if (code == null) return false;
+
+        DeviceInput device = getTargetDevice(code);
+        if (device != null) {
+            return device.isButtonJustPressed(code - device.getBaseOffset());
         }
         return false;
     }
@@ -148,22 +192,14 @@ public class InputOutputManager implements IInputController, IAudioController{
      */
     @Override
     public String getKeyName(String action) {
-        if (!keyBindings.containsKey(action)) {
-            return "NONE";
-        }
+    	Integer code = keyBindings.get(action);
+        if (code == null) return "NONE";
 
-        int keycode = keyBindings.get(action);
-        if (keycode >= MOUSE_OFFSET) {
-            int button = keycode - MOUSE_OFFSET;
-            switch (button) {
-                case Input.Buttons.LEFT:   return "L-CLICK";
-                case Input.Buttons.RIGHT:  return "R-CLICK";
-                case Input.Buttons.MIDDLE: return "M-CLICK";
-                default: return "MOUSE-" + button;
-            }
+        DeviceInput device = getTargetDevice(code);
+        if (device != null) {
+            return device.getKeyName(code - device.getBaseOffset());
         }
-
-        return Input.Keys.toString(keycode);
+        return "UNKNOWN";
     }
 
     /**
@@ -179,13 +215,15 @@ public class InputOutputManager implements IInputController, IAudioController{
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean keyDown(int keycode) {
-                callback.onInputReceived(keycode);
+            	// Device ID 0 = Keyboard
+                callback.onInputReceived(0, keycode);
                 return true;
             }
 
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                callback.onInputReceived(MOUSE_OFFSET + button);
+            	// Device ID 1 = Mouse
+                callback.onInputReceived(1, button);
                 return true;
             }
         });
@@ -196,8 +234,10 @@ public class InputOutputManager implements IInputController, IAudioController{
      */
     @Override
     public float getMouseX() {
-        // In MouseDevice, you defined axis 0 as X
-        return mouse.getAxis(0); 
+    	for (DeviceInput device : registeredDevices) {
+            if (device.deviceID == 1) return device.getAxis(0); 
+        }
+        return 0;
     }
 
     /**
@@ -205,8 +245,10 @@ public class InputOutputManager implements IInputController, IAudioController{
      */
     @Override
     public float getMouseY() {
-        // In MouseDevice, you defined axis 1 as Y
-        return mouse.getAxis(1);
+    	for (DeviceInput device : registeredDevices) {
+            if (device.deviceID == 1) return device.getAxis(1); 
+        }
+        return 0;
     }
 
 	@Override

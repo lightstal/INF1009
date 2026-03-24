@@ -1,6 +1,6 @@
 package io.github.INF1009_P10_Team7.simulation.cyber.drone;
 
-import io.github.INF1009_P10_Team7.simulation.cyber.TileMap;
+import io.github.INF1009_P10_Team7.simulation.cyber.IMapCollision;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
@@ -12,7 +12,7 @@ public interface DroneState {
     /** Called once when this state becomes active. */
     void enter(DroneAI ai);
     /** Called every frame while this state is active. */
-    void update(DroneAI ai, TileMap map, Vector2 playerPos, float dt);
+    void update(DroneAI ai, IMapCollision map, Vector2 playerPos, float dt);
     /** Called once when transitioning away from this state. */
     void exit(DroneAI ai);
     /** Display name for HUD / debug. */

@@ -164,7 +164,7 @@ public class GameScene extends Scene {
         camera.update();
 
         // Set the background music for the game scene
-        audio.setMusic("Music_Game.mp3");
+        audio.setMusic("audio/Music_Game.mp3");
 
         // ===== CREATE ENTITIES (SRP: each type in its own method) =====
         createPlayer();
@@ -199,7 +199,7 @@ public class GameScene extends Scene {
 
         // Custom collision response: play a sound then bounce (OCP  -  extends behaviour without modifying engine)
         ICollisionResponse bounceWithSound = (obj1, obj2, info) -> {
-            audio.playSound("bell.mp3");
+            audio.playSound("audio/bell.mp3");
             CollisionResolution.BOUNCE.resolve(obj1, obj2, info);
         };
         collisionSystem.registerCollidable(player, bounceWithSound);
@@ -367,7 +367,7 @@ public class GameScene extends Scene {
 
         // --- Dash impulse on SHOOT (demonstrates applyImpulse) ---
         if (input.isActionJustPressed("SHOOT")) {
-            audio.playSound("Sound_Boom.mp3");
+            audio.playSound("audio/Sound_Boom.mp3");
             if (physics != null) {
                 // Copy current velocity, normalise, and scale to create a dash impulse
                 Vector2 currentVel = physics.getVelocity().cpy();
@@ -555,7 +555,7 @@ public class GameScene extends Scene {
 
             if (distance <= minDist) {
                 // Play pickup sound
-                audio.playSound("bell.mp3");
+                audio.playSound("audio/bell.mp3");
 
                 // Grant speed boost to the player
                 playerSpeedMultiplier += SPEED_BOOST_PER_BALL;

@@ -1,6 +1,6 @@
 package io.github.INF1009_P10_Team7.simulation.cyber.drone;
 
-import io.github.INF1009_P10_Team7.simulation.cyber.TileMap;
+import io.github.INF1009_P10_Team7.simulation.cyber.IMapCollision;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
@@ -12,9 +12,8 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 public class ChaseState implements DroneState {
 
     private float lostSightTimer = 0f;
-    private static final float LOST_TIMEOUT = 2.5f;
-    private static final float CHASE_LEASH_MULTIPLIER = 1.8f;
-    private static final float CHASE_ROT_DEG_S = 150f;
+    private static final float LOST_TIMEOUT = 0.45f;
+    private static final float CHASE_LEASH_MULTIPLIER = 1.0f;
 
     @Override
     public void enter(DroneAI ai) {
@@ -23,7 +22,7 @@ public class ChaseState implements DroneState {
     }
 
     @Override
-    public void update(DroneAI ai, TileMap map, Vector2 playerPos, float dt) {
+    public void update(DroneAI ai, IMapCollision map, Vector2 playerPos, float dt) {
         if (ai.isDetectionSuppressed()) {
             ai.transitionTo(new PatrolState(ai.getPatrolWaypoints()));
             return;
@@ -38,27 +37,17 @@ public class ChaseState implements DroneState {
 
         float dirX = dx / dist;
         float dirY = dy / dist;
-        float targetAngle = (float) Math.toDegrees(Math.atan2(dy, dx));
-        float angleDiff = targetAngle - ai.getFacingAngle();
-        while (angleDiff >  180f) angleDiff -= 360f;
-        while (angleDiff < -180f) angleDiff += 360f;
-        if (Math.abs(angleDiff) > CHASE_ROT_DEG_S * dt) {
-            ai.setFacingAngle(ai.getFacingAngle() + Math.signum(angleDiff) * CHASE_ROT_DEG_S * dt);
-        } else {
-            ai.setFacingAngle(targetAngle);
-        }
+        ai.setFacingAngle((float) Math.toDegrees(Math.atan2(dy, dx)));
 
-        float speed = ai.getChaseSpeed();
+        float speed = ai.getChaseSpeed() * 0.78f;
         float nextX = pos.x + dirX * speed * dt;
         float nextY = pos.y + dirY * speed * dt;
 
         float[] resolved = map.resolveCircleVsWalls(nextX, nextY, ai.getRadius());
         float moved = Math.abs(resolved[0] - pos.x) + Math.abs(resolved[1] - pos.y);
-        float expectedMove = speed * dt;
-        float blockThreshold = expectedMove * 0.25f;
 
-        if (moved < blockThreshold) {
-            // Truly blocked by a wall — try sidestep
+        if (moved < 0.5f) {
+            // Try both sidestep directions before giving up
             float sideX = -dirY;
             float sideY = dirX;
 
@@ -91,7 +80,7 @@ public class ChaseState implements DroneState {
 
         if (!canSee || dist > ai.getSightRange() * CHASE_LEASH_MULTIPLIER) {
             lostSightTimer += dt;
-            ai.setAlertLevel(Math.max(0f, 1f - (lostSightTimer / LOST_TIMEOUT)));
+            ai.setAlertLevel(Math.max(0f, 1f - (lostSightTimer / LOST_TIMEOUT) * 0.85f));
             if (lostSightTimer >= LOST_TIMEOUT) {
                 ai.transitionTo(new SearchState(playerPos.x, playerPos.y));
             }
