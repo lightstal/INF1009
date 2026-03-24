@@ -62,7 +62,7 @@ import io.github.INF1009_P10_Team7.simulation.cyber.LevelConfig;
  *
  * Improvements:
  *  6. Levels 4 & 5 with unique maps, drone configs.
- *  7. PacketSnifferGame and FirewallACLGame replace duplicates.
+ *  7. PacketSnifferGame added for Level 2 variety.
  *  8. Screen transition effect on scene entry.
  *  9. HUD minimap showing player, terminals, exit.
  * 10. Directional threat indicator toward nearest drone.
