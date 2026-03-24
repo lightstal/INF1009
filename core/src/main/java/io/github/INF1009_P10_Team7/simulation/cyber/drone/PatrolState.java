@@ -68,6 +68,7 @@ public class PatrolState implements DroneState {
 
     private static final float ROT_SWEEP_DEG_S = 30f;
     private static final float ROT_SNAP_DEG_S  = 80f;
+    private static final float ROT_MOVE_DEG_S  = 120f;
 
     public PatrolState(float[][] patrolTiles) {
         if (patrolTiles != null && patrolTiles.length > 0) {
@@ -167,7 +168,14 @@ public class PatrolState implements DroneState {
                 pos.y = resolved[1];
             }
 
-            ai.setFacingAngle((float) Math.toDegrees(Math.atan2(dy, dx)));
+            // Smooth turn toward waypoint
+            float targetAngle = (float) Math.toDegrees(Math.atan2(dy, dx));
+            float diff = angleDiff(targetAngle, ai.getFacingAngle());
+            if (Math.abs(diff) > ROT_MOVE_DEG_S * dt) {
+                ai.setFacingAngle(ai.getFacingAngle() + Math.signum(diff) * ROT_MOVE_DEG_S * dt);
+            } else {
+                ai.setFacingAngle(targetAngle);
+            }
         }
 
         // Stuck detection

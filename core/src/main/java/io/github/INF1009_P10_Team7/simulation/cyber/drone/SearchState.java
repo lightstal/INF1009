@@ -40,7 +40,15 @@ public class SearchState implements DroneState {
             float[] resolved = map.resolveCircleVsWalls(nextX, nextY, ai.getRadius());
             pos.x = resolved[0];
             pos.y = resolved[1];
-            ai.setFacingAngle((float)Math.toDegrees(Math.atan2(dy, dx)));
+            // Smooth turn toward last known position (150 deg/s max)
+            float targetAngle = (float)Math.toDegrees(Math.atan2(dy, dx));
+            float aDiff = angleDiff(targetAngle, ai.getFacingAngle());
+            float maxTurn = 150f * dt;
+            if (Math.abs(aDiff) > maxTurn) {
+                ai.setFacingAngle(ai.getFacingAngle() + Math.signum(aDiff) * maxTurn);
+            } else {
+                ai.setFacingAngle(targetAngle);
+            }
         } else {
             ai.setFacingAngle(ai.getFacingAngle() + 110f * dt);
         }

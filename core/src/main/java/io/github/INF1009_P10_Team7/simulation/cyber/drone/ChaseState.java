@@ -37,7 +37,18 @@ public class ChaseState implements DroneState {
 
         float dirX = dx / dist;
         float dirY = dy / dist;
-        ai.setFacingAngle((float) Math.toDegrees(Math.atan2(dy, dx)));
+
+        // Smooth turn toward player (180 deg/s max)
+        float targetAngle = (float) Math.toDegrees(Math.atan2(dy, dx));
+        float angleDiff = targetAngle - ai.getFacingAngle();
+        while (angleDiff >  180f) angleDiff -= 360f;
+        while (angleDiff < -180f) angleDiff += 360f;
+        float maxTurn = 180f * dt;
+        if (Math.abs(angleDiff) > maxTurn) {
+            ai.setFacingAngle(ai.getFacingAngle() + Math.signum(angleDiff) * maxTurn);
+        } else {
+            ai.setFacingAngle(targetAngle);
+        }
 
         float speed = ai.getChaseSpeed() * 0.78f;
         float nextX = pos.x + dirX * speed * dt;
