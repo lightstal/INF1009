@@ -673,7 +673,7 @@ public class CyberGameScene extends Scene {
         renderTmxExitDoor();
         renderRoomProps();          // FIX: render unused assets as room decorations
         renderCheckpointBeacon();
-        renderDronePatrolRoutes();
+        // renderDronePatrolRoutes();  // removed: no blue patrol box
         renderTerminalGlow();
         renderTerminalHints();
         renderExitGuidance();
@@ -979,26 +979,36 @@ public class CyberGameScene extends Scene {
         if (tc == null) return;
         Vector2 pp = tc.getPosition();
 
+        // Pass 1: glow rings (ShapeRenderer must not overlap with SpriteBatch)
+        sr.begin(ShapeRenderer.ShapeType.Filled);
+        for (int i = 0; i < terminalTiles.length; i++) {
+            if (terminalSolved[i]) continue;
+            float tx = TileMap.tileCentreX(terminalTiles[i][0]);
+            float ty = TileMap.tileCentreY(terminalTiles[i][1]);
+            float d  = dist(pp.x, pp.y, tx, ty);
+            if (d < ts * 3.5f) {
+                float proximity = 1f - (d / (ts * 3.5f));
+                float pulse = 0.7f + 0.3f * (float)Math.sin(stateTime * 5f + i);
+                float bob   = (float)Math.sin(stateTime * 3f + i * 1.1f) * 4f;
+                float alpha = proximity * pulse;
+                sr.setColor(0.2f, 0.9f, 1f, alpha * 0.18f);
+                sr.circle(tx, ty + ts * 1.15f + bob, ts * 0.55f, 18);
+            }
+        }
+        sr.end();
+
+        // Pass 2: phone_wifi.png sprites
         batch.begin();
         for (int i = 0; i < terminalTiles.length; i++) {
             if (terminalSolved[i]) continue;
             float tx = TileMap.tileCentreX(terminalTiles[i][0]);
             float ty = TileMap.tileCentreY(terminalTiles[i][1]);
             float d  = dist(pp.x, pp.y, tx, ty);
-
             if (d < ts * 3.5f) {
-                // Fade in as the player approaches
                 float proximity = 1f - (d / (ts * 3.5f));
                 float pulse = 0.7f + 0.3f * (float)Math.sin(stateTime * 5f + i);
                 float bob   = (float)Math.sin(stateTime * 3f + i * 1.1f) * 4f;
                 float alpha = proximity * pulse;
-
-                // Glow ring behind the icon
-                sr.begin(ShapeRenderer.ShapeType.Filled);
-                sr.setColor(0.2f, 0.9f, 1f, alpha * 0.18f);
-                sr.circle(tx, ty + ts * 1.15f + bob, ts * 0.55f, 18);
-                sr.end();
-
                 sprites.drawCentered(batch, "phoneWifi",
                     tx, ty + ts * 1.15f + bob,
                     ts * 0.65f, alpha);

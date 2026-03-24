@@ -37,11 +37,12 @@ public class Level2Config implements LevelConfig {
 
     @Override
     public DroneAI[] createDrones() {
+        // Drones patrol entire map: left Z-leg and right Z-leg
         return new DroneAI[]{
-            new DroneAI(TileMap.tileCentreX(13), TileMap.tileCentreY(11),
-                new float[][]{ {11,10}, {17,10}, {17,12}, {11,12} }),
-            new DroneAI(TileMap.tileCentreX(25), TileMap.tileCentreY(11),
-                new float[][]{ {22,10}, {28,10}, {28,12}, {22,12} })
+            new DroneAI(TileMap.tileCentreX(5), TileMap.tileCentreY(5),
+                new float[][]{ {5,5}, {9,8}, {19,11}, {9,13}, {5,17}, {9,13}, {19,11}, {9,8} }),
+            new DroneAI(TileMap.tileCentreX(33), TileMap.tileCentreY(17),
+                new float[][]{ {33,5}, {28,8}, {19,11}, {28,13}, {33,17}, {28,13}, {19,11}, {28,8} })
         };
     }
 
