@@ -154,14 +154,14 @@ public class BinaryDecodeGame implements IMiniGame {
             }
         }
 
-        // Progress track boxes
+        // Progress track boxes (raised to avoid overlapping hint text below)
         for (int i = 0; i < 5; i++) {
             boolean done = decoded[i] != 0;
             boolean cur  = i == currentByte && !solved;
             sr.setColor(done ? 0f : (cur ? 0f : 0.03f),
                         done ? 0.55f : (cur ? pulse*0.4f : 0.07f),
                         done ? 0.1f : 0f, 1f);
-            sr.rect(WX + 140 + i * 140f, WY + 82f, 110f, 50f);
+            sr.rect(WX + 140 + i * 140f, WY + 102f, 110f, 50f);
         }
 
         // Input box
@@ -221,24 +221,24 @@ public class BinaryDecodeGame implements IMiniGame {
             medFont.draw(batch, prompt2, WX + WW/2f - layout.width/2f, WY + 266f);
         }
 
-        // Progress character boxes
+        // Progress character boxes (raised to match box positions)
         for (int i = 0; i < 5; i++) {
             if (decoded[i] != 0) {
                 bigFont.setColor(0f, 1f, 0.4f, 1f);
-                bigFont.draw(batch, String.valueOf(decoded[i]), WX + 175 + i*140f, WY + 122f);
+                bigFont.draw(batch, String.valueOf(decoded[i]), WX + 175 + i*140f, WY + 142f);
             } else if (i == currentByte && !solved) {
                 float fl = 0.4f + 0.4f*(float)Math.sin(stateTime*6f);
                 medFont.setColor(fl, fl, fl, 1f);
-                medFont.draw(batch, "_", WX + 175 + i*140f, WY + 117f);
+                medFont.draw(batch, "_", WX + 175 + i*140f, WY + 137f);
             } else {
                 medFont.setColor(0.18f, 0.18f, 0.18f, 1f);
-                medFont.draw(batch, "_", WX + 175 + i*140f, WY + 117f);
+                medFont.draw(batch, "_", WX + 175 + i*140f, WY + 137f);
             }
         }
 
-        // Progress label
+        // Progress label (raised to match box positions)
         smallFont.setColor(0.38f, 0.38f, 0.38f, 1f);
-        smallFont.draw(batch, "DECODED PROGRESS:", WX + 100, WY + 78f);
+        smallFont.draw(batch, "DECODED PROGRESS:", WX + 100, WY + 98f);
 
         // Input prompt
         if (!solved) {

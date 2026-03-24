@@ -315,7 +315,7 @@ public class LogAnalysisGame implements IMiniGame {
         }
         if (scrollOffset < DOCUMENT.length - VISIBLE_LINES) {
             smallFont.setColor(0.5f, 0.4f, 0.1f, 1f);
-            smallFont.draw(batch, "More below. Press DOWN to scroll.", wx + 25, docY + 2f);
+            smallFont.draw(batch, "More below. Press DOWN to scroll.", wx + 25, docY + 16f);
         }
 
         // Input prompt

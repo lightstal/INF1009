@@ -19,7 +19,7 @@ public class Lwjgl3Launcher {
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
 
 
-        configuration.setWindowedMode(1280, 704);
+        configuration.setWindowedMode(1920, 1080);
         configuration.setResizable(true);  // Window CAN be resized
 
 

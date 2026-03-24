@@ -213,15 +213,15 @@ public class PortMatchGame implements IMiniGame {
 
         // Column headers
         medFont.setColor(new Color(0.7f, 0.4f, 0f, 1f));
-        medFont.draw(batch, "PORTS", wx + 155, wy + 458f);
-        medFont.draw(batch, "SERVICES", wx + 718, wy + 458f);
+        medFont.draw(batch, "PORTS", wx + 155, wy + 445f);
+        medFont.draw(batch, "SERVICES", wx + 718, wy + 445f);
 
         // Instructions — between title bar and columns
         smallFont.setColor(0.45f, 0.45f, 0.45f, 1f);
         smallFont.draw(batch, "Instructions:  Press a port number ( 1  -  5 ) to select it,",
-            wx + 55, wy + wh - 60f);
+            wx + 55, wy + wh - 48f);
         smallFont.draw(batch, "then press a service letter ( A  -  E ) to make the match.",
-            wx + 55, wy + wh - 78f);
+            wx + 55, wy + wh - 64f);
 
         // Port and service rows
         float rowY0f = wy + 140 + 240;

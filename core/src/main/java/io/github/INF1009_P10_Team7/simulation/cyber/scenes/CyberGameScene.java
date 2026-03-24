@@ -251,15 +251,12 @@ public class CyberGameScene extends Scene {
                 };
                 KEYS_REQUIRED  = 5;
                 timeRemaining  = 390f;
-                // BUG-4 FIX: level-appropriate waypoints
-                // DRONE-WALL FIX: waypoints moved into open corridor tiles (cols 11-28, rows 10-12)
-                // MAP_2 corridor (room 9) runs cols 10-29, rows 9-13.
-                // Spawn drones at tile centres well inside open floor to avoid wall embedding.
+                // Drones patrol entire map: left Z-leg and right Z-leg
                 drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(13),  TileMap.tileCentreY(11),
-                        new float[][]{ {11,10}, {17,10}, {17,12}, {11,12} }),
-                    new DroneAI(TileMap.tileCentreX(25), TileMap.tileCentreY(11),
-                        new float[][]{ {22,10}, {28,10}, {28,12}, {22,12} })
+                    new DroneAI(TileMap.tileCentreX(5),  TileMap.tileCentreY(5),
+                        new float[][]{ {5,5}, {9,8}, {19,11}, {9,13}, {5,17}, {9,13}, {19,11}, {9,8} }),
+                    new DroneAI(TileMap.tileCentreX(33), TileMap.tileCentreY(17),
+                        new float[][]{ {33,5}, {28,8}, {19,11}, {28,13}, {33,17}, {28,13}, {19,11}, {28,8} })
                 };
                 playerStartTile = new int[]{ 19, 11 };
                 break;
@@ -275,13 +272,14 @@ public class CyberGameScene extends Scene {
                 };
                 KEYS_REQUIRED  = 5;
                 timeRemaining  = 420f;
+                // Drones patrol entire map through corridors
                 drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(7),  TileMap.tileCentreY(6),
-                        new float[][]{ {3,2}, {12,2}, {12,7}, {3,7} }),
-                    new DroneAI(TileMap.tileCentreX(32), TileMap.tileCentreY(6),
-                        new float[][]{ {27,2}, {37,2}, {37,7}, {27,7} }),
-                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(14),
-                        new float[][]{ {8,13}, {16,13}, {24,13}, {32,13} })
+                    new DroneAI(TileMap.tileCentreX(6),  TileMap.tileCentreY(3),
+                        new float[][]{ {6,3}, {14,5}, {19,10}, {14,13}, {6,17}, {14,13}, {19,10}, {14,5} }),
+                    new DroneAI(TileMap.tileCentreX(33), TileMap.tileCentreY(3),
+                        new float[][]{ {33,3}, {25,5}, {19,10}, {25,13}, {33,17}, {25,13}, {19,10}, {25,5} }),
+                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(13),
+                        new float[][]{ {8,13}, {19,13}, {32,13}, {19,10}, {14,5}, {6,3}, {14,5}, {25,5}, {33,3}, {25,5}, {19,10} })
                 };
                 playerStartTile = new int[]{ 19, 10 };
                 break;
@@ -302,15 +300,16 @@ public class CyberGameScene extends Scene {
                 };
                 KEYS_REQUIRED  = 5;
                 timeRemaining  = 450f;
+                // Drones patrol entire H-layout through corridors
                 drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(4),
-                        new float[][]{ {18,2}, {21,2}, {21,7}, {18,7} },
+                    new DroneAI(TileMap.tileCentreX(4), TileMap.tileCentreY(3),
+                        new float[][]{ {4,3}, {9,7}, {14,10}, {9,14}, {4,17}, {9,14}, {14,10}, {9,7} },
                         42f, 64f, 116f, 82f),
-                    new DroneAI(TileMap.tileCentreX(9),  TileMap.tileCentreY(10),
-                        new float[][]{ {9,9}, {9,12}, {19,12}, {19,9} },
+                    new DroneAI(TileMap.tileCentreX(36), TileMap.tileCentreY(3),
+                        new float[][]{ {36,3}, {30,7}, {25,10}, {30,14}, {36,17}, {30,14}, {25,10}, {30,7} },
                         41f, 62f, 112f, 80f),
-                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(17),
-                        new float[][]{ {18,15}, {21,15}, {21,20}, {18,20} },
+                    new DroneAI(TileMap.tileCentreX(19), TileMap.tileCentreY(2),
+                        new float[][]{ {19,2}, {19,10}, {10,10}, {19,10}, {29,10}, {19,10}, {19,19} },
                         44f, 68f, 120f, 84f)
                 };
                 playerStartTile = new int[]{ 19, 10 };
@@ -332,18 +331,19 @@ public class CyberGameScene extends Scene {
                 };
                 KEYS_REQUIRED  = 5;
                 timeRemaining  = 480f;
+                // Drones patrol entire ring layout through corridors
                 drones         = new DroneAI[]{
-                    new DroneAI(TileMap.tileCentreX(5),  TileMap.tileCentreY(1),
-                        new float[][]{ {1,1}, {9,1}, {9,5}, {1,5} },
+                    new DroneAI(TileMap.tileCentreX(4),  TileMap.tileCentreY(3),
+                        new float[][]{ {4,3}, {9,1}, {19,1}, {30,1}, {35,3}, {30,1}, {19,1}, {9,1} },
                         42f, 64f, 116f, 80f),
-                    new DroneAI(TileMap.tileCentreX(35), TileMap.tileCentreY(1),
-                        new float[][]{ {31,1}, {38,1}, {38,5}, {31,5} },
+                    new DroneAI(TileMap.tileCentreX(35), TileMap.tileCentreY(3),
+                        new float[][]{ {35,3}, {30,6}, {19,9}, {9,6}, {4,3}, {9,6}, {19,9}, {30,6} },
                         42f, 64f, 116f, 80f),
-                    new DroneAI(TileMap.tileCentreX(5),  TileMap.tileCentreY(15),
-                        new float[][]{ {1,15}, {9,15}, {9,20}, {1,20} },
+                    new DroneAI(TileMap.tileCentreX(4),  TileMap.tileCentreY(17),
+                        new float[][]{ {4,17}, {9,14}, {19,14}, {30,14}, {35,17}, {30,14}, {19,14}, {9,14} },
                         43f, 66f, 118f, 80f),
-                    new DroneAI(TileMap.tileCentreX(35), TileMap.tileCentreY(15),
-                        new float[][]{ {31,15}, {38,15}, {38,20}, {31,20} },
+                    new DroneAI(TileMap.tileCentreX(35), TileMap.tileCentreY(17),
+                        new float[][]{ {35,17}, {30,14}, {19,9}, {9,14}, {4,17}, {9,14}, {19,9}, {30,14} },
                         48f, 78f, 130f, 86f)
                 };
                 playerStartTile = new int[]{ 19, 9 };
@@ -787,7 +787,7 @@ public class CyberGameScene extends Scene {
         tileMap.render(sr, batch, exitUnlocked);
         renderRoomProps();          // FIX: render unused assets as room decorations
         renderCheckpointBeacon();
-        renderDronePatrolRoutes();
+        // renderDronePatrolRoutes();  // removed: no blue patrol box
         renderTerminalGlow();
         renderTerminalHints();
         renderExitGuidance();
@@ -1093,26 +1093,36 @@ public class CyberGameScene extends Scene {
         if (tc == null) return;
         Vector2 pp = tc.getPosition();
 
+        // Pass 1: glow rings (ShapeRenderer must not overlap with SpriteBatch)
+        sr.begin(ShapeRenderer.ShapeType.Filled);
+        for (int i = 0; i < terminalTiles.length; i++) {
+            if (terminalSolved[i]) continue;
+            float tx = TileMap.tileCentreX(terminalTiles[i][0]);
+            float ty = TileMap.tileCentreY(terminalTiles[i][1]);
+            float d  = dist(pp.x, pp.y, tx, ty);
+            if (d < ts * 3.5f) {
+                float proximity = 1f - (d / (ts * 3.5f));
+                float pulse = 0.7f + 0.3f * (float)Math.sin(stateTime * 5f + i);
+                float bob   = (float)Math.sin(stateTime * 3f + i * 1.1f) * 4f;
+                float alpha = proximity * pulse;
+                sr.setColor(0.2f, 0.9f, 1f, alpha * 0.18f);
+                sr.circle(tx, ty + ts * 1.15f + bob, ts * 0.55f, 18);
+            }
+        }
+        sr.end();
+
+        // Pass 2: phone_wifi.png sprites
         batch.begin();
         for (int i = 0; i < terminalTiles.length; i++) {
             if (terminalSolved[i]) continue;
             float tx = TileMap.tileCentreX(terminalTiles[i][0]);
             float ty = TileMap.tileCentreY(terminalTiles[i][1]);
             float d  = dist(pp.x, pp.y, tx, ty);
-
             if (d < ts * 3.5f) {
-                // Fade in as the player approaches
                 float proximity = 1f - (d / (ts * 3.5f));
                 float pulse = 0.7f + 0.3f * (float)Math.sin(stateTime * 5f + i);
                 float bob   = (float)Math.sin(stateTime * 3f + i * 1.1f) * 4f;
                 float alpha = proximity * pulse;
-
-                // Glow ring behind the icon
-                sr.begin(ShapeRenderer.ShapeType.Filled);
-                sr.setColor(0.2f, 0.9f, 1f, alpha * 0.18f);
-                sr.circle(tx, ty + ts * 1.15f + bob, ts * 0.55f, 18);
-                sr.end();
-
                 sprites.drawCentered(batch, sprites.phoneWifi,
                     tx, ty + ts * 1.15f + bob,
                     ts * 0.65f, alpha);
