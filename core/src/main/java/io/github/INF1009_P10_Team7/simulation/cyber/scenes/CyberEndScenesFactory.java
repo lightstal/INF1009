@@ -22,14 +22,13 @@ public final class CyberEndScenesFactory {
     }
 
     /**
-     * BUG-3 FIX: now accepts keysRequired so the victory screen shows
-     * the actual denominator instead of a hardcoded value.
+     * Passes all scoring parameters through to CyberVictoryScene.
      */
     public static Scene victory(IInputController input, IAudioController audio,
                                 SceneNavigator nav, CyberSceneFactory factory,
-                                int keys, int keysRequired, int timeLeft, int level,
+                                int keys, int keysRequired, int missionElapsedSeconds, int level,
                                 int respawnsUsed, int hintsUsed) {
-        return new CyberVictoryScene(input, audio, nav, factory, keys, keysRequired, timeLeft, level,
+        return new CyberVictoryScene(input, audio, nav, factory, keys, keysRequired, missionElapsedSeconds, level,
             respawnsUsed, hintsUsed);
     }
 }

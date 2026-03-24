@@ -444,7 +444,7 @@ public class SettingsScene extends Scene {
         sectionFont.setColor(0.72f, 0.92f, 0.80f, 1f);
         sectionFont.draw(batch, "MOVEMENT",
             panelX + 52f, rowMovementY + KEY_BUTTON_HEIGHT + 22f);
-        sectionFont.draw(batch, "GAMEPLAY  /  TERMINAL",
+        sectionFont.draw(batch, "GAMEPLAY",
             panelX + 52f, rowGameplayY + KEY_BUTTON_HEIGHT + 22f);
 
         batch.end();

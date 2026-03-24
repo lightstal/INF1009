@@ -13,7 +13,7 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
-import io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory;
+import io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory; // used in static create()
 import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
 
 /**
@@ -82,7 +82,6 @@ public class LevelCutsceneScene extends Scene {
 
     // Pre-created game scene — set by static factory method
     private io.github.INF1009_P10_Team7.engine.scene.Scene gameSceneRef;
-    private CyberSceneFactory factory;
 
     // ── Resources ────────────────────────────────────────────────────────────
     private ShapeRenderer    sr;
@@ -99,7 +98,7 @@ public class LevelCutsceneScene extends Scene {
     private String[]   kicker;
 
     public LevelCutsceneScene(IInputController input, IAudioController audio,
-                               SceneNavigator nav, CyberSceneFactory factory, int level) {
+                               SceneNavigator nav, int level) {
         super(input, audio, nav);
         this.level = level;
     }
@@ -221,11 +220,6 @@ public class LevelCutsceneScene extends Scene {
         nav.setScene(gameSceneRef);
     }
 
-    // initFactory called from static factory method below
-    private void initFactory(CyberSceneFactory f) {
-        this.factory = f;
-    }
-
     // ─────────────────────────────────────────────────────────────────────────
     @Override
     protected void onRender() {
@@ -321,7 +315,7 @@ public class LevelCutsceneScene extends Scene {
         // ---- Skip hint ----
         if (phase == Phase.TYPING || phase == Phase.HOLD) {
             hintFont.setColor(0.35f, 0.45f, 0.55f, 0.80f);
-            String hint = "SPACE / ENTER  to skip";
+            String hint = "SPACE / ENTER / click to skip";
             layout.setText(hintFont, hint);
             hintFont.draw(batch, hint, W - layout.width - 24, 20);
         }
@@ -359,8 +353,7 @@ public class LevelCutsceneScene extends Scene {
     public static LevelCutsceneScene create(IInputController input, IAudioController audio,
                                              SceneNavigator nav, CyberSceneFactory factory,
                                              int level) {
-        LevelCutsceneScene scene = new LevelCutsceneScene(input, audio, nav, factory, level);
-        scene.initFactory(factory);
+        LevelCutsceneScene scene = new LevelCutsceneScene(input, audio, nav, level);
         // Pre-create the game scene so it's ready for instant transition
         scene.gameSceneRef = factory.createGameScene(level);
         return scene;

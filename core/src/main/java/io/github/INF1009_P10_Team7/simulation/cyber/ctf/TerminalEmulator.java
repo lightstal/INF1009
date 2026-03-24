@@ -30,9 +30,8 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  *   <li>Panic key (TAB)  -  instantly close terminal</li>
  * </ul>
  *
- * <p>BUG-1 FIX: render() now uses its own pre-scaled fonts created in open(),
- * instead of calling font.getData().setScale() on the shared hudFont.
- * This prevents blurry/wrong-sized HUD text after closing a terminal challenge.
+ * <p>render() uses its own pre-scaled fonts created in open(),
+ * never mutating the caller's shared hudFont reference.
  */
 public class TerminalEmulator {
 
@@ -66,7 +65,7 @@ public class TerminalEmulator {
     private boolean cursorVisible = true;
     private int     scrollOffset  = 0;
 
-    // ---- Own fonts (BUG-1 FIX) ----
+    // ---- Own fonts (per-instance, never shared with HUD) ----
     private BitmapFont bodyFont;     // 0.88 scale  -  main terminal text
     private BitmapFont smallFont;    // 0.75 scale  -  scroll indicator
     private BitmapFont solvedFont;   // 1.1  scale  -  solved flash
@@ -102,7 +101,7 @@ public class TerminalEmulator {
         solveTimer     = 0f;
         lastDeleteNanos = 0L;
 
-        // Create own fonts at fixed scales  -  NEVER re-scaled later (BUG-1 FIX)
+        // Create own fonts at fixed scales — never re-scaled after creation
         disposeFonts();
         bodyFont   = makeFont(0.88f);
         smallFont  = makeFont(0.75f);
@@ -163,7 +162,7 @@ public class TerminalEmulator {
     }
 
     // =========================================================================
-    // RENDER  (BUG-1 FIX: uses own fonts, never mutates the passed-in font)
+    // RENDER — uses own fonts, never mutates the caller's passed-in font
     // =========================================================================
 
     public void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont ignoredFont) {

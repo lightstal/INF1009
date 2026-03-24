@@ -5,6 +5,7 @@ import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -35,15 +36,15 @@ public class TiledObjectCollisionManager implements IMapCollision {
         buildWallGrid(map, wallLayerName);
     }
 
-    /** Convenience overload using the default layer names from Level1.tmx */
+    /** Convenience overload using the default layer names. */
     public void build(TiledMap map) {
-        build(map, "wall collsion", "wall");
+        build(map, "collision", "Walls");
     }
 
     private void buildObjectWalls(TiledMap map, String layerName) {
         walls.clear();
         if (map.getLayers().get(layerName) == null) {
-            System.out.println("[TiledObjectCollisionManager] Object layer not found: " + layerName);
+            Gdx.app.log("TiledObjectCollisionManager", "Object layer not found: " + layerName);
             return;
         }
         for (MapObject obj : map.getLayers().get(layerName).getObjects()) {
@@ -51,14 +52,14 @@ public class TiledObjectCollisionManager implements IMapCollision {
                 walls.add(((RectangleMapObject) obj).getRectangle());
             }
         }
-        System.out.println("[TiledObjectCollisionManager] Loaded " + walls.size + " collision rects from '" + layerName + "'");
+        Gdx.app.log("TiledObjectCollisionManager", "Loaded " + walls.size + " collision rects from layer: " + layerName);
     }
 
     private void buildWallGrid(TiledMap map, String layerName) {
         wallGrid = new boolean[TileMap.ROWS][TileMap.COLS];
         TiledMapTileLayer layer = (TiledMapTileLayer) map.getLayers().get(layerName);
         if (layer == null) {
-            System.out.println("[TiledObjectCollisionManager] Tile layer not found: " + layerName);
+            Gdx.app.log("TiledObjectCollisionManager", "Tile layer not found: " + layerName);
             return;
         }
         for (int row = 0; row < TileMap.ROWS; row++) {
@@ -122,5 +123,10 @@ public class TiledObjectCollisionManager implements IMapCollision {
     public boolean isWall(int col, int row) {
         if (col < 0 || col >= TileMap.COLS || row < 0 || row >= TileMap.ROWS) return true;
         return wallGrid != null && wallGrid[row][col];
+    }
+
+    /** Returns the raw wall grid for minimap rendering. May be null before build(). */
+    public boolean[][] getWallGrid() {
+        return wallGrid;
     }
 }

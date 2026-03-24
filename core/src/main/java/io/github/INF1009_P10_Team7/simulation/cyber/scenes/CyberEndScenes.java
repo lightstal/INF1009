@@ -135,13 +135,13 @@ class CyberVictoryScene extends Scene {
 
     CyberVictoryScene(IInputController input, IAudioController audio,
                       SceneNavigator nav, CyberSceneFactory factory,
-                      int keysCollected, int keysRequired, int timeRemaining, int level,
+                      int keysCollected, int keysRequired, int missionElapsedSeconds, int level,
                       int respawnsUsed, int hintsUsed) {
         super(input, audio, nav);
         this.factory        = factory;
         this.keysCollected  = keysCollected;
         this.keysRequired   = keysRequired;
-        this.missionTimeSeconds = timeRemaining;
+        this.missionTimeSeconds = missionElapsedSeconds;
         this.level          = level;
         this.respawnsUsed   = respawnsUsed;
         this.hintsUsed      = hintsUsed;
@@ -247,7 +247,7 @@ class CyberVictoryScene extends Scene {
 
         smallFont.setColor(new Color(0.7f, 0.7f, 0.7f, 1f));
         smallFont.draw(batch, "SCORE: " + getScore(), TileMap.WORLD_W / 2f - 60f, TileMap.WORLD_H / 2f - 190f);
-        smallFont.draw(batch, "Faster clears improve rank, but lives now matter more than the old timer.",
+        smallFont.draw(batch, "Fast clears boost score (time bonus). Each respawn or signal ping costs points.",
             TileMap.WORLD_W / 2f - 250f, TileMap.WORLD_H / 2f - 208f);
         smallFont.draw(batch, "[SPACE] Level Select     [ESC] Main Menu",
             TileMap.WORLD_W / 2f - 165f, TileMap.WORLD_H / 2f - 230f);

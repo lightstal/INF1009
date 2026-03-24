@@ -37,21 +37,24 @@ public class Level2Config implements LevelConfig {
 
     @Override
     public DroneAI[] createDrones() {
-        // Drones patrol entire map: left Z-leg and right Z-leg
+        // Drones patrol entire map: left Z-leg, right Z-leg, and a center roamer
         return new DroneAI[]{
             new DroneAI(TileMap.tileCentreX(5), TileMap.tileCentreY(5),
                 new float[][]{ {5,5}, {9,8}, {19,11}, {9,13}, {5,17}, {9,13}, {19,11}, {9,8} }),
             new DroneAI(TileMap.tileCentreX(33), TileMap.tileCentreY(17),
-                new float[][]{ {33,5}, {28,8}, {19,11}, {28,13}, {33,17}, {28,13}, {19,11}, {28,8} })
+                new float[][]{ {33,5}, {28,8}, {19,11}, {28,13}, {33,17}, {28,13}, {19,11}, {28,8} }),
+            new DroneAI(TileMap.tileCentreX(7), TileMap.tileCentreY(3),
+                new float[][]{ {7,3}, {12,8}, {19,8}, {27,8}, {31,3}, {27,8}, {19,8}, {12,8} })
         };
     }
 
     @Override public int[] getPlayerStartTile() { return new int[]{ 19, 11 }; }
 
     @Override public int[][] getCameraPositions() {
-        return new int[][]{ {8,8,270}, {27,8,270}, {8,14,90}, {27,14,90} };
+        return new int[][]{ {8,8,270}, {27,8,270}, {8,14,90}, {27,14,90},
+                            {19,8,270}, {19,13,90}, {14,11,180}, {24,11,0} };
     }
     @Override public int[][] getLightPositions() {
-        return new int[][]{ {7,6}, {30,6}, {19,11}, {7,17}, {30,17} };
+        return new int[][]{ {19,9}, {19,11}, {19,13} };
     }
 }

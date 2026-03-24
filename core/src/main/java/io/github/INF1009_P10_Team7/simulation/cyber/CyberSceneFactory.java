@@ -1,5 +1,9 @@
 package io.github.INF1009_P10_Team7.simulation.cyber;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
 import io.github.INF1009_P10_Team7.engine.collision.ICollisionSystem;
 import io.github.INF1009_P10_Team7.engine.entity.IEntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
@@ -9,17 +13,23 @@ import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
+import io.github.INF1009_P10_Team7.simulation.cyber.scenes.CyberEndScenesFactory;
 import io.github.INF1009_P10_Team7.simulation.cyber.scenes.CyberGameScene;
 import io.github.INF1009_P10_Team7.simulation.cyber.scenes.CyberMainMenuScene;
-import io.github.INF1009_P10_Team7.simulation.cyber.scenes.CyberEndScenesFactory;
-import io.github.INF1009_P10_Team7.simulation.cyber.scenes.LinuxBootScene;
-import io.github.INF1009_P10_Team7.simulation.cyber.scenes.LevelSelectScene;
 import io.github.INF1009_P10_Team7.simulation.cyber.scenes.LevelCutsceneScene;
+import io.github.INF1009_P10_Team7.simulation.cyber.scenes.LevelSelectScene;
+import io.github.INF1009_P10_Team7.simulation.cyber.scenes.LinuxBootScene;
 import io.github.INF1009_P10_Team7.simulation.SettingsScene;
 
 /**
  * Factory for all Cyber Maze Escape scenes.
- * Supports levels 1-5.
+ *
+ * <p>Level configs are registered in a {@code Map<Integer, Supplier<LevelConfig>>}
+ * so adding a new level requires only one line here — the engine and
+ * {@link CyberGameScene} never change (OCP).</p>
+ *
+ * <p>Example: to add Level 3, just add:
+ * {@code levelConfigs.put(3, Level3Config::new);}</p>
  */
 public class CyberSceneFactory implements SceneFactory {
 
@@ -30,6 +40,12 @@ public class CyberSceneFactory implements SceneFactory {
     private final IEntitySystem    entitySystem;
     private final ICollisionSystem collisionSystem;
     private final IMovementSystem  movementSystem;
+
+    /**
+     * Registry of level number → LevelConfig supplier (OCP).
+     * Adding a new level = one line. No if/else chains needed.
+     */
+    private final Map<Integer, Supplier<LevelConfig>> levelConfigs = new HashMap<>();
 
     public CyberSceneFactory(IInputController input, IAudioController audio,
                               SceneNavigator nav, IEntityQuery entityQuery,
@@ -43,6 +59,10 @@ public class CyberSceneFactory implements SceneFactory {
         this.entitySystem    = entitySystem;
         this.collisionSystem = collisionSystem;
         this.movementSystem  = movementSystem;
+
+        // Register all available levels — add new levels here only (OCP)
+        levelConfigs.put(1, Level1Config::new);
+        levelConfigs.put(2, Level2Config::new);
     }
 
     public Scene createBootScene() {
@@ -63,8 +83,13 @@ public class CyberSceneFactory implements SceneFactory {
         return createGameScene(1);
     }
 
+    /**
+     * Creates a game scene for the given level number.
+     * Falls back to Level 1 if the level number is not registered.
+     */
     public Scene createGameScene(int level) {
-        LevelConfig config = (level == 2) ? new Level2Config() : new Level1Config();
+        Supplier<LevelConfig> supplier = levelConfigs.getOrDefault(level, Level1Config::new);
+        LevelConfig config = supplier.get();
         return new CyberGameScene(input, audio, nav,
             entitySystem, collisionSystem, movementSystem, this, config);
     }
@@ -87,7 +112,7 @@ public class CyberSceneFactory implements SceneFactory {
     }
 
     /**
-     * BUG-3 FIX: now passes keysRequired through to CyberVictoryScene.
+     * Passes all scoring parameters through to CyberVictoryScene.
      */
     public Scene createVictoryScene(int keys, int keysRequired, int timeLeft, int level) {
         return createVictoryScene(keys, keysRequired, timeLeft, level, 0, 0);

@@ -17,7 +17,7 @@ import io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory;
 import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
 
 /**
- * Level Select screen  -  five mission cards (Improvement 12).
+ * Level Select screen — two mission cards with key stats and flavour text.
  * A/D or LEFT/RIGHT to browse; SPACE or ENTER to launch; ESC to go back.
  */
 public class LevelSelectScene extends Scene {
@@ -38,11 +38,11 @@ public class LevelSelectScene extends Scene {
     private static final String[] SUBTITLES = { "STAR FORMATION", "Z-SHAPE COMPLEX" };
     private static final String[] FLAVOUR   = {
         "Five isolated labs in a star. No patrols tonight.",
-        "Two wings + bridge. Enemy drones sweep the corridor.",
+        "Two wings + bridge. Three drones sweep the corridor. Eight cameras guard every angle. Step into the light and they all come.",
     };
     private static final int[] TERMINALS = { 5, 5 };
-    private static final int[] DRONES    = { 0, 2 };
-    private static final String[] TIMERS = { "4:00", "3:40" };
+    private static final int[] DRONES    = { 0, 3 };
+    private static final String[] TIMERS = { "4:00", "6:30" };
     private static final String[] DIFF   = { "ROOKIE", "AGENT" };
 
     private static final float[][] ACCENT = {
@@ -241,8 +241,8 @@ public class LevelSelectScene extends Scene {
             if (sel) {
                 float bp = 0.6f + 0.4f * pulse;
                 bodyFont.setColor(ac[0]*bp, ac[1]*bp, ac[2]*bp, 1f);
-                layout.setText(bodyFont, ">  PRESS ENTER TO DEPLOY");
-                bodyFont.draw(batch, ">  PRESS ENTER TO DEPLOY",
+                layout.setText(bodyFont, ">  ENTER / SPACE  TO DEPLOY");
+                bodyFont.draw(batch, ">  ENTER / SPACE  TO DEPLOY",
                     cx + CARD_W/2f - layout.width/2f, cy - 24f);
             }
         }

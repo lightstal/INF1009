@@ -1,10 +1,15 @@
 {
-  "terminal": "Textures/terminal.png",
-  "player": "Textures/player.png",
-  "hunter": "Textures/hunter.png",
-  "phoneWifi": "Textures/phone_wifi.png",
-  "camera": "Textures/camera.png",
-  "mapPin": "Textures/map_pin.png",
-  "secCamera": "Textures/sec_camera.png",
-  "ceilingLight": "Textures/ceiling_light.png"
+  "terminal":        "Textures/terminal.png",
+  "player":          "Textures/player.png",
+  "phoneWifi":       "Textures/phone_wifi.png",
+  "camera":          "Textures/camera.png",
+  "mapPin":          "Textures/map_pin.png",
+  "secCamera":       "Textures/sec_camera.png",
+  "ceilingLight":    "Textures/ceiling_light.png",
+  "intelServerLog":  "Textures/osint.png",
+  "intelUsb":        "Textures/phone_wifi.png",
+  "intelKeycard":    "Textures/map_pin.png",
+  "dronePatrolRed":  "Textures/generated/drone_patrol_red.png",
+  "droneDetectRed":  "Textures/generated/drone_detect_red.png",
+  "droneDamagedRed": "Textures/generated/drone_damaged_red.png"
 }

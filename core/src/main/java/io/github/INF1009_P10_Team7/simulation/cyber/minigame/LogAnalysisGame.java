@@ -14,15 +14,12 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
 /**
  * CHALLENGE: INTERCEPTED DOCUMENT ANALYSIS
  *
- * BUG-2 FIX: The highlight rectangle for the OVERRIDE line is now drawn in
- * a separate ShapeRenderer pass BEFORE batch.begin(), instead of calling
- * sr.begin()/sr.end() inside an active SpriteBatch  -  which caused
- * IllegalStateException.
+ * Renders an intercepted email chain the player must scroll to find an
+ * OVERRIDE CODE, then type it into the input prompt.
  *
- * Also uses own pre-scaled fonts (Bug-1 consistency).
- *
- * BUG-3 FIX: Hint text now uses bright amber color (0.7, 0.55, 0.2) with a
- * dark background strip, and is positioned ABOVE the input box for visibility.
+ * The highlight rectangle is drawn in the same ShapeRenderer pass as
+ * the backgrounds (before batch.begin()) to avoid IllegalStateException.
+ * Hint text is rendered above the input box on a dark strip for visibility.
  */
 public class LogAnalysisGame implements IMiniGame {
 
@@ -239,7 +236,7 @@ public class LogAnalysisGame implements IMiniGame {
             sr.rect(wx, wy, ww, wh);
         }
 
-        // ── BUG-2 FIX: Draw highlight backgrounds HERE, in the same sr pass ──
+        // ── Draw highlight backgrounds in the same sr pass (before batch) ──
         float lineH  = 15f;
         float lineX  = wx + 30f;
         float lineYStart = docY + docH - 14f;
@@ -324,7 +321,7 @@ public class LogAnalysisGame implements IMiniGame {
         medFont.setColor(Color.WHITE);
         medFont.draw(batch, inputBuf.toString() + (blink && !solved ? "|" : " "), wx + 120, inputY + 24f);
 
-        // BUG-3 FIX: Hint text now bright amber, drawn ABOVE the input box on its own strip
+        // Hint text drawn ABOVE the input box on its own contrasting strip
         smallFont.setColor(0.7f, 0.55f, 0.2f, 1f);
         smallFont.draw(batch, "Read the document above. Find the OVERRIDE CODE and press ENTER.",
             wx + 28, hintStripY + 14f);

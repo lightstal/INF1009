@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.math.Vector3;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
@@ -37,6 +38,11 @@ public class CyberMainMenuScene extends Scene {
     private BitmapFont startFont;   // old scale 1.05
 
     private float stateTime = 0f;
+    private final Vector3 touchWorld = new Vector3();
+    private float startBtnX, startBtnY, startBtnW, startBtnH;
+    private float exitBtnX, exitBtnY, exitBtnW, exitBtnH;
+    private boolean startHover = false;
+    private boolean exitHover = false;
     // matrix rain columns
     private static final int RAIN_COLS = 50;
     private final float[] rainY    = new float[RAIN_COLS];
@@ -96,9 +102,53 @@ public class CyberMainMenuScene extends Scene {
             }
         }
 
-        if (input.isActionJustPressed("START_GAME") || Gdx.input.justTouched()) {
+        updateMenuButtons();
+
+        if (input.isActionJustPressed("START_GAME")) {
             nav.requestScene(factory.createLevelSelectScene());
+            return;
         }
+        if (input.isActionJustPressed("MENU_BACK")) {
+            Gdx.app.exit();
+            return;
+        }
+
+        if (Gdx.input.justTouched()) {
+            if (startHover) {
+                nav.requestScene(factory.createLevelSelectScene());
+                return;
+            }
+            if (exitHover) {
+                Gdx.app.exit();
+                return;
+            }
+        }
+    }
+
+    private void updateMenuButtons() {
+        float panW = 560f, panH = 292f;
+        float panX = TileMap.WORLD_W/2f - panW/2f;
+        float panY = TileMap.WORLD_H/2f - panH/2f;
+
+        startBtnW = 170f;
+        startBtnH = 36f;
+        exitBtnW  = 126f;
+        exitBtnH  = 36f;
+        float gap = 18f;
+        float totalW = startBtnW + gap + exitBtnW;
+        startBtnX = TileMap.WORLD_W/2f - totalW/2f;
+        exitBtnX  = startBtnX + startBtnW + gap;
+        startBtnY = panY + 34f;
+        exitBtnY  = panY + 34f;
+
+        touchWorld.set(Gdx.input.getX(), Gdx.input.getY(), 0f);
+        viewport.unproject(touchWorld);
+        startHover = contains(startBtnX, startBtnY, startBtnW, startBtnH, touchWorld.x, touchWorld.y);
+        exitHover  = contains(exitBtnX, exitBtnY, exitBtnW, exitBtnH, touchWorld.x, touchWorld.y);
+    }
+
+    private boolean contains(float x, float y, float w, float h, float px, float py) {
+        return px >= x && px <= x + w && py >= y && py <= y + h;
     }
 
     @Override
@@ -151,7 +201,7 @@ public class CyberMainMenuScene extends Scene {
         sr.begin(ShapeRenderer.ShapeType.Filled);
 
         // Central dark panel
-        float panW = 560f, panH = 280f;
+        float panW = 560f, panH = 292f;
         float panX = TileMap.WORLD_W/2f - panW/2f;
         float panY = TileMap.WORLD_H/2f - panH/2f;
         sr.setColor(0f, 0f, 0f, 0.75f);
@@ -181,6 +231,25 @@ public class CyberMainMenuScene extends Scene {
         sr.rect(panX, panY+panH-2, panW, 2);
         sr.rect(panX, panY, panW, 2);
 
+        sr.end();
+
+        updateMenuButtons();
+
+        float startGlow = startHover ? 1f : 0.84f + 0.16f * (float)Math.sin(stateTime * 4.0f);
+        float exitGlow  = exitHover  ? 1f : 0.82f + 0.18f * (float)Math.sin(stateTime * 3.3f + 0.7f);
+
+        sr.begin(ShapeRenderer.ShapeType.Filled);
+        sr.setColor(0.04f, 0.16f, 0.10f, 0.96f);
+        sr.rect(startBtnX, startBtnY, startBtnW, startBtnH);
+        sr.setColor(0.00f, 0.90f * startGlow, 0.48f * startGlow, 0.95f);
+        sr.rect(startBtnX, startBtnY + startBtnH - 2f, startBtnW, 2f);
+        sr.rect(startBtnX, startBtnY, 2f, startBtnH);
+
+        sr.setColor(0.16f, 0.04f, 0.05f, 0.96f);
+        sr.rect(exitBtnX, exitBtnY, exitBtnW, exitBtnH);
+        sr.setColor(1.00f * exitGlow, 0.34f * exitGlow, 0.30f * exitGlow, 0.95f);
+        sr.rect(exitBtnX, exitBtnY + exitBtnH - 2f, exitBtnW, 2f);
+        sr.rect(exitBtnX + exitBtnW - 2f, exitBtnY, 2f, exitBtnH);
         sr.end();
 
         // Text — each font is pre-generated at its native size, no scaling
@@ -213,21 +282,43 @@ public class CyberMainMenuScene extends Scene {
             "TAB    -  panic-close terminal",
             "↑↓ arrows  -  command history inside terminal"
         };
-        float by = panY + panH - 100f;
+        float by = panY + panH - 106f;
         for (String line : brief) {
-            if (line.isEmpty()) { by -= 8f; continue; }
+            if (line.isEmpty()) { by -= 10f; continue; }
             briefFont.setColor(line.startsWith("W") || line.startsWith("T") || line.startsWith("↑")
                 ? new Color(0.55f,0.55f,0.6f,1f) : new Color(0.75f,0.85f,0.75f,1f));
             briefFont.draw(batch, line, panX + 30f, by);
-            by -= 18f;
+            by -= 19f;
         }
 
-        // Press start blink
-        boolean blink = (int)(stateTime * 2f) % 2 == 0;
-        startFont.setColor(blink ? new Color(0f,1f,0.5f,1f) : new Color(0f,0.5f,0.3f,0.7f));
-        String ps = " -  PRESS [SPACE] OR CLICK TO START  - ";
-        layout.setText(startFont, ps);
-        startFont.draw(batch, ps, TileMap.WORLD_W/2f - layout.width/2f, panY + 24f);
+        batch.end();
+
+        sr.begin(ShapeRenderer.ShapeType.Filled);
+        sr.setColor(0f, 0.70f, 0.42f, 0.20f);
+        sr.rect(panX + 28f, panY + 86f, panW - 56f, 1.5f);
+        sr.end();
+
+        batch.begin();
+
+        // Start + exit buttons
+        startFont.setColor(0.90f, 1f, 0.95f, 0.98f);
+        String startLabel = "START MISSION";
+        layout.setText(startFont, startLabel);
+        startFont.draw(batch, startLabel,
+            startBtnX + startBtnW/2f - layout.width/2f,
+            startBtnY + startBtnH/2f + layout.height/2f - 2f);
+
+        startFont.setColor(1f, 0.90f, 0.90f, 0.98f);
+        String exitLabel = "EXIT";
+        layout.setText(startFont, exitLabel);
+        startFont.draw(batch, exitLabel,
+            exitBtnX + exitBtnW/2f - layout.width/2f,
+            exitBtnY + exitBtnH/2f + layout.height/2f - 2f);
+
+        briefFont.setColor(0.44f, 0.86f, 0.74f, 0.88f);
+        String hotkeys = "[SPACE] START      [ESC] EXIT";
+        layout.setText(briefFont, hotkeys);
+        briefFont.draw(batch, hotkeys, TileMap.WORLD_W/2f - layout.width/2f, panY + 18f);
 
         batch.end();
     }

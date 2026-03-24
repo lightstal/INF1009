@@ -9,6 +9,12 @@ public class SearchState implements DroneState {
     private final float duration;
     private float timer;
 
+    // Stuck detection — if drone barely moves for long enough, give up and patrol
+    private float stuckTimer = 0f;
+    private float lastX = 0f, lastY = 0f;
+    private static final float STUCK_TIMEOUT   = 0.6f;
+    private static final float STUCK_THRESHOLD = 1.0f;
+
     public SearchState(float targetX, float targetY) {
         this(targetX, targetY, 1.2f);
     }
@@ -23,6 +29,9 @@ public class SearchState implements DroneState {
     @Override
     public void enter(DroneAI ai) {
         ai.setAlertLevel(0.55f);
+        stuckTimer = 0f;
+        lastX = ai.getPosition().x;
+        lastY = ai.getPosition().y;
     }
 
     @Override
@@ -70,6 +79,21 @@ public class SearchState implements DroneState {
             ai.transitionTo(new ChaseState());
             return;
         }
+
+        // Stuck detection: if the drone barely moved this frame, increment stuck timer
+        float moved = Math.abs(pos.x - lastX) + Math.abs(pos.y - lastY);
+        if (moved < STUCK_THRESHOLD) {
+            stuckTimer += dt;
+            if (stuckTimer >= STUCK_TIMEOUT) {
+                // Can't reach target — give up and return to patrol
+                ai.transitionTo(new PatrolState(ai.getPatrolWaypoints()));
+                return;
+            }
+        } else {
+            stuckTimer = 0f;
+        }
+        lastX = pos.x;
+        lastY = pos.y;
 
         timer -= dt;
         ai.setAlertLevel(Math.max(0.2f, timer / duration * 0.55f));
