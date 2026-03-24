@@ -8,39 +8,39 @@ com.badlogic.gdx.graphics.g2d.BitmapFont: {
 	}
 }
 com.badlogic.gdx.graphics.Color: {
-	RGBA_195_246_38_255: {
-		r: 0.7647059
-		g: 0.9647059
-		b: 0.14901961
+	BTN_NORMAL: {
+		r: 0.043
+		g: 0.082
+		b: 0.129
 		a: 1
 	}
-	RGBA_254_20_20_255: {
-		r: 0.99607843
-		g: 0.078431375
-		b: 0.078431375
+	BTN_OVER: {
+		r: 0.043
+		g: 0.180
+		b: 0.098
 		a: 1
 	}
-	RGBA_255_219_219_255: {
-		r: 1
-		g: 0.85882354
-		b: 0.85882354
+	BTN_DOWN: {
+		r: 0.000
+		g: 0.722
+		b: 0.302
 		a: 1
 	}
 }
 com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 	box: {
 		name: white-pixel
-		color: RGBA_195_246_38_255
+		color: BTN_NORMAL
 		minWidth: 100
 		minHeight: 40
 	}
 	test: {
 		name: white-pixel
-		color: RGBA_254_20_20_255
+		color: BTN_DOWN
 	}
 	g: {
 		name: white-pixel
-		color: RGBA_255_219_219_255
+		color: BTN_OVER
 	}
 }
 com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle: {

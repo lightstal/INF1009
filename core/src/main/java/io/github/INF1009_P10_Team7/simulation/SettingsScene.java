@@ -27,7 +27,7 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
 
 /**
- * Settings screen with volume slider, key rebinding, RESUME, and QUIT GAME.
+ * Settings screen with volume slider, key rebinding, RESUME, and RETURN MENU.
  */
 public class SettingsScene extends Scene {
 
@@ -46,6 +46,9 @@ public class SettingsScene extends Scene {
 
     /** FreeType font injected into the skin to replace the pixelated bitmap font. */
     private BitmapFont skinFont;
+
+    private float   stateTime     = 0f;
+    private boolean sliderDragging = false;
 
     private float panelX, panelY, panelW, panelH;
     private float sliderX, sliderY, sliderW, sliderH;
@@ -184,7 +187,9 @@ public class SettingsScene extends Scene {
             com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle style =
                 skin.get("default", com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle.class);
             style.font = skinFont;
-            style.fontColor = new com.badlogic.gdx.graphics.Color(0.05f, 0.05f, 0.05f, 1f);
+            style.fontColor      = new com.badlogic.gdx.graphics.Color(0f,    0.82f, 0.42f, 1f); // normal: cyber green
+            style.overFontColor  = new com.badlogic.gdx.graphics.Color(0.78f, 1f,    0.86f, 1f); // hover:  bright mint
+            style.downFontColor  = new com.badlogic.gdx.graphics.Color(0.03f, 0.07f, 0.04f, 1f); // press:  near-black
 
             uiElement = new UIElement(skin, true);
             createActionButtons();
@@ -198,12 +203,14 @@ public class SettingsScene extends Scene {
     private void createActionButtons() {
         resumeButton = uiElement.createButton("RESUME",
             ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, () -> nav.popScene());
+        resumeButton.getLabel().setFontScale(0.30f);
         resumeButton.setPosition(resumeBtnX, resumeBtnY);
         stage.addActor(resumeButton);
 
-        quitButton = uiElement.createButton("QUIT GAME",
+        quitButton = uiElement.createButton("RETURN MENU",
             ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT,
             () -> nav.requestScene(factory.createMainMenuScene()));
+        quitButton.getLabel().setFontScale(0.30f);
         quitButton.setPosition(quitBtnX, quitBtnY);
         stage.addActor(quitButton);
     }
@@ -238,6 +245,7 @@ public class SettingsScene extends Scene {
 
     @Override
     protected void onUpdate(float delta) {
+        stateTime += delta;
         handleKeyboardShortcuts();
 
         float previousVolume = volume01;
@@ -251,10 +259,16 @@ public class SettingsScene extends Scene {
         if (Gdx.input.justTouched()) {
             Vector2 world = viewport.unproject(
                 new Vector2(Gdx.input.getX(), Gdx.input.getY()));
-            if (contains(world.x, world.y, sliderX, sliderY - 12f, sliderW, sliderH + 24f)) {
-                float t = (world.x - sliderX) / sliderW;
-                volume01 = MathUtils.clamp(t, 0f, 1f);
-            }
+            sliderDragging = contains(world.x, world.y, sliderX, sliderY - 12f, sliderW, sliderH + 24f);
+        }
+        if (!Gdx.input.isTouched()) {
+            sliderDragging = false;
+        }
+        if (sliderDragging) {
+            Vector2 world = viewport.unproject(
+                new Vector2(Gdx.input.getX(), Gdx.input.getY()));
+            float t = (world.x - sliderX) / sliderW;
+            volume01 = MathUtils.clamp(t, 0f, 1f);
         }
 
         if (Math.abs(volume01 - previousVolume) > 0.001f) {
@@ -288,58 +302,150 @@ public class SettingsScene extends Scene {
     private void prepareRender() {
         viewport.apply();
         camera.update();
-        Gdx.gl.glClearColor(0.08f, 0.09f, 0.11f, 1f);
+        Gdx.gl.glClearColor(0.05f, 0.07f, 0.10f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         shape.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(camera.combined);
     }
 
     private void renderShapes() {
+        float pulse = 0.5f + 0.5f * MathUtils.sin(stateTime * 2.0f);
+
         shape.begin(ShapeRenderer.ShapeType.Filled);
-        shape.setColor(0.13f, 0.14f, 0.17f, 1f);
+
+        // ── Background dot grid ──────────────────────────────────────────────
+        shape.setColor(0.07f, 0.10f, 0.15f, 1f);
+        for (float gx = 0; gx <= VW; gx += 40f) {
+            for (float gy = 0; gy <= VH; gy += 40f) {
+                shape.rect(gx - 1f, gy - 1f, 2f, 2f);
+            }
+        }
+
+        // ── Panel outer glow (multi-layer) ───────────────────────────────────
+        shape.setColor(0f, 0.78f, 0.40f, 0.10f + 0.05f * pulse);
+        shape.rect(panelX - 8, panelY - 8, panelW + 16, panelH + 16);
+        shape.setColor(0f, 0.68f, 0.34f, 0.20f + 0.06f * pulse);
+        shape.rect(panelX - 4, panelY - 4, panelW + 8, panelH + 8);
+        shape.setColor(0f, 0.58f, 0.28f, 0.32f);
+        shape.rect(panelX - 2, panelY - 2, panelW + 4, panelH + 4);
+
+        // ── Panel body ───────────────────────────────────────────────────────
+        shape.setColor(0.07f, 0.09f, 0.13f, 1f);
         shape.rect(panelX, panelY, panelW, panelH);
-        shape.setColor(0.18f, 0.19f, 0.23f, 1f);
+
+        // ── Title bar ────────────────────────────────────────────────────────
+        shape.setColor(0f, 0.16f, 0.10f, 1f);
         shape.rect(panelX, panelY + panelH - 80f, panelW, 80f);
-        shape.setColor(0.10f, 0.11f, 0.14f, 1f);
-        shape.rect(sliderX, sliderY, sliderW, sliderH);
-        shape.setColor(0.30f, 0.75f, 0.45f, 1f);
-        shape.rect(sliderX, sliderY, sliderW * volume01, sliderH);
+        shape.setColor(0f, 0.82f, 0.42f, 0.90f);
+        shape.rect(panelX, panelY + panelH - 80f, panelW, 2f);
+        shape.setColor(0f, 0.82f, 0.42f, 0.55f + 0.20f * pulse);
+        shape.rect(panelX, panelY + panelH - 2f, panelW, 2f);
+
+        // ── Panel side borders ───────────────────────────────────────────────
+        shape.setColor(0f, 0.52f, 0.26f, 0.48f);
+        shape.rect(panelX, panelY, 2f, panelH - 80f);
+        shape.rect(panelX + panelW - 2f, panelY, 2f, panelH - 80f);
+        shape.setColor(0f, 0.42f, 0.20f, 0.40f);
+        shape.rect(panelX, panelY, panelW, 2f);
+
+        // ── Decorative corner brackets ───────────────────────────────────────
+        float br = 14f, bt = 2f;
+        float bAlpha = 0.55f + 0.20f * pulse;
+        shape.setColor(0f, 0.82f, 0.42f, bAlpha);
+        // content top-left
+        shape.rect(panelX + 10f, panelY + panelH - 88f - br, bt, br);
+        shape.rect(panelX + 10f, panelY + panelH - 88f - bt, br, bt);
+        // content bottom-right
+        shape.rect(panelX + panelW - 10f - bt, panelY + 10f, bt, br);
+        shape.rect(panelX + panelW - 10f - br, panelY + 10f, br, bt);
+        // title top-left
+        shape.rect(panelX + 10f, panelY + panelH - 10f - br, bt, br);
+        shape.rect(panelX + 10f, panelY + panelH - 10f - bt, br, bt);
+        // title top-right
+        shape.rect(panelX + panelW - 10f - bt, panelY + panelH - 10f - br, bt, br);
+        shape.rect(panelX + panelW - 10f - br, panelY + panelH - 10f - bt, br, bt);
+
+        // ── Volume section label accent bar ──────────────────────────────────
+        shape.setColor(0f, 0.82f, 0.42f, 0.80f);
+        shape.rect(panelX + 40f, sliderY + 22f, 3f, 14f);
+
+        // ── Volume slider (redesigned) ───────────────────────────────────────
+        shape.setColor(0.04f, 0.07f, 0.10f, 1f);
+        shape.rect(sliderX, sliderY - 1f, sliderW, sliderH + 2f);
+        shape.setColor(0.08f, 0.12f, 0.17f, 1f);
+        shape.rect(sliderX + 1f, sliderY, sliderW - 2f, sliderH);
+        if (volume01 > 0.005f) {
+            shape.setColor(0f, 0.75f, 0.38f, 0.30f);
+            shape.rect(sliderX, sliderY - 3f, sliderW * volume01, sliderH + 6f);
+            shape.setColor(0f, 0.78f, 0.40f, 1f);
+            shape.rect(sliderX, sliderY, sliderW * volume01, sliderH);
+        }
+        shape.setColor(0f, 0.42f, 0.20f, 0.45f);
+        for (int t = 1; t < 10; t++) {
+            float tx = sliderX + sliderW * (t / 10f);
+            shape.rect(tx, sliderY + sliderH * 0.2f, 1f, sliderH * 0.6f);
+        }
         float knobX = sliderX + sliderW * volume01;
-        shape.setColor(0.90f, 0.90f, 0.95f, 1f);
-        shape.circle(knobX, sliderY + sliderH / 2f, 12f);
+        float knobCY = sliderY + sliderH / 2f;
+        shape.setColor(0f, 0.82f, 0.42f, 0.30f + 0.12f * pulse);
+        shape.circle(knobX, knobCY, 16f, 24);
+        shape.setColor(0.10f, 0.16f, 0.22f, 1f);
+        shape.circle(knobX, knobCY, 12f, 24);
+        shape.setColor(0f, 0.82f, 0.42f, 0.85f + 0.10f * pulse);
+        shape.circle(knobX, knobCY, 6f, 16);
+        shape.setColor(0.80f, 1f, 0.88f, 0.85f);
+        shape.circle(knobX, knobCY, 3f, 12);
+
+        // ── Section separator after slider ───────────────────────────────────
+        shape.setColor(0f, 0.38f, 0.20f, 0.40f);
+        shape.rect(panelX + 40f, sliderY - 20f, panelW - 80f, 1f);
+
+        // ── Section accent bars + separators (keybinding rows) ───────────────
+        float movLabelY = rowMovementY + KEY_BUTTON_HEIGHT;
+        shape.setColor(0f, 0.82f, 0.42f, 0.80f);
+        shape.rect(panelX + 40f, movLabelY + 8f, 3f, 14f);
+        shape.setColor(0f, 0.38f, 0.20f, 0.40f);
+        shape.rect(panelX + 40f, movLabelY + 36f, panelW - 80f, 1f);
+
+        float gpLabelY = rowGameplayY + KEY_BUTTON_HEIGHT;
+        shape.setColor(0f, 0.82f, 0.42f, 0.80f);
+        shape.rect(panelX + 40f, gpLabelY + 8f, 3f, 14f);
+        shape.setColor(0f, 0.38f, 0.20f, 0.40f);
+        shape.rect(panelX + 40f, gpLabelY + 36f, panelW - 80f, 1f);
+
+        // ── Separator above action buttons ───────────────────────────────────
+        shape.setColor(0f, 0.38f, 0.20f, 0.40f);
+        shape.rect(panelX + 40f, panelY + 104f, panelW - 80f, 1f);
+
         shape.end();
     }
 
     private void renderText() {
         batch.begin();
 
-        titleFont.setColor(1f, 1f, 1f, 1f);
+        // ── Title ─────────────────────────────────────────────────────────────
+        titleFont.setColor(0f, 0.88f, 0.48f, 1f);
         layout.setText(titleFont, "SETTINGS");
         titleFont.draw(batch, layout,
             panelX + (panelW - layout.width) / 2f,
-            panelY + panelH - 28f);
+            panelY + panelH - 26f);
 
-        volFont.setColor(1f, 1f, 1f, 1f);
+        // ── Volume ────────────────────────────────────────────────────────────
+        volFont.setColor(0.78f, 0.94f, 0.84f, 1f);
         layout.setText(volFont, "MASTER VOLUME");
-        volFont.draw(batch, layout, sliderX, sliderY + 54f);
+        volFont.draw(batch, layout, sliderX + 12f, sliderY + 36f);
 
         String percent = (int)(volume01 * 100) + "%";
+        volFont.setColor(0f, 0.82f, 0.42f, 1f);
         layout.setText(volFont, percent);
-        volFont.draw(batch, layout, sliderX + sliderW - layout.width, sliderY + 54f);
+        volFont.draw(batch, layout, sliderX + sliderW - layout.width, sliderY + 36f);
 
-        sectionFont.setColor(0.86f, 0.92f, 1f, 1f);
+        // ── Section labels ────────────────────────────────────────────────────
+        sectionFont.setColor(0.72f, 0.92f, 0.80f, 1f);
         sectionFont.draw(batch, "MOVEMENT",
-            panelX + 60f, rowMovementY + KEY_BUTTON_HEIGHT + 22f);
-        sectionFont.draw(batch, "GAMEPLAY / TERMINAL",
-            panelX + 60f, rowGameplayY + KEY_BUTTON_HEIGHT + 22f);
-
-        helpFont.setColor(0.6f, 0.6f, 0.65f, 1f);
-        helpFont.draw(batch,
-            "ESC opens settings (hardcoded). TAB closes a terminal (hardcoded).",
-            panelX + 60f, panelY + 118f);
-        helpFont.draw(batch,
-            "ENTER confirms in menus. Arrow keys adjust volume.",
-            panelX + 60f, panelY + 94f);
+            panelX + 52f, rowMovementY + KEY_BUTTON_HEIGHT + 22f);
+        sectionFont.draw(batch, "GAMEPLAY  /  TERMINAL",
+            panelX + 52f, rowGameplayY + KEY_BUTTON_HEIGHT + 22f);
 
         batch.end();
     }
