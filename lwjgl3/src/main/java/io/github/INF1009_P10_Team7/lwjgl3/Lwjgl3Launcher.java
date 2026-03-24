@@ -20,7 +20,7 @@ public class Lwjgl3Launcher {
 
 
         configuration.setWindowedMode(1920, 1080);
-        configuration.setResizable(true);  // Window CAN be resized
+        configuration.setResizable(true);
 
 
         configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
