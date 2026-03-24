@@ -31,6 +31,5 @@ public interface LevelConfig {
 
     // Rendering helpers
     int[][] getCameraPositions();
-    int[][] getBarrierPositions();
     int[][] getLightPositions();
 }

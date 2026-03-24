@@ -40,9 +40,6 @@ public class Level1Config implements LevelConfig {
     @Override public int[][] getCameraPositions() {
         return new int[][]{ {19, 8, 270} };
     }
-    @Override public int[][] getBarrierPositions() {
-        return new int[][]{ {18, 12}, {20, 12} };
-    }
     @Override public int[][] getLightPositions() {
         return new int[][]{ {19, 5}, {19, 12}, {19, 18} };
     }

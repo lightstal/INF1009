@@ -745,10 +745,6 @@ public class CyberGameScene extends Scene {
      *                       The fixture sprite itself is drawn at the top of the
      *                       pool so it reads as "mounted overhead".
      *
-     *  barrier_large/small– Physical cover crates rendered in corridors.  A dark
-     *                       shadow ellipse is drawn under each one so they sit on
-     *                       the ground convincingly.  Players can hide behind them.
-     *
      *  sec_camera.png     – Mounted on the wall ABOVE each corridor entrance
      *                       (one tile above the doorway).  The sprite rotates
      *                       slowly back and forth (±40°) like a real CCTV pan,
@@ -778,10 +774,7 @@ public class CyberGameScene extends Scene {
         // ── 1. Ceiling lights: floor glow pool + mounted fixture sprite ────────
         renderCeilingLights(ts);
 
-        // ── 2. Barrier crates with shadows ────────────────────────────────────
-        renderBarriers(ts);
-
-        // ── 3. Security cameras mounted above corridor doorways ───────────────
+        // ── 2. Security cameras mounted above corridor doorways ───────────────
         renderSecurityCameras(ts);
 
         // ── 4. Hunter sprite as drone body ────────────────────────────────────
@@ -835,36 +828,6 @@ public class CyberGameScene extends Scene {
             }
             batch.end();
         }
-    }
-
-    /** Barrier crates: shadow ellipse on ground + sprite on top. */
-    private void renderBarriers(float ts) {
-        int[][] barriers = getBarrierPositions();
-
-        // Shadow pass
-        sr.begin(ShapeRenderer.ShapeType.Filled);
-        for (int i = 0; i < barriers.length; i++) {
-            float bx = TileMap.tileCentreX(barriers[i][0]);
-            float by = TileMap.tileCentreY(barriers[i][1]);
-            boolean large = (i % 3 != 2);
-            float shadowW = large ? ts * 0.95f : ts * 0.70f;
-            sr.setColor(0f, 0f, 0f, 0.38f);
-            sr.ellipse(bx - shadowW * 0.5f, by - ts * 0.22f, shadowW, ts * 0.28f);
-        }
-        sr.end();
-
-        // Sprite pass
-        batch.begin();
-        for (int i = 0; i < barriers.length; i++) {
-            boolean large = (i % 3 != 2);
-            String bTexKey = large ? "barrierLg" : "barrierSm";
-            if (sprites.get(bTexKey) == null) continue;
-            float bx = TileMap.tileCentreX(barriers[i][0]);
-            float by = TileMap.tileCentreY(barriers[i][1]);
-            float size = large ? ts * 0.85f : ts * 0.62f;
-            sprites.drawCentered(batch, bTexKey, bx, by + ts * 0.08f, size, 1.0f);
-        }
-        batch.end();
     }
 
     /**
@@ -1018,7 +981,6 @@ public class CyberGameScene extends Scene {
     }
 
     private int[][] getLightPositions()   { return config.getLightPositions(); }
-    private int[][] getBarrierPositions() { return config.getBarrierPositions(); }
     private int[][] getCameraPositions()  { return config.getCameraPositions(); }
 
     // ── Terminal glow & hints ────────────────────────────────────────────────
