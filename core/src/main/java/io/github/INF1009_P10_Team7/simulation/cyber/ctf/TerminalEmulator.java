@@ -78,6 +78,7 @@ public class TerminalEmulator {
     // ---- Glitch effect ----
     private float glitchTimer = 0f;
     private float stateTime   = 0f;
+    private float solveTimer  = 0f;
     private long  lastDeleteNanos = 0L;
     private InputProcessor previousProcessor;
 
@@ -98,6 +99,7 @@ public class TerminalEmulator {
         scrollOffset   = 0;
         stateTime      = 0f;
         cursorTimer    = 0f;
+        solveTimer     = 0f;
         lastDeleteNanos = 0L;
 
         // Create own fonts at fixed scales  -  NEVER re-scaled later (BUG-1 FIX)
@@ -153,6 +155,11 @@ public class TerminalEmulator {
 
         if (scrollOffset == 0) clampScroll();
         if (stateTime < 0.3f) glitchTimer = stateTime;
+
+        if (challenge != null && challenge.isSolved()) {
+            solveTimer += dt;
+            if (solveTimer > 2f) close();
+        }
     }
 
     // =========================================================================
