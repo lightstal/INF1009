@@ -49,7 +49,7 @@ public class LevelSelectScene extends Scene {
     };
     private static final int[] TERMINALS = { 5, 5 };
     private static final int[] DRONES    = { 0, 3 };
-    private static final String[] TIMERS = { "4:00", "6:30" };
+    private static final String[] TIMERS = { "6:00", "6:30" };
     private static final String[] DIFF   = { "ROOKIE", "AGENT" };
 
     private static final float[][] ACCENT = {
