@@ -14,12 +14,14 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
 /**
  * BINARY DECODER
  *
- * Five 8-bit bytes spell "FLAGS". Students decode each byte to its ASCII
- * character and type it into the terminal prompt.
+ * Pass any uppercase word into the constructor — the game auto-calculates
+ * every 8-bit binary string from the ASCII value of each character.
  *
- * FIX: The InputAdapter is set as the processor in open() and is NEVER
- * overwritten by the game scene (CyberGameScene.onUpdate only resets the
- * processor when no challenge is active). TAB/ESC now reliably close.
+ * To change the secret word, update only the string in LevelConfig:
+ *   Level 1 (easy) : new BinaryDecodeGame("FLAGS")
+ *   Level 2 (hard) : new BinaryDecodeGame("CRYPT")
+ *
+ * Any word of any length works — the UI adapts automatically.
  */
 public class BinaryDecodeGame implements IMiniGame {
 
@@ -27,8 +29,11 @@ public class BinaryDecodeGame implements IMiniGame {
     private static final float WX = 140f, WY = 50f, WW = 1000f, WH = 600f;
     private static final float TITLE_H = 40f;
 
-    private static final String[] BINARY  = { "01000110","01001100","01000001","01000111","01010011" };
-    private static final char[]   ANSWERS = { 'F','L','A','G','S' };
+    // ── Only thing you ever need to change ───────────────────────────────────
+    // Edit the string passed to the constructor inside LevelConfig.
+    // Binary strings and answer chars are derived automatically.
+    private final String secretWord;
+    // ─────────────────────────────────────────────────────────────────────────
 
     private boolean open, solved, panicked;
     private float   stateTime, wrongFlash, solveTimer;
@@ -40,24 +45,44 @@ public class BinaryDecodeGame implements IMiniGame {
 
     private final StringBuilder inputBuf = new StringBuilder();
 
+    /**
+     * @param word  The secret word to decode (any length, e.g. "FLAGS" or "CRYPT").
+     *              The game converts each character to its 8-bit binary automatically.
+     */
+    public BinaryDecodeGame(String word) {
+        this.secretWord = word.toUpperCase();
+    }
+
+    // ── Helper: char → 8-bit binary string ───────────────────────────────────
+    /** Converts any ASCII character to its 8-bit binary string. e.g. 'F' -> "01000110" */
+    private static String toBinary(char c) {
+        String raw = Integer.toBinaryString(c);
+        StringBuilder sb = new StringBuilder();
+        for (int i = raw.length(); i < 8; i++) sb.append('0'); // left-pad to 8 digits
+        sb.append(raw);
+        return sb.toString();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     private final InputAdapter adapter = new InputAdapter() {
         @Override
         public boolean keyDown(int k) {
-            // TAB/ESC always close  -  checked first
             if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
                 panicked = true; close(); return true;
             }
             if (!open || solved) return false;
-            if ((k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL) && inputBuf.length() > 0) {
-                inputBuf.deleteCharAt(inputBuf.length()-1); return true;
+            if ((k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL)
+                && inputBuf.length() > 0) {
+                inputBuf.deleteCharAt(inputBuf.length() - 1); return true;
             }
             if (k == Input.Keys.ENTER || k == Input.Keys.NUMPAD_ENTER) {
                 String typed = inputBuf.toString().trim().toUpperCase();
                 inputBuf.setLength(0);
-                if (typed.length() == 1 && typed.charAt(0) == ANSWERS[currentByte]) {
-                    decoded[currentByte] = ANSWERS[currentByte];
+                if (typed.length() == 1 && typed.charAt(0) == secretWord.charAt(currentByte)) {
+                    decoded[currentByte] = secretWord.charAt(currentByte);
                     currentByte++;
-                    if (currentByte >= 5) { solved = true; solveTimer = 0f; }
+                    if (currentByte >= secretWord.length()) { solved = true; solveTimer = 0f; }
                 } else {
                     wrongFlash = 0.7f;
                 }
@@ -78,7 +103,7 @@ public class BinaryDecodeGame implements IMiniGame {
         open = true; solved = false; panicked = false;
         stateTime = 0f; wrongFlash = 0f; solveTimer = 0f;
         currentByte = 0;
-        decoded = new char[5];
+        decoded = new char[secretWord.length()];
         inputBuf.setLength(0);
         buildFonts();
         Gdx.input.setInputProcessor(adapter);
@@ -86,8 +111,8 @@ public class BinaryDecodeGame implements IMiniGame {
 
     private void buildFonts() {
         disposeFonts();
-        bigFont = FontManager.create(1.4f);
-        medFont = FontManager.create(1.0f);
+        bigFont   = FontManager.create(1.4f);
+        medFont   = FontManager.create(1.0f);
         smallFont = FontManager.create(0.78f);
         layout    = new GlyphLayout();
     }
@@ -116,22 +141,35 @@ public class BinaryDecodeGame implements IMiniGame {
     public void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont ignored) {
         if (!open || bigFont == null) return;
 
-        float pulse = 0.5f + 0.5f * (float)Math.sin(stateTime * 4f);
+        final int wordLen = secretWord.length();
+        float pulse = 0.5f + 0.5f * (float) Math.sin(stateTime * 4f);
         boolean blink = ((int)(stateTime * 2)) % 2 == 0;
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
 
-        // ── Background ──────────────────────────────────────────────────
-        sr.begin(ShapeRenderer.ShapeType.Filled);
-        sr.setColor(0f, 0f, 0f, 0.90f); sr.rect(0, 0, W, H);
-        sr.setColor(0.02f, 0.03f, 0.04f, 1f); sr.rect(WX, WY, WW, WH);
-        sr.setColor(0.03f, 0.10f, 0.03f, 1f); sr.rect(WX, WY+WH-TITLE_H, WW, TITLE_H);
-        sr.setColor(0f, pulse*0.4f, 0f, 0.22f); sr.rect(WX-5, WY-5, WW+10, WH+10);
+        // ── Progress box layout — adapts to any word length ──────────────────
+        float boxW   = 110f;
+        float boxGap = 30f;
+        float totalBoxRow = wordLen * boxW + (wordLen - 1) * boxGap;
+        if (totalBoxRow > WW - 80f) {              // shrink if word is long
+            float ratio = (WW - 80f) / totalBoxRow;
+            boxW  *= ratio;
+            boxGap *= ratio;
+            totalBoxRow = WW - 80f;
+        }
+        float boxStartX = WX + (WW - totalBoxRow) / 2f; // centred in panel
 
-        // Signal display area (5 byte slots)
+        // ── Background ───────────────────────────────────────────────────────
+        sr.begin(ShapeRenderer.ShapeType.Filled);
+        sr.setColor(0f, 0f, 0f, 0.90f);           sr.rect(0, 0, W, H);
+        sr.setColor(0.02f, 0.03f, 0.04f, 1f);     sr.rect(WX, WY, WW, WH);
+        sr.setColor(0.03f, 0.10f, 0.03f, 1f);     sr.rect(WX, WY + WH - TITLE_H, WW, TITLE_H);
+        sr.setColor(0f, pulse * 0.4f, 0f, 0.22f); sr.rect(WX - 5, WY - 5, WW + 10, WH + 10);
+
+        // Signal display area — one slot per letter
         float sigY = WY + WH - 200f, sigH = 140f;
-        float slotW = (WW - 60f) / 5f;
-        sr.setColor(0.01f, 0.03f, 0.01f, 1f); sr.rect(WX+30, sigY, WW-60, sigH);
+        float slotW = (WW - 60f) / wordLen;
+        sr.setColor(0.01f, 0.03f, 0.01f, 1f); sr.rect(WX + 30, sigY, WW - 60, sigH);
 
         // Active slot highlight
         if (!solved) {
@@ -139,29 +177,30 @@ public class BinaryDecodeGame implements IMiniGame {
             sr.rect(WX + 30 + currentByte * slotW, sigY, slotW, sigH);
         }
 
-        // Bit cells for current byte
+        // Bit cells for the current byte being decoded
         if (!solved) {
-            String curBin = BINARY[currentByte];
+            String curBin = toBinary(secretWord.charAt(currentByte));
             float bitW = (slotW - 10f) / 8f;
             float bitX = WX + 30 + currentByte * slotW + 5f;
             float bitY = sigY + 20f;
             for (int b = 0; b < 8; b++) {
                 boolean isOne = curBin.charAt(b) == '1';
-                sr.setColor(isOne ? 0f   : 0.04f,
-                            isOne ? pulse*0.8f : 0.10f,
-                            isOne ? 0f   : 0.02f, 1f);
-                sr.rect(bitX + b*bitW, bitY, bitW-2, 30f);
+                sr.setColor(isOne ? 0f : 0.04f,
+                    isOne ? pulse * 0.8f : 0.10f,
+                    isOne ? 0f : 0.02f, 1f);
+                sr.rect(bitX + b * bitW, bitY, bitW - 2, 30f);
             }
         }
 
-        // Progress track boxes (raised to avoid overlapping hint text below)
-        for (int i = 0; i < 5; i++) {
+        // Progress track boxes (one per letter, centred row)
+        for (int i = 0; i < wordLen; i++) {
+            float bx   = boxStartX + i * (boxW + boxGap);
             boolean done = decoded[i] != 0;
             boolean cur  = i == currentByte && !solved;
             sr.setColor(done ? 0f : (cur ? 0f : 0.03f),
-                        done ? 0.55f : (cur ? pulse*0.4f : 0.07f),
-                        done ? 0.1f : 0f, 1f);
-            sr.rect(WX + 140 + i * 140f, WY + 102f, 110f, 50f);
+                done ? 0.55f : (cur ? pulse * 0.4f : 0.07f),
+                done ? 0.1f : 0f, 1f);
+            sr.rect(bx, WY + 102f, boxW, 50f);
         }
 
         // Input box
@@ -170,83 +209,86 @@ public class BinaryDecodeGame implements IMiniGame {
         sr.rect(WX + 40, inputY, WW - 80, 38f);
 
         // Wrong flash
-        if (wrongFlash > 0) { sr.setColor(0.6f, 0f, 0f, wrongFlash*0.35f); sr.rect(WX, WY, WW, WH); }
+        if (wrongFlash > 0) { sr.setColor(0.6f, 0f, 0f, wrongFlash * 0.35f); sr.rect(WX, WY, WW, WH); }
         sr.end();
 
-        // ── Borders ─────────────────────────────────────────────────────
+        // ── Borders ──────────────────────────────────────────────────────────
         sr.begin(ShapeRenderer.ShapeType.Line);
         sr.setColor(0f, 0.75f, 0.35f, 0.9f); sr.rect(WX, WY, WW, WH);
-        sr.line(WX, WY+WH-TITLE_H, WX+WW, WY+WH-TITLE_H);
-        sr.setColor(0f, 0.65f, 0.3f, 0.55f); sr.rect(WX+30, sigY, WW-60, sigH);
+        sr.line(WX, WY + WH - TITLE_H, WX + WW, WY + WH - TITLE_H);
+        sr.setColor(0f, 0.65f, 0.3f, 0.55f); sr.rect(WX + 30, sigY, WW - 60, sigH);
         sr.setColor(wrongFlash > 0 ? 1f : 0f,
-                    wrongFlash > 0 ? 0.1f : 0.5f,
-                    wrongFlash > 0 ? 0.1f : 0.2f,
-                    wrongFlash > 0 ? wrongFlash : 0.6f);
-        sr.rect(WX+40, inputY, WW-80, 38f);
+            wrongFlash > 0 ? 0.1f : 0.5f,
+            wrongFlash > 0 ? 0.1f : 0.2f,
+            wrongFlash > 0 ? wrongFlash : 0.6f);
+        sr.rect(WX + 40, inputY, WW - 80, 38f);
         sr.end();
 
-        // ── Text ────────────────────────────────────────────────────────
+        // ── Text ─────────────────────────────────────────────────────────────
         batch.begin();
 
-        // Title
+        // Title bar
         medFont.setColor(0f, 0.9f, 0.45f, 1f);
         medFont.draw(batch, "  [ BINARY DECODER // INTERCEPTED SIGNAL ]    [ESC/TAB CLOSE]",
             WX + 10, WY + WH - 13f);
 
-        // All 5 binary strings in signal display
-        for (int i = 0; i < 5; i++) {
+        // All binary strings in the signal display panel
+        for (int i = 0; i < wordLen; i++) {
             float bx = WX + 30 + 4f + i * slotW;
             boolean isCur = (i == currentByte && !solved);
             medFont.setColor(isCur ? Color.GREEN : new Color(0f, 0.45f, 0.22f, 1f));
-            medFont.draw(batch, BINARY[i], bx + 2f, sigY + sigH - 12f);
+            medFont.draw(batch, toBinary(secretWord.charAt(i)), bx + 2f, sigY + sigH - 12f);
             smallFont.setColor(0.3f, 0.3f, 0.3f, 1f);
-            smallFont.draw(batch, "BYTE " + (i+1), bx + 12f, sigY + sigH - 32f);
+            smallFont.draw(batch, "BYTE " + (i + 1), bx + 12f, sigY + sigH - 32f);
         }
 
-        // Large current-byte display
+        // Large current-byte display (split into two nibbles for readability)
         if (!solved) {
-            // Format "0100 0110" with space in middle
-            String bin = BINARY[currentByte];
-            String display = bin.substring(0,4) + "  " + bin.substring(4);
+            String bin = toBinary(secretWord.charAt(currentByte));
+            String display = bin.substring(0, 4) + "  " + bin.substring(4);
             bigFont.setColor(Color.GREEN);
             layout.setText(bigFont, display);
-            bigFont.draw(batch, display, WX + WW/2f - layout.width/2f, WY + WH - 215f);
+            bigFont.draw(batch, display, WX + WW / 2f - layout.width / 2f, WY + WH - 215f);
 
             medFont.setColor(Color.WHITE);
-            String prompt1 = "Decode byte " + (currentByte+1) + " of 5";
+            String prompt1 = "Decode byte " + (currentByte + 1) + " of " + wordLen;
             String prompt2 = "Type the ASCII character it represents.";
             layout.setText(medFont, prompt1);
-            medFont.draw(batch, prompt1, WX + WW/2f - layout.width/2f, WY + 290f);
+            medFont.draw(batch, prompt1, WX + WW / 2f - layout.width / 2f, WY + 290f);
             layout.setText(medFont, prompt2);
-            medFont.draw(batch, prompt2, WX + WW/2f - layout.width/2f, WY + 266f);
+            medFont.draw(batch, prompt2, WX + WW / 2f - layout.width / 2f, WY + 266f);
         }
 
-        // Progress character boxes (raised to match box positions)
-        for (int i = 0; i < 5; i++) {
+        // Progress characters drawn centred inside each box
+        for (int i = 0; i < wordLen; i++) {
+            float cx = boxStartX + i * (boxW + boxGap) + boxW / 2f;
             if (decoded[i] != 0) {
                 bigFont.setColor(0f, 1f, 0.4f, 1f);
-                bigFont.draw(batch, String.valueOf(decoded[i]), WX + 175 + i*140f, WY + 142f);
+                layout.setText(bigFont, String.valueOf(decoded[i]));
+                bigFont.draw(batch, String.valueOf(decoded[i]), cx - layout.width / 2f, WY + 142f);
             } else if (i == currentByte && !solved) {
-                float fl = 0.4f + 0.4f*(float)Math.sin(stateTime*6f);
+                float fl = 0.4f + 0.4f * (float) Math.sin(stateTime * 6f);
                 medFont.setColor(fl, fl, fl, 1f);
-                medFont.draw(batch, "_", WX + 175 + i*140f, WY + 137f);
+                layout.setText(medFont, "_");
+                medFont.draw(batch, "_", cx - layout.width / 2f, WY + 137f);
             } else {
                 medFont.setColor(0.18f, 0.18f, 0.18f, 1f);
-                medFont.draw(batch, "_", WX + 175 + i*140f, WY + 137f);
+                layout.setText(medFont, "_");
+                medFont.draw(batch, "_", cx - layout.width / 2f, WY + 137f);
             }
         }
 
-        // Progress label (raised to match box positions)
+        // Progress label — centred
         smallFont.setColor(0.38f, 0.38f, 0.38f, 1f);
-        smallFont.draw(batch, "DECODED PROGRESS:", WX + 100, WY + 98f);
+        layout.setText(smallFont, "DECODED PROGRESS:");
+        smallFont.draw(batch, "DECODED PROGRESS:", WX + WW / 2f - layout.width / 2f, WY + 98f);
 
         // Input prompt
         if (!solved) {
             medFont.setColor(0f, 0.8f, 0.35f, 1f);
             medFont.draw(batch, "$ decode>", WX + 50, inputY + 26f);
             medFont.setColor(Color.WHITE);
-            String typed = inputBuf.toString();
-            medFont.draw(batch, typed + (blink ? "|" : " "), WX + 170, inputY + 26f);
+            medFont.draw(batch, inputBuf.toString() + (blink ? "|" : " "), WX + 170, inputY + 26f);
 
             smallFont.setColor(0.45f, 0.45f, 0.45f, 1f);
             smallFont.draw(batch, "Type the character (e.g. F) then press ENTER",
@@ -261,16 +303,16 @@ public class BinaryDecodeGame implements IMiniGame {
 
         // Result
         if (solved) {
-            float fl = 0.5f + 0.5f*(float)Math.sin(stateTime*8f);
-            medFont.setColor(0f, fl, fl*0.5f, 1f);
-            layout.setText(medFont, "[OK] SIGNAL DECODED: FLAGS - KEY ACQUIRED (closing...)");
-            medFont.draw(batch, "[OK] SIGNAL DECODED: FLAGS - KEY ACQUIRED (closing...)",
-                WX + WW/2f - layout.width/2f, WY + 50f);
+            float fl = 0.5f + 0.5f * (float) Math.sin(stateTime * 8f);
+            medFont.setColor(0f, fl, fl * 0.5f, 1f);
+            String msg = "[OK] SIGNAL DECODED: " + secretWord + " - KEY ACQUIRED (closing...)";
+            layout.setText(medFont, msg);
+            medFont.draw(batch, msg, WX + WW / 2f - layout.width / 2f, WY + 50f);
         } else if (wrongFlash > 0) {
             medFont.setColor(1f, 0.2f, 0.2f, 1f);
             layout.setText(medFont, "[X] WRONG - CHECK YOUR ASCII TABLE AND TRY AGAIN");
             medFont.draw(batch, "[X] WRONG - CHECK YOUR ASCII TABLE AND TRY AGAIN",
-                WX + WW/2f - layout.width/2f, WY + 50f);
+                WX + WW / 2f - layout.width / 2f, WY + 50f);
         }
 
         batch.end();
