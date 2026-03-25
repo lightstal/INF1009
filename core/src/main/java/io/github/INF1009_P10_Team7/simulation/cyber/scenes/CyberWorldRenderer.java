@@ -56,6 +56,10 @@ public class CyberWorldRenderer {
     // PUBLIC API
     // =========================================================================
 
+    /**
+     * Renders all in-world room props: ceiling lights, security cameras,
+     * and drone sprites. Called every frame by {@code CyberGameScene.onRender()}.
+     */
     public void renderRoomProps(float stateTime, int[][] terminalTiles,
                                  int[][] camPositions, DroneAI[] drones,
                                  boolean[] cctvAlerted, GameEntity playerEntity,
@@ -202,6 +206,10 @@ public class CyberWorldRenderer {
         sr.end();
     }
 
+    /**
+     * Renders the exit door sprite (closed or open) at its world position.
+     * Switches to the open texture once {@code exitUnlocked} is {@code true}.
+     */
     public void renderTmxExitDoor(float tmxExitX, float tmxExitY,
                                    boolean exitUnlocked,
                                    TextureRegion doorClosedRegion,
@@ -235,6 +243,10 @@ public class CyberWorldRenderer {
         sr.end();
     }
 
+    /**
+     * Renders an ambient atmospheric overlay (scanlines, vignette, etc.)
+     * on top of the entire world. Called last in the render pass.
+     */
     public void renderAtmosphere() {
         // Intentionally empty — no dark overlay, no flashlight, no light pools
     }

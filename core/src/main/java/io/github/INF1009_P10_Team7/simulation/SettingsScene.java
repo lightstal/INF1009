@@ -29,6 +29,17 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
 /**
  * Settings screen with volume slider, key rebinding, RESUME, and RETURN MENU.
  */
+/**
+ * SettingsScene — in-game settings overlay for adjusting audio volumes
+ * and rebinding keyboard/mouse controls.
+ *
+ * <p>Pushed on top of the current scene (not replacing it) so the game
+ * world is preserved underneath. Overrides {@link #blocksWorldUpdate()}
+ * to pause movement and collision while the settings are open.</p>
+ *
+ * <p>Uses {@link io.github.INF1009_P10_Team7.engine.UIManagement.KeyBindingButton}
+ * widgets to allow interactive key rebinding.</p>
+ */
 public class SettingsScene extends Scene {
 
     private final SceneFactory factory;

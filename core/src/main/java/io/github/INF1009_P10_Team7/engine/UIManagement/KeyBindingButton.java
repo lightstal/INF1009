@@ -7,6 +7,15 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 
+/**
+ * KeyBindingButton — a UI button that displays and allows rebinding of a
+ * named input action.
+ *
+ * <p>Shows the current key name for an action and, when clicked, listens for
+ * the next key or mouse button pressed to update the binding via
+ * {@link io.github.INF1009_P10_Team7.engine.inputoutput.IInputController#listenForNextKey}.
+ * Used by {@link io.github.INF1009_P10_Team7.simulation.SettingsScene}.</p>
+ */
 public class KeyBindingButton extends TextButton {
 
     private final String actionName;

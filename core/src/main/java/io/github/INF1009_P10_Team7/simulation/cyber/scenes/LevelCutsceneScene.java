@@ -22,6 +22,13 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * Flow: FADE IN ► lines typewrite in ► brief hold ► FADE OUT ► game starts.
  * Skippable at any time with SPACE / ENTER / click.
  */
+/**
+ * LevelCutsceneScene — pre-level cinematic scene shown before gameplay.
+ *
+ * <p>Plays a scrolling text / animated intro sequence that sets up the
+ * level narrative. After the sequence ends (or the player skips it) the
+ * scene transitions to {@link CyberGameScene} for the selected level.</p>
+ */
 public class LevelCutsceneScene extends Scene {
 
     private static final float W = 1280f, H = 704f;

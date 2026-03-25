@@ -13,6 +13,12 @@ public class ChaseState implements DroneState {
 
     private float lostSightTimer = 0f;
     private static final float LOST_TIMEOUT = 0.45f;
+    /**
+     * Multiplier applied to {@code sightRange} to define the maximum distance
+     * at which the drone can maintain a chase.
+     * <p><b>NOTE:</b> Currently 1.0f (no effect). Tune below 1.0 to make
+     * the drone abandon chase earlier, or above 1.0 to extend it.</p>
+     */
     private static final float CHASE_LEASH_MULTIPLIER = 1.0f;
 
     @Override

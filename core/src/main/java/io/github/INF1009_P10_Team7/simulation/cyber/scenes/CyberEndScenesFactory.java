@@ -12,6 +12,12 @@ import io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory;
  * still allowing CyberSceneFactory (in a different package) to create them.
  * Demonstrates the Factory Method pattern.
  */
+/**
+ * CyberEndScenesFactory — factory helper for creating victory and game-over scenes.
+ *
+ * <p>Exists as a focused helper so {@link io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory}
+ * can delegate end-screen creation without growing its own responsibility (SRP).</p>
+ */
 public final class CyberEndScenesFactory {
 
     private CyberEndScenesFactory() {}

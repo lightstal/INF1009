@@ -47,6 +47,9 @@ public class Part1SimulationApp extends ApplicationAdapter {
 
         // ── Gameplay key bindings ────────────────────────────────────────────
         // bindInput(actionName, deviceID, keycode)  — deviceID 0 = Keyboard
+        // ── Key bindings: deviceID 0 = Keyboard, deviceID 1 = Mouse ──────────────
+        // NOTE: "BACK" (Q key) is checked in GameScene but not bound here.
+        // Add: input.bindInput("BACK", 0, Input.Keys.Q); to enable that transition.
         input.bindInput("START_GAME",   0, Input.Keys.SPACE);
         input.bindInput("SETTINGS",     0, Input.Keys.ESCAPE);
         input.bindInput("LEFT",         0, Input.Keys.A);

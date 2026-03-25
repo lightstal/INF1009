@@ -13,7 +13,9 @@ public enum PlayerState {
     HACKING,
     SCANNING;
 
-    /** Display name for HUD / debug. */
+    /**
+     * @return a short display label for this state, shown in the HUD status panel.
+     */
     public String getDisplayName() {
         switch (this) {
             case HACKING:       return "JACKING IN";

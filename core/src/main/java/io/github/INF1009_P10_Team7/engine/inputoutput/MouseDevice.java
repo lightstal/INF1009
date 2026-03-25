@@ -13,6 +13,13 @@ import com.badlogic.gdx.Input;
  * </ul>
  * Like the keyboard, it maintains state history to allow for "Just Pressed" (click) detection.
  */
+/**
+ * MouseDevice — polls LibGDX mouse button state and cursor position each frame.
+ *
+ * <p>Base offset is {@code 300}, so mouse button codes are stored in the
+ * global bindings map at {@code 300 + buttonIndex}. Mouse position is exposed
+ * via {@link #getAxis(int)}: axis {@code 0} = X, axis {@code 1} = Y.</p>
+ */
 public class MouseDevice extends DeviceInput {
 	
     private float mouseX;

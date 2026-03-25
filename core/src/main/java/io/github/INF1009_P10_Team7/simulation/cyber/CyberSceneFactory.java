@@ -31,6 +31,22 @@ import io.github.INF1009_P10_Team7.simulation.SettingsScene;
  * <p>Example: to add Level 3, just add:
  * {@code levelConfigs.put(3, Level3Config::new);}</p>
  */
+/**
+ * CyberSceneFactory — concrete {@link io.github.INF1009_P10_Team7.engine.scene.SceneFactory}
+ * for the Cyber Maze Escape game.
+ *
+ * <p>Creates all scenes for the cyber-game flow and holds references to all
+ * engine interfaces needed by those scenes. Adding a new scene type requires
+ * only a new {@code createXxx()} method here — no changes to the engine or
+ * to existing scenes (OCP).</p>
+ *
+ * <p>Scene flow managed by this factory:</p>
+ * <pre>
+ * LinuxBootScene → CyberMainMenuScene → LevelSelectScene
+ *    → LevelCutsceneScene → CyberGameScene
+ *    → CyberEndScenes (victory / game-over)
+ * </pre>
+ */
 public class CyberSceneFactory implements SceneFactory {
 
     private final IInputController input;
@@ -79,6 +95,10 @@ public class CyberSceneFactory implements SceneFactory {
     }
 
     @Override
+    /**
+     * Creates a Level 1 game scene (SceneFactory contract implementation).
+     * Delegates to {@link #createGameScene(int)} with level index 1.
+     */
     public Scene createGameScene() {
         return createGameScene(1);
     }

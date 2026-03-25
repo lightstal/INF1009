@@ -22,6 +22,15 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
  * The player can press SPACE or click the button to enter the game,
  * or open settings from here.</p>
  */
+/**
+ * MainMenuScene — main menu for the Part 1 engine demo.
+ *
+ * <p><b>NOTE:</b> This is the legacy Part 1 menu used by {@code Part1SceneFactory}.
+ * The active game uses {@link io.github.INF1009_P10_Team7.simulation.cyber.scenes.CyberMainMenuScene}
+ * instead. This class is kept for the engine-demo mode but is not referenced
+ * by the current entry point ({@code Part1SimulationApp} uses
+ * {@code CyberSceneFactory}).</p>
+ */
 public class MainMenuScene extends Scene {
 
     /** <p>Factory for creating scenes during navigation.</p> */

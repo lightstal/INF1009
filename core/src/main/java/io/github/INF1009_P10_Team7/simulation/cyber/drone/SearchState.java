@@ -3,6 +3,22 @@ package io.github.INF1009_P10_Team7.simulation.cyber.drone;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 import io.github.INF1009_P10_Team7.simulation.cyber.IMapCollision;
 
+/**
+ * SearchState — drone AI state for investigating a last-known player position.
+ *
+ * <p>After losing line of sight in {@link ChaseState}, the drone moves to the
+ * last known player coordinates and sweeps the area for a short duration
+ * before reverting to {@link PatrolState}.</p>
+ *
+ * <p>Implements {@link DroneState} (State Pattern).</p>
+ *
+ * <p>Transitions:</p>
+ * <ul>
+ *   <li>→ {@link ChaseState}  if the player re-enters the sight cone</li>
+ *   <li>→ {@link PatrolState} when the search timer expires or the drone
+ *       is stuck and cannot reach the target</li>
+ * </ul>
+ */
 public class SearchState implements DroneState {
     private final float targetX;
     private final float targetY;

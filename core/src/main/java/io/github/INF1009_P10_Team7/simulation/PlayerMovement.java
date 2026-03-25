@@ -34,7 +34,7 @@ public class PlayerMovement implements MovementHandler {
     @Override
     public void handle(PhysicComponent physics, IInputController input) {
         Vector2 velocity = physics.getVelocity();
-        velocity.set(0, 0); // Dispose
+        velocity.set(0, 0); // Reset to zero before applying new directional input
 
         // When action is pressed, then move
         for (String action : moveDirections.keySet()) {

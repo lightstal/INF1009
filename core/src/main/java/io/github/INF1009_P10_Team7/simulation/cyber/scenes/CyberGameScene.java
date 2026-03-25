@@ -101,7 +101,6 @@ public class CyberGameScene extends Scene {
     private float tmxExitX, tmxExitY;
     private TextureRegion doorClosedRegion, doorOpenedRegion;
     private float   stateTime  = 0f;
-    private float   rotorAngle = 0f;
 
     private GameEntity playerEntity;
     private static final float PLAYER_RADIUS = 10f;
@@ -713,7 +712,6 @@ public class CyberGameScene extends Scene {
     @Override
     protected void onUpdate(float delta) {
         stateTime += delta;
-        rotorAngle += delta * 200f;
         if (!gameOver && !victory) missionElapsed += delta;
 
         // Time limit enforcement

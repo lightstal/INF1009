@@ -9,10 +9,14 @@ import io.github.INF1009_P10_Team7.simulation.cyber.observer.IGameEventObserver;
  */
 public class PlayerInventory implements IGameEventObserver {
 
+    /** Total keys (terminal access codes) the player has collected this run. */
     private int keysCollected  = 0;
+    /** Keys needed to unlock the exit for the current level. */
     private int keysRequired   = 3;
+    /** Set to {@code true} when all required keys have been collected. */
     private boolean exitUnlocked = false;
-    private float alertLevel   = 0f;   // 0 = calm, 1 = full chase
+    /** Current drone alert level: 0.0 = no threat, 1.0 = active chase. */
+    private float alertLevel   = 0f;
 
     @Override
     public void onKeyCollected(int total, int required) {

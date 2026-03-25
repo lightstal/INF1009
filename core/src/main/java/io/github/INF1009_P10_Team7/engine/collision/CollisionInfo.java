@@ -1,5 +1,20 @@
 package io.github.INF1009_P10_Team7.engine.collision;
 
+/**
+ * CollisionInfo — immutable value object describing a detected collision.
+ *
+ * <p>Created by {@link CollisionDetection#getCollisionInfo} and passed to
+ * {@link ICollisionResponse#resolve}. Contains everything a resolver needs
+ * to separate overlapping objects and reflect their velocities correctly.</p>
+ *
+ * <p>Fields:</p>
+ * <ul>
+ *   <li>{@code objectId1} / {@code objectId2} — IDs of the two colliding objects</li>
+ *   <li>{@code penetrationDepth} — how far the two circles overlap (pixels)</li>
+ *   <li>{@code collisionNormal}  — unit vector pointing from object 1 toward object 2</li>
+ * </ul>
+ */
+
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**

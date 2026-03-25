@@ -5,6 +5,14 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import io.github.INF1009_P10_Team7.simulation.Part1SimulationApp;
 
 
+/**
+ * Lwjgl3Launcher — desktop entry point for the application.
+ *
+ * <p>Configures the LWJGL3 backend (window title, size, FPS) and
+ * launches the LibGDX application with {@code Part1SimulationApp} as
+ * the application listener. {@link StartupHelper} handles JVM restarts
+ * needed for macOS ARM support.</p>
+ */
 public class Lwjgl3Launcher {
     public static void main(String[] args) {
         if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.

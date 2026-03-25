@@ -13,10 +13,27 @@ package io.github.INF1009_P10_Team7.simulation.cyber.ctf;
  *   ls                     → flag.txt
  *   cat flag.txt           → FLAG{r3c0n_m4st3r_1337}
  */
+/**
+ * NmapReconChallenge — CTF terminal challenge simulating network reconnaissance.
+ *
+ * <p>The player must discover a hidden SSH server on 192.168.10.105, connect to it,
+ * locate a hidden {@code .secret/} directory, and read {@code flag.txt}.</p>
+ *
+ * <p>Implements {@link ICTFChallenge} so it can be wrapped in a
+ * {@link io.github.INF1009_P10_Team7.simulation.cyber.minigame.TerminalMiniGame}
+ * and treated as a standard {@link io.github.INF1009_P10_Team7.simulation.cyber.minigame.IMiniGame}
+ * by {@code CyberGameScene} (OCP, LSP).</p>
+ *
+ * <p>State machine:</p>
+ * <ul>
+ *   <li>Not connected → connected after {@code connect 192.168.10.105}</li>
+ *   <li>HOME dir → SECRET dir after {@code cd .secret}</li>
+ *   <li>Solved = {@code true} after {@code cat flag.txt} in the SECRET dir</li>
+ * </ul>
+ */
 public class NmapReconChallenge implements ICTFChallenge {
 
     private boolean connected   = false;   // after "connect 192.168.10.105"
-    private boolean inSecret    = false;   // after "cd .secret"
     private boolean solved      = false;
 
     // Simple state machine for where the shell is
@@ -82,7 +99,6 @@ public class NmapReconChallenge implements ICTFChallenge {
             if (lo.startsWith("cat")) return err("cat: " + extractArg(cmd) + ": No such file or directory");
             if (lo.startsWith("cd .secret") || lo.equals("cd .secret")) {
                 currentDir = Dir.SECRET;
-                inSecret   = true;
                 return new TerminalLine[]{ TerminalLine.dim("") };
             }
             if (lo.startsWith("cd logs"))  return err("bash: cd: logs: is a directory  -  try: ls logs/");
@@ -111,7 +127,7 @@ public class NmapReconChallenge implements ICTFChallenge {
         if (lo.equals("ls") || lo.equals("ls -la") || lo.equals("ls -al")) return lsSecret();
         if (lo.startsWith("cat flag.txt")) return catFlag();
         if (lo.startsWith("cat")) return err("cat: " + extractArg(cmd) + ": No such file or directory");
-        if (lo.startsWith("cd ..") || lo.equals("cd ~")) { currentDir = Dir.HOME; inSecret = false;
+        if (lo.startsWith("cd ..") || lo.equals("cd ~")) { currentDir = Dir.HOME;
             return new TerminalLine[]{ TerminalLine.dim("") }; }
         if (lo.startsWith("whoami")) return new TerminalLine[]{ TerminalLine.out("root") };
         if (lo.startsWith("id"))     return new TerminalLine[]{ TerminalLine.out("uid=0(root) gid=0(root) groups=0(root)") };
@@ -123,7 +139,7 @@ public class NmapReconChallenge implements ICTFChallenge {
     }
 
     @Override public boolean isSolved() { return solved; }
-    @Override public void reset() { connected = false; currentDir = Dir.HOME; inSecret = false; solved = false; }
+    @Override public void reset() { connected = false; currentDir = Dir.HOME; solved = false; }
 
     // ── Sub-responses ----------------------------------------────────
 

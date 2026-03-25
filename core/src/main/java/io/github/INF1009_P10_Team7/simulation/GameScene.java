@@ -354,6 +354,8 @@ public class GameScene extends Scene {
             return;
         }
         // BACKSPACE returns to main menu (replaces current scene)
+        // NOTE: "BACK" is not bound in Part1SimulationApp.create() — this branch is currently unreachable.
+        // Fix: add  input.bindInput("BACK", 0, Input.Keys.Q);  in the app entry point.
         if (input.isActionJustPressed("BACK")) {
             nav.requestScene(factory.createMainMenuScene());
             return;
@@ -425,9 +427,6 @@ public class GameScene extends Scene {
             Gdx.app.log("GameScene", "FollowerBall not in movement system");
             return;
         }
-
-        // Read the current behavior to decide which one to swap to
-        MovementBehaviour currentBehavior = movementSystem.getBehavior(follower);
 
         // Swap between chasing and random wandering
         MovementBehaviour newBehavior;

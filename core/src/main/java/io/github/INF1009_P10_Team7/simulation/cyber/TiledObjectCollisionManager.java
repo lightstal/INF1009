@@ -15,6 +15,22 @@ import com.badlogic.gdx.utils.Array;
  *
  * Implements IMapCollision so DroneAI states no longer depend on TileMap.
  */
+/**
+ * TiledObjectCollisionManager — builds and queries tile-map collision geometry
+ * from a Tiled (.tmx) map file.
+ *
+ * <p>Implements {@link IMapCollision} so drone AI states and the player can
+ * call {@link #resolveCircleVsWalls} and {@link #hasLineOfSight} without
+ * depending on TMX internals (DIP).</p>
+ *
+ * <p>On {@link #build}, wall tiles from the named layers are stored in a
+ * boolean grid. Circle-vs-wall resolution sweeps the grid and pushes the
+ * circle out of any overlapping wall tiles. Line-of-sight casting steps along
+ * the ray and checks each grid cell.</p>
+ *
+ * <p>Also exposes {@link #getWallGrid()} for the minimap renderer to draw
+ * wall tiles without coupling to the Tiled API.</p>
+ */
 public class TiledObjectCollisionManager implements IMapCollision {
 
     private final Array<Rectangle> walls = new Array<>();

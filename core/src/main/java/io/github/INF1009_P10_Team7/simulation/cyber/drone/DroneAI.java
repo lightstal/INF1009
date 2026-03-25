@@ -32,6 +32,12 @@ public class DroneAI {
     private DroneState currentState;
     private float alertLevel = 0f;
     private float stateTime  = 0f;
+    /**
+     * Accumulated rotor spin angle (degrees) used for future drone spin animation.
+     * <p><b>NOTE:</b> Not currently exposed via a getter or passed to any renderer.
+     * Kept as a placeholder — wire to {@code CyberWorldRenderer} when drone
+     * spin animation is implemented.</p>
+     */
     private float rotorAngle = 0f;
     private float detectionSuppressedTimer = 0f;
 
@@ -114,6 +120,15 @@ public class DroneAI {
 
     public float[][] getPatrolWaypoints() { return patrolWaypoints; }
 
+    /**
+     * Renders any drone-specific debug overlays.
+     * <p><b>NOTE (dead code):</b> Vision cone rendering was removed; the drone sprite
+     * is now drawn entirely by {@code CyberWorldRenderer}. This method is still
+     * called each frame from {@code CyberGameScene.onRender()} but does nothing.
+     * Either remove the call site or restore vision-cone drawing here.</p>
+     *
+     * @param sr the active ShapeRenderer
+     */
     public void render(ShapeRenderer sr) {
         // Vision cone rendering removed — drone sprite is drawn by CyberGameScene
     }

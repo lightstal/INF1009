@@ -28,6 +28,16 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  *  - Glassmorphism panels
  *  - Neon amber (cipher) / neon green (decoded) color scheme
  */
+/**
+ * CaesarCipherGame — mini-game where the player decrypts a Caesar-cipher message.
+ *
+ * <p>A ciphertext string is generated with a random shift (1–25). The player
+ * must identify the shift and type the plaintext to complete the challenge.
+ * Provides a frequency-analysis hint to guide the player.</p>
+ *
+ * <p>Implements {@link IMiniGame} so it is handled uniformly by
+ * {@code CyberGameScene} (OCP, LSP).</p>
+ */
 public class CaesarCipherGame implements IMiniGame {
 
     private static final float W = 1280f;

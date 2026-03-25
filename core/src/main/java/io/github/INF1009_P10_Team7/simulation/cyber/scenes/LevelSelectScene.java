@@ -20,6 +20,13 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * Level Select screen — two mission cards with key stats and flavour text.
  * A/D or LEFT/RIGHT to browse; SPACE or ENTER to launch; ESC to go back.
  */
+/**
+ * LevelSelectScene — lets the player choose which level to play.
+ *
+ * <p>Renders a card for each available level with its name and
+ * difficulty description. On selection it transitions to the corresponding
+ * {@link LevelCutsceneScene} before loading the game.</p>
+ */
 public class LevelSelectScene extends Scene {
 
     private static final float W = 1280f, H = 704f;

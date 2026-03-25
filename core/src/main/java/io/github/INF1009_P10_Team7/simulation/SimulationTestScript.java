@@ -3,6 +3,8 @@ package io.github.INF1009_P10_Team7.simulation;
 import com.badlogic.gdx.Gdx;
 
 /**
+ * SimulationTestScript — startup console logger for simulation controls.
+ *
  * <p>Utility class that prints simulation control instructions and
  * scaling notes to the console log at startup.</p>
  *
@@ -28,6 +30,12 @@ public final class SimulationTestScript {
      * Includes scene navigation keys, movement keys, mouse controls,
      * and gameplay tips.</p>
      */
+    /**
+     * Prints all simulation controls to the log.
+     * <p><b>NOTE (dead code):</b> this method is never called from production
+     * code. Call it from {@code Part1SimulationApp.create()} if needed,
+     * or delete this class if it is no longer required.</p>
+     */
     public static void printInstructions() {
         Gdx.app.log("SIM", "==============================");
         Gdx.app.log("SIM", "Cyber Maze Escape Controls:");
@@ -49,6 +57,10 @@ public final class SimulationTestScript {
     /**
      * <p>Prints a note explaining that adding a new Scene class does not
      * require any changes to the SceneManager (OCP).</p>
+     */
+    /**
+     * Prints an OCP scaling note to the log.
+     * <p><b>NOTE (dead code):</b> this method is never called from production code.</p>
      */
     public static void printScalingNote() {
         Gdx.app.log("SIM", "Scaling note: adding a new Scene class does NOT require changes to SceneManager.");

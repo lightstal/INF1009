@@ -22,12 +22,22 @@ public enum TileType {
     public final int id;
     TileType(int id) { this.id = id; }
 
+    /**
+     * Looks up a {@link TileType} by its integer ID.
+     * Returns {@link #FLOOR} if the ID is unrecognised.
+     *
+     * @param id the tile ID from the TMX tileset
+     * @return the matching {@link TileType}, or {@link #FLOOR} as a safe default
+     */
     public static TileType fromId(int id) {
         for (TileType t : values()) if (t.id == id) return t;
         return FLOOR;
     }
 
-    /** Returns true for tiles that block movement. */
+    /**
+     * @return {@code true} if this tile type blocks entity movement
+     *         (only {@link #WALL} is solid)
+     */
     public boolean isSolid() { return this == WALL; }
 
     /** Returns true for any hackable terminal tile. */

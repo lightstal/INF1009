@@ -12,6 +12,7 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
  */
 public class CyberPlayerMovement implements MovementHandler {
 
+    /** Player movement speed in world units per second. */
     private static final float SPEED = 120f;
 
     @Override

@@ -8,6 +8,16 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 
+/**
+ * UIElement — base class for all HUD/menu UI widgets.
+ *
+ * <p>Encapsulates position, size, visibility, and the enabled state of a
+ * 2D screen-space widget. Concrete subclasses (e.g. buttons, labels)
+ * extend this to add type-specific behaviour.</p>
+ *
+ * <p>Implements {@link iUIElement} and enforces the
+ * {@link iUIElement#render} contract via the abstract method below.</p>
+ */
 public class UIElement {
 
     /**

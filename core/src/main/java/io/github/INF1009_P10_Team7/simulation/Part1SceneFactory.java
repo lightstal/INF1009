@@ -19,6 +19,15 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
  * Adding a new scene type only requires adding a new create method
  * here  -  no changes to the engine are needed (OCP).</p>
  */
+/**
+ * Part1SceneFactory — scene factory for the Part 1 engine demonstration.
+ *
+ * <p><b>NOTE:</b> The production entry point ({@code Part1SimulationApp})
+ * uses {@link io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory}
+ * instead. This factory is retained for the standalone engine-demo mode
+ * ({@link GameScene}, {@link MainMenuScene}, {@link SettingsScene}) but is
+ * not instantiated anywhere in the current application flow.</p>
+ */
 public class Part1SceneFactory implements SceneFactory {
 
     /** <p>Input controller for reading keyboard and mouse input.</p> */

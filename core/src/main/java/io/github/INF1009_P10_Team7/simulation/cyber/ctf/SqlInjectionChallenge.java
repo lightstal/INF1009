@@ -13,6 +13,26 @@ package io.github.INF1009_P10_Team7.simulation.cyber.ctf;
  *   login admin S3cr3t!Flag               → authenticated
  *   cat /var/www/flag.txt                  → FLAG{sqli_d4t4b4s3_pwn3d}
  */
+/**
+ * SqlInjectionChallenge — CTF terminal challenge simulating a web SQL injection attack.
+ *
+ * <p>The player must enumerate the target web app, confirm the injectable
+ * parameter, run {@code sqlmap} to dump credentials, log in as admin, then read
+ * {@code /var/www/flag.txt}.</p>
+ *
+ * <p>Implements {@link ICTFChallenge} so it is usable as a
+ * {@link io.github.INF1009_P10_Team7.simulation.cyber.minigame.TerminalMiniGame}
+ * (OCP, LSP).</p>
+ *
+ * <p>Progression stages:</p>
+ * <ol>
+ *   <li>{@code INITIAL}     — default start</li>
+ *   <li>{@code DB_FOUND}    — after {@code sqlmap --dbs}</li>
+ *   <li>{@code TABLES_FOUND}— after {@code sqlmap -D appdb --tables}</li>
+ *   <li>{@code DUMPED}      — after {@code sqlmap ... --dump}</li>
+ *   <li>{@code LOGGED_IN}   — after {@code login admin S3cr3t!Flag}</li>
+ * </ol>
+ */
 public class SqlInjectionChallenge implements ICTFChallenge {
 
     private enum Stage { INITIAL, DB_FOUND, TABLES_FOUND, DUMPED, LOGGED_IN }

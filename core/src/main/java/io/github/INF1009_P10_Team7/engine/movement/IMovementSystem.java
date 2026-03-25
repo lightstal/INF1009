@@ -3,86 +3,78 @@ package io.github.INF1009_P10_Team7.engine.movement;
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 
 /**
- * <p>
- * Interface for movement system.
- * It manages entities and their movement behaviours.
- * This helps separate the engine logic from the actual movement implementation.
- * </p>
+ * IMovementSystem — public contract for the movement subsystem.
+ *
+ * <p>Scenes depend on this interface rather than the concrete
+ * {@link MovementManager} (DIP). This allows movement behaviour to be
+ * added, removed, queried, and swapped at runtime without coupling scene
+ * code to implementation details.</p>
+ *
+ * <p>Key runtime operations exposed:</p>
+ * <ul>
+ *   <li>{@link #setBehavior} — hot-swap a movement algorithm (Strategy Pattern, LSP)</li>
+ *   <li>{@link #getBehavior} — read current algorithm (used before a swap)</li>
+ *   <li>{@link #hasEntity}   — guard check before operating on an entity</li>
+ * </ul>
  */
 public interface IMovementSystem {
 
     /**
-     * <p>
-     * Add an entity with its movement behaviour into the system.
-     * </p>
+     * Registers an entity with an initial movement behaviour.
+     * If {@code behavior} is {@code null}, only physics integration is applied.
      *
-     * @param entity the entity to be added
-     * @param behavior the movement behaviour for the entity
+     * @param entity   the entity to register
+     * @param behavior the initial movement behaviour, or {@code null}
      */
     void addEntity(Entity entity, MovementBehaviour behavior);
 
     /**
-     * <p>
-     * Remove an entity from the movement system.
-     * </p>
+     * Unregisters an entity so it is no longer updated by this system.
      *
      * @param entity the entity to remove
      */
     void removeEntity(Entity entity);
 
     /**
-     * <p>
-     * Update movement for all entities.
-     * Called every frame using deltaTime.
-     * </p>
+     * Advances all registered, active entities by one frame:
+     * first applies physics velocity integration, then calls each
+     * entity's {@link MovementBehaviour#move}.
      *
-     * @param deltaTime time passed since last frame
+     * @param deltaTime seconds since the last frame
      */
     void updateAll(float deltaTime);
 
-    /**
-     * <p>
-     * Clear all entities from the movement system.
-     * </p>
-     */
+    /** Removes all entities and clears all behaviour mappings. */
     void clear();
 
-    /**
-     * <p>
-     * Get the number of entities currently managed.
-     * </p>
-     *
-     * @return total entity count
-     */
+    /** @return the total number of entities currently registered */
     int getEntityCount();
 
     /**
-     * <p>
-     * Check if the system already contains the entity.
-     * </p>
+     * Returns {@code true} if the entity is currently registered
+     * with this system. Use as a guard before calling {@link #setBehavior}.
      *
      * @param entity the entity to check
-     * @return true if entity exists, false otherwise
+     * @return {@code true} if managed by this system
      */
     boolean hasEntity(Entity entity);
 
     /**
-     * <p>
-     * Get the movement behaviour assigned to an entity.
-     * </p>
+     * Returns the {@link MovementBehaviour} currently assigned to the entity,
+     * or {@code null} if the entity is not registered or has no behaviour.
      *
-     * @param entity the entity to check
-     * @return movement behaviour of the entity
+     * @param entity the entity whose behaviour to retrieve
+     * @return current behaviour, or {@code null}
      */
     MovementBehaviour getBehavior(Entity entity);
 
     /**
-     * <p>
-     * Set or change the movement behaviour for an entity.
-     * </p>
+     * Replaces the movement behaviour of a registered entity at runtime.
+     * Used to implement runtime strategy swaps (e.g. follower switching from
+     * {@link FollowMovement} to {@link AImovement}).
      *
-     * @param entity the entity to update
-     * @param behavior new movement behaviour
+     * @param entity   the entity whose behaviour to replace
+     * @param behavior the new behaviour to assign
      */
     void setBehavior(Entity entity, MovementBehaviour behavior);
 }

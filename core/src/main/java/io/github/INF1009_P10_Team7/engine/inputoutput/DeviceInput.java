@@ -12,6 +12,18 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
  * It enforces a standard interface so that the {@link InputOutputManager} can treat
  * all devices uniformly (Polymorphism).
  */
+/**
+ * DeviceInput — abstract base for a single input hardware device.
+ *
+ * <p>Concrete subclasses ({@link KeyboardDevice}, {@link MouseDevice}) implement
+ * the actual LibGDX polling. Each device occupies a contiguous range of global
+ * key codes defined by its {@link #getBaseOffset}. The
+ * {@link InputOutputManager} maps abstract action names to global codes and
+ * routes queries back to the correct device via this offset.</p>
+ *
+ * <p>Design note: the offset system allows any number of device types to
+ * coexist in a single bindings map without code collision.</p>
+ */
 public abstract class DeviceInput {
 	/** * Unique integer identifier for the device (e.g., 0 for Keyboard, 1 for Mouse). 
      */

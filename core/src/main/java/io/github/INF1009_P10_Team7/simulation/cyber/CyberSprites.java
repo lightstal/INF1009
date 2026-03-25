@@ -21,6 +21,7 @@ public class CyberSprites implements Disposable {
 
     /** The dynamic registry storing all active textures by their String key. */
     private final Map<String, Texture> textureRegistry;
+    /** Whether the textures have been loaded from disk. Guards against double-loading. */
     private boolean loaded = false;
 
     public CyberSprites() {

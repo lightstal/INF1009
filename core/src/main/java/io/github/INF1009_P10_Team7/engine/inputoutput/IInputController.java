@@ -1,6 +1,26 @@
 package io.github.INF1009_P10_Team7.engine.inputoutput;
 
 /**
+ * IInputController — unified input binding and query interface.
+ *
+ * <p>Provides a device-agnostic layer over keyboard and mouse input.
+ * Callers bind abstract action names (e.g. {@code "JUMP"}, {@code "LEFT"})
+ * to physical key/button codes via {@link #bindInput}, then poll those
+ * actions by name without caring which device they came from.</p>
+ *
+ * <p>Design note (DIP): scenes depend on this interface, not on the
+ * concrete {@link InputOutputManager} or any LibGDX {@code Gdx.input} call.
+ * This isolates scenes from input-hardware details and makes the binding
+ * rebindable at runtime (used by the settings scene).</p>
+ *
+ * <p>Device ID convention (matches {@link DeviceInput} base offsets):</p>
+ * <ul>
+ *   <li>{@code 0} — Keyboard (base offset 0)</li>
+ *   <li>{@code 1} — Mouse    (base offset 300)</li>
+ * </ul>
+ */
+
+/**
  * Interface that defines how Scenes interact with the IO system.
  * This hides the complex implementation details from the game logic.
  */

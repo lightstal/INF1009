@@ -23,6 +23,18 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  *
  * Any word of any length works — the UI adapts automatically.
  */
+/**
+ * BinaryDecodeGame — mini-game where the player decodes a word from binary.
+ *
+ * <p>The target word is configurable at construction time (passed from
+ * {@link io.github.INF1009_P10_Team7.simulation.cyber.Level1Config} /
+ * {@link io.github.INF1009_P10_Team7.simulation.cyber.Level2Config}).
+ * Each letter of the word is shown in 8-bit binary; the player must type
+ * the decoded ASCII string to solve the challenge.</p>
+ *
+ * <p>Implements {@link IMiniGame} so it is handled uniformly by
+ * {@code CyberGameScene} (OCP, LSP).</p>
+ */
 public class BinaryDecodeGame implements IMiniGame {
 
     private static final float W = 1280f, H = 704f;

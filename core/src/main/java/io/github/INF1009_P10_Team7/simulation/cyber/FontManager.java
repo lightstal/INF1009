@@ -39,12 +39,12 @@ public final class FontManager {
      * same virtual-space size as the old {@code BitmapFont + setScale(scale)}.
      */
     public static BitmapFont create(float scale) {
-        return build(getRegular(), scale, false);
+        return build(getRegular(), scale);
     }
 
     /** Bold-weight variant. */
     public static BitmapFont createBold(float scale) {
-        return build(getBold(), scale, false);
+        return build(getBold(), scale);
     }
 
     /**
@@ -79,6 +79,16 @@ public final class FontManager {
 
     // ── Internal ─────────────────────────────────────────────────────────
 
+    /**
+     * Computes (and caches) the display density multiplier.
+     *
+     * <p>Density = physical back-buffer width ÷ virtual world width (1280 px).
+     * On a 1920-wide window the density is 1.5, so fonts generated at
+     * {@code 15 px × 1.5 = 22.5 px} are then scaled back to virtual-space
+     * size ({@code scale = 1/density}) so layout code remains correct.</p>
+     *
+     * @return density ratio (≥ 1.0)
+     */
     private static float getDensity() {
         if (density < 0f) {
             // Ratio of physical pixels to virtual world pixels.
@@ -104,8 +114,7 @@ public final class FontManager {
         return genBold;
     }
 
-    private static BitmapFont build(FreeTypeFontGenerator gen, float scale,
-                                    boolean forSkin) {
+    private static BitmapFont build(FreeTypeFontGenerator gen, float scale) {
         float d = getDensity();
         // Generate at physical-pixel size for crispness
         int px = Math.max(8, Math.round(scale * BASE_PX * d));

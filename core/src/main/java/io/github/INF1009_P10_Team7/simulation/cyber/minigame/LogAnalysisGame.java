@@ -29,6 +29,18 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * To change either level's content, edit only the strings passed to the
  * constructor inside LevelConfig.
  */
+/**
+ * LogAnalysisGame — mini-game where the player analyses an intercepted email/log
+ * document and extracts a hidden override code.
+ *
+ * <p>The document content, expected answer, highlight keyword, and hint text are
+ * all configurable at construction time (supplied per-level from
+ * {@link io.github.INF1009_P10_Team7.simulation.cyber.Level1Config} and
+ * {@link io.github.INF1009_P10_Team7.simulation.cyber.Level2Config}).
+ * Level 1 uses a plaintext code; Level 2 encodes it with Atbash cipher.</p>
+ *
+ * <p>Implements {@link IMiniGame} (OCP, LSP).</p>
+ */
 public class LogAnalysisGame implements IMiniGame {
 
     private static final float W = 1280f;

@@ -11,6 +11,19 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
  * Instead of moving directly, it lets MovementHandler process the input.
  * </p>
  */
+/**
+ * InputDrivenMovement — {@link MovementBehaviour} that delegates to a
+ * {@link MovementHandler} each frame.
+ *
+ * <p>Serves as the glue between the input subsystem and the movement
+ * system. The concrete handler (e.g. {@code CyberPlayerMovement}) decides
+ * which keys map to which velocity; this class passes the handler the
+ * current input state and physics component.</p>
+ *
+ * <p>Design note (Strategy + Bridge): swapping the {@link MovementHandler}
+ * changes the control scheme without touching this class or the engine
+ * (OCP, DIP).</p>
+ */
 public class InputDrivenMovement implements MovementBehaviour {
     /** Handles how movement is processed based on input */
     private final MovementHandler handler;

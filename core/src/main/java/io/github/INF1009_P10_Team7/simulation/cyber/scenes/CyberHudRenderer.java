@@ -268,6 +268,11 @@ public class CyberHudRenderer {
         batch.end();
     }
 
+    /**
+     * Renders the minimap panel in the corner of the HUD.
+     * Draws wall cells, terminal/exit markers, drone positions,
+     * clue objects, checkpoint, and the player blip.
+     */
     public void renderMinimap(TransformComponent tc, boolean[][] wallGrid,
                                int[][] terminalTiles, boolean[] terminalSolved,
                                ClueSystem clueSystem, float tmxExitX, float tmxExitY,
@@ -344,6 +349,10 @@ public class CyberHudRenderer {
         sr.end();
     }
 
+    /**
+     * Renders the radial threat indicator that shows relative drone positions
+     * around the player as directional warning arrows.
+     */
     public void renderThreatIndicator(TransformComponent tc, DroneAI[] drones, float stateTime) {
         if (tc == null || drones.length == 0) return;
         Vector2 pp = tc.getPosition();
@@ -383,6 +392,10 @@ public class CyberHudRenderer {
         sr.end();
     }
 
+    /**
+     * Renders a full-screen red-tinted chase warning banner when a drone
+     * has just spotted the player.
+     */
     public void renderChaseWarning(float stateTime, float chaseWarningTimer) {
         if (chaseWarningTimer <= 0f) return;
         float W = TileMap.WORLD_W, H = TileMap.WORLD_H;
@@ -434,6 +447,10 @@ public class CyberHudRenderer {
         batch.end();
     }
 
+    /**
+     * Renders the victory or game-over overlay directly on the HUD layer.
+     * Shown when {@code gameOver} or {@code victory} is {@code true}.
+     */
     public void renderEndScreen(boolean win, float stateTime,
                                  int keysCollected, int KEYS_REQUIRED, float missionElapsed,
                                  int respawnsRemaining) {

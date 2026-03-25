@@ -21,6 +21,14 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  *
  * Implements IMiniGame (Strategy pattern).
  */
+/**
+ * PacketSnifferGame — mini-game where the player identifies malicious network
+ * packets from a simulated packet capture.
+ *
+ * <p>The player is shown a stream of fake network packets and must select those
+ * that match a given suspicious pattern (e.g. unauthorised port, unusual
+ * payload, suspicious IP range). Implements {@link IMiniGame} (OCP, LSP).</p>
+ */
 public class PacketSnifferGame implements IMiniGame {
 
     private static final float W = 1280f;

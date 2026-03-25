@@ -58,7 +58,9 @@ public class ClueSystem {
         }
     }
 
+    /** Ordered map of clues the player has successfully collected this run. */
     private final Map<String, Clue> collectedClues = new LinkedHashMap<>();
+    /** All clue objects placed in the current level (collected or not). */
     private final List<ClueObject> clueObjects = new ArrayList<>();
 
     /** Register a clue object in the world (call during level setup). */

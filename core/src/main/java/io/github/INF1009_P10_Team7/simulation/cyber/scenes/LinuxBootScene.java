@@ -25,6 +25,13 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * Demonstrates: clean separation between engine (Scene lifecycle) and
  * game-specific UI (cyberpunk boot aesthetic).
  */
+/**
+ * LinuxBootScene — simulated Linux boot sequence shown at application startup.
+ *
+ * <p>Displays scrolling boot-log lines to create atmosphere before
+ * transitioning to {@link CyberMainMenuScene}. The sequence can be
+ * skipped by pressing any key.</p>
+ */
 public class LinuxBootScene extends Scene {
 
     private final CyberSceneFactory factory;

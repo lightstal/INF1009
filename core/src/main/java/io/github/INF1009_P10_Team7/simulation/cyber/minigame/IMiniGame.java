@@ -5,27 +5,58 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 /**
- * Unified interface for all challenge overlays (terminal emulators AND mini-games).
- * CyberGameScene only talks to this interface  -  it doesn't care which type it is.
+ * IMiniGame — interface for all in-game interactive challenge puzzles.
+ *
+ * <p>{@code CyberGameScene} only ever talks to this interface — it does not
+ * care whether the active challenge is a {@link BinaryDecodeGame},
+ * {@link CaesarCipherGame}, {@link PortMatchGame}, or any other type (LSP, OCP).
+ * New mini-game types can be added without touching the scene.</p>
+ *
+ * <p>Lifecycle:</p>
+ * <ol>
+ *   <li>{@link #open()}   — called when the player interacts with a terminal</li>
+ *   <li>{@link #update}   — called every frame while the game is open</li>
+ *   <li>{@link #render}   — called every frame to draw the UI</li>
+ *   <li>{@link #close()}  — called when the player exits or the challenge ends</li>
+ * </ol>
  */
 public interface IMiniGame {
-    /** Open / show the challenge. */
+
+    /** @return the display title shown in the terminal header */
+    String getTitle();
+
+    /** Opens the mini-game UI and resets any transient state. */
     void open();
-    /** Force-close without solving. */
+
+    /** Closes the mini-game UI without marking it solved. */
     void close();
-    /** True while the overlay is visible and consuming input. */
+
+    /** @return {@code true} while the mini-game UI is open */
     boolean isOpen();
-    /** True once the student has answered correctly. */
-    boolean isSolved();
-    /** True if the player hit TAB / ESC to flee without solving. */
-    boolean wasPanicked();
-    /** Called every frame while open. */
-    void update(float dt);
+
     /**
-     * Draw the full-screen overlay.
-     * Called after world rendering; projection matrices are already set to HUD camera (1280×704).
+     * Updates the mini-game logic for one frame.
+     *
+     * @param delta seconds since the last frame
+     */
+    void update(float delta);
+
+    /**
+     * Renders the mini-game UI using the provided rendering resources.
+     * The caller is responsible for setting projection matrices.
+     *
+     * @param sr    the active ShapeRenderer
+     * @param batch the active SpriteBatch
+     * @param font  the font to use for text rendering
      */
     void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont font);
-    /** Short label used in HUD hints near the tile. */
-    String getTitle();
+
+    /** @return {@code true} if the player has completed this challenge */
+    boolean isSolved();
+
+    /**
+     * @return {@code true} if the challenge was force-closed due to
+     *         drone detection (panic exit) rather than a normal exit
+     */
+    boolean wasPanicked();
 }

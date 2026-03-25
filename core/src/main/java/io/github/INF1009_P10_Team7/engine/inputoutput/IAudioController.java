@@ -1,76 +1,76 @@
 package io.github.INF1009_P10_Team7.engine.inputoutput;
 
 /**
- * <p>Interface that defines the contract for all audio operations within the engine.</p>
+ * IAudioController — narrow interface for audio playback operations.
  *
- * <p>By providing this interface, the engine applies the Dependency Inversion Principle (DIP),
- * ensuring that the simulation layer (Scenes) can control audio playback and volume 
- * without relying on the concrete implementation details of the audio system.</p>
+ * <p>Scenes depend on this interface (via the {@link Scene} base class)
+ * rather than the concrete {@link AudioOutput} or {@link InputOutputManager}
+ * (DIP). This keeps scenes independent of the audio backend and makes
+ * testing easier.</p>
+ *
+ * <p>Two categories of audio are managed:</p>
+ * <ul>
+ *   <li><b>Music</b> — one streamed background track at a time;
+ *       supports play, stop, pause, resume, and volume control.</li>
+ *   <li><b>Sound effects (SFX)</b> — short cached clips played on demand;
+ *       volume controlled independently from music.</li>
+ * </ul>
  */
 public interface IAudioController {
-    
-    // --- Getters (Retrieve Values) ---
 
     /**
-     * Retrieves the current volume level of the background music.
-     * * @return The music volume, typically ranging from 0.0 (muted) to 1.0 (maximum).
-     */
-    float getMusicVolume();
-
-    /**
-     * Retrieves the current volume level of sound effects (SFX).
-     * * @return The sound effects volume, typically ranging from 0.0 (muted) to 1.0 (maximum).
-     */
-    float getSoundVolume();
-
-
-    // --- Setters (Direct Control) ---
-
-    /**
-     * Sets the volume level for the background music.
-     * * @param volume The desired volume level, clamped between 0.0f and 1.0f.
-     */
-    void setMusicVolume(float volume);
-
-    /**
-     * Sets the volume level for sound effects (SFX).
-     * * @param volume The desired volume level, clamped between 0.0f and 1.0f.
-     */
-    void setSoundVolume(float volume);
-    
-
-    // --- Actions ---
-
-    /**
-     * Loads and starts playing a new background music track.
-     * If a track is already playing, it will be stopped and replaced by the new track.
-     * The music will automatically loop.
-     * * @param filePath The internal file path to the audio file (e.g., "audio/bgm.mp3").
+     * Loads and immediately starts playing a background music track.
+     * If a track is already playing it is stopped and disposed first.
+     * The track loops automatically.
+     *
+     * @param filePath internal asset path (e.g. {@code "audio/Music_Game.mp3"})
      */
     void setMusic(String filePath);
 
+    /** Stops the current background music track and releases its resources. */
+    void stopMusic();
+
     /**
-     * Pauses the currently playing background music. 
-     * Does nothing if no music is playing or if it is already paused.
+     * Pauses the current background music track.
+     * Does nothing if no music is playing.
      */
     void pauseMusic();
 
     /**
-     * Resumes the background music from where it was paused.
-     * Does nothing if no music is loaded or if it is already playing.
+     * Resumes the background music track from where it was paused.
+     * Does nothing if the track is already playing.
      */
     void resumeMusic();
 
     /**
-     * Completely stops the currently playing background music and releases its resources.
-     */
-    void stopMusic();
-
-    /**
-     * Plays a short sound effect (SFX) once. 
-     * Suitable for transient audio like jumps, UI clicks, or explosions.
-     * Multiple sound effects can play simultaneously.
-     * * @param filePath The internal file path to the sound file (e.g., "audio/jump.wav").
+     * Plays a short sound effect. The clip is loaded on first use and
+     * cached for subsequent calls. Skipped silently if SFX volume is 0.
+     *
+     * @param filePath internal asset path (e.g. {@code "audio/bell.mp3"})
      */
     void playSound(String filePath);
+
+    /**
+     * @return the current background music volume in the range [0.0, 1.0]
+     */
+    float getMusicVolume();
+
+    /**
+     * Sets the global background music volume. Takes effect immediately
+     * if music is currently playing.
+     *
+     * @param volume desired volume; automatically clamped to [0.0, 1.0]
+     */
+    void setMusicVolume(float volume);
+
+    /** @return the current sound-effect volume in the range [0.0, 1.0] */
+    float getSoundVolume();
+
+    /**
+     * Sets the global sound-effect volume. Applies to all future
+     * {@link #playSound} calls.
+     *
+     * @param volume desired volume; automatically clamped to [0.0, 1.0]
+     */
+    void setSoundVolume(float volume);
 }

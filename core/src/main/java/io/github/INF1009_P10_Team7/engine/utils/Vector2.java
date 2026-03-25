@@ -1,6 +1,27 @@
 package io.github.INF1009_P10_Team7.engine.utils;
 
 /**
+ * Vector2 — a mutable 2D vector with common math operations.
+ *
+ * <p>Used throughout the engine for positions, velocities, directions,
+ * and collision normals. All mutating methods return {@code this} to
+ * support method chaining (fluent API).</p>
+ *
+ * <p>Key operations used across the codebase:</p>
+ * <ul>
+ *   <li>{@link #set(float, float)} — reset both components in-place</li>
+ *   <li>{@link #add(Vector2)}     — translate in-place</li>
+ *   <li>{@link #sub(Vector2)}     — subtract in-place</li>
+ *   <li>{@link #nor()}            — normalise to unit length</li>
+ *   <li>{@link #scl(float)}       — scale in-place</li>
+ *   <li>{@link #dot(Vector2)}     — dot product (used in reflection math)</li>
+ *   <li>{@link #dst(Vector2)}     — euclidean distance to another vector</li>
+ *   <li>{@link #len()}            — magnitude</li>
+ *   <li>{@link #cpy()}            — immutable snapshot copy</li>
+ * </ul>
+ */
+
+/**
  * A 2D vector class for representing positions, velocities, and directions.
  * Provides common vector operations for physics and transform calculations.
  */

@@ -27,6 +27,16 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * Level 1 (easy)  — common ports: 22/SSH, 80/HTTP, 443/HTTPS, 3306/MySQL, 21/FTP
  * Level 2 (hard)  — obscure ports: 25/SMTP, 110/POP3, 143/IMAP, 3389/RDP, 5432/PostgreSQL
  */
+/**
+ * PortMatchGame — mini-game where the player matches network port numbers to
+ * their corresponding services.
+ *
+ * <p>The ports, service names, and correct answer indices are all configurable
+ * at construction time. Level 1 uses well-known ports (22, 80, 443 …);
+ * Level 2 uses less common protocols (SMTP, POP3, IMAP …).</p>
+ *
+ * <p>Implements {@link IMiniGame} (OCP, LSP).</p>
+ */
 public class PortMatchGame implements IMiniGame {
 
     private static final float W = 1280f;

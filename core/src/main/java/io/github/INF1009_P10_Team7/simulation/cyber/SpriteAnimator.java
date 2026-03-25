@@ -29,8 +29,10 @@ public class SpriteAnimator {
     /** Facing directions used for animation row selection and setDirection(). */
     public enum Direction { UP, DOWN, LEFT, RIGHT }
 
+    /** The full sprite sheet texture loaded from disk. */
     private final Texture           sheet;
-    private final TextureRegion[][] frames;  // [row][col]
+    /** Sliced frames indexed as [row][col], where row = direction. */
+    private final TextureRegion[][] frames;
 
     private final int   cols;
     private final int   rows;
@@ -39,8 +41,11 @@ public class SpriteAnimator {
     // Row indices per direction — set via constructor (OCP: no code change needed for new sheets)
     private final int rowUp, rowDown, rowLeft, rowRight;
 
+    /** Accumulated time used to index into the walk-cycle frames. */
     private float     stateTime  = 0f;
+    /** Current sprite sheet row (maps to the facing direction). */
     private int       currentRow;
+    /** Whether the entity is currently moving (determines animation vs idle frame). */
     private boolean   moving     = false;
 
     // -------------------------------------------------------------------------
