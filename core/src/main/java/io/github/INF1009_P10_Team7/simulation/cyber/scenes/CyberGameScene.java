@@ -4,12 +4,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -662,22 +660,6 @@ public class CyberGameScene extends Scene {
         gameOver = true;
     }
 
-    private int getNearestTerminalIndex(Vector2 from) {
-        int bestIdx = -1;
-        float best = Float.MAX_VALUE;
-        for (int i = 0; i < terminalTiles.length; i++) {
-            if (terminalSolved[i]) continue;
-            float tx = TileMap.tileCentreX(terminalTiles[i][0]);
-            float ty = TileMap.tileCentreY(terminalTiles[i][1]);
-            float d = dist(from.x, from.y, tx, ty);
-            if (d < best) {
-                best = d;
-                bestIdx = i;
-            }
-        }
-        return bestIdx;
-    }
-
     private int getNearbyTerminalIndex(Vector2 from, float radius) {
         int bestIdx = -1;
         float best = radius;
@@ -692,10 +674,6 @@ public class CyberGameScene extends Scene {
             }
         }
         return bestIdx;
-    }
-
-    private float[] getExitCentre() {
-        return new float[]{tmxExitX, tmxExitY};
     }
 
     private void maybeRestoreIntegrity() {
@@ -975,7 +953,6 @@ public class CyberGameScene extends Scene {
         worldRenderer.renderTerminalGlow(terminalTiles, terminalSolved);
         worldRenderer.renderClueObjects(stateTime, clueSystem, terminalTiles,
             terminalSolved, playerEntity, terminalPingTimer);
-        worldRenderer.renderSignalPingEffect();
         worldRenderer.renderTerminalHints(stateTime, terminalPingTimer,
             terminalTiles, terminalSolved, clueSystem, playerEntity, PING_REVEAL_RADIUS);
         worldRenderer.renderExitGuidance(stateTime, exitUnlocked, playerEntity,
@@ -986,7 +963,6 @@ public class CyberGameScene extends Scene {
         TransformComponent tc = playerEntity.getComponent(TransformComponent.class);
         renderPlayer(tc);
         renderParticles();
-        worldRenderer.renderAtmosphere();
 
         if (activeChallenge != null && activeChallenge.isOpen()) {
             hudViewport.apply();
@@ -1059,24 +1035,6 @@ public class CyberGameScene extends Scene {
             sr.end();
         }
     }
-
-    // ── Room props ────────────────────────────────────────────────────────────
-    /**
-     * Renders world-space room props that sit on top of the TMX tile layer:
-     *
-     *  ceiling_light.png  – Soft flickering glow pool on the floor beneath each
-     *                       ceiling fixture, plus the fixture sprite drawn above it.
-     *
-     *  sec_camera.png     – Security camera sprite rotated ±40° like a real CCTV
-     *                       pan; a translucent scan-cone is drawn in front of it.
-     *                       Tinted red when the camera has spotted the player.
-     *
-     *  drone sprites      – Patrol/detect/damaged drone sheet frames drawn rotated
-     *                       to match drone facing; tinted by alert state.
-     *                       Also renders a soft vision cone in front of each drone.
-     *
-     *  (wifi badge intentionally omitted — world-prompt card handles proximity UI)
-     */
 
     // ── Particles ─────────────────────────────────────────────────────────────
     private void spawnParticles(float x, float y, float r, float g, float b, int count) {

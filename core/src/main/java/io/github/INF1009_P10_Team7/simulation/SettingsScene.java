@@ -53,7 +53,6 @@ public class SettingsScene extends Scene {
     private BitmapFont titleFont;
     private BitmapFont volFont;
     private BitmapFont sectionFont;
-    private BitmapFont helpFont;
 
     /** FreeType font injected into the skin to replace the pixelated bitmap font. */
     private BitmapFont skinFont;
@@ -151,7 +150,6 @@ public class SettingsScene extends Scene {
             titleFont   = FontManager.createBold(2.0f);
             volFont     = FontManager.create(1.15f);
             sectionFont = FontManager.create(0.85f);
-            helpFont    = FontManager.create(0.68f);
         }
     }
 
@@ -489,7 +487,6 @@ public class SettingsScene extends Scene {
         if (titleFont   != null) titleFont.dispose();
         if (volFont     != null) volFont.dispose();
         if (sectionFont != null) sectionFont.dispose();
-        if (helpFont    != null) helpFont.dispose();
         // skinFont is owned by the Skin and disposed with it
         if (skin  != null) skin.dispose();
         if (stage != null) stage.dispose();

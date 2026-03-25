@@ -67,7 +67,6 @@ public class CyberWorldRenderer {
         float ts = TileMap.TILE_SIZE;
         renderSecurityCameras(ts, stateTime, camPositions, cctvAlerted, playerEntity, collisionMgr);
         renderDroneSprites(ts, stateTime, drones);
-        renderTerminalWifiBadge(ts);
     }
 
     public void renderTerminalGlow(int[][] terminalTiles, boolean[] terminalSolved) {
@@ -131,10 +130,6 @@ public class CyberWorldRenderer {
                 }
             }
         }
-    }
-
-    public void renderSignalPingEffect() {
-        // Ping ring removed — feedback handled by banner + revealed intel objects
     }
 
     public void renderTerminalHints(float stateTime, float terminalPingTimer,
@@ -244,40 +239,9 @@ public class CyberWorldRenderer {
         sr.end();
     }
 
-    /**
-     * Renders an ambient atmospheric overlay (scanlines, vignette, etc.)
-     * on top of the entire world. Called last in the render pass.
-     */
-    public void renderAtmosphere() {
-        // Intentionally empty — no dark overlay, no flashlight, no light pools
-    }
-
     // =========================================================================
     // PRIVATE HELPERS
     // =========================================================================
-
-    private void renderCeilingLights(float ts, float stateTime, int[][] lights) {
-        if (sprites.get("ceilingLight") == null) return;
-        sr.begin(ShapeRenderer.ShapeType.Filled);
-        for (int i = 0; i < lights.length; i++) {
-            int[] lt = lights[i];
-            float cx = TileMap.tileCentreX(lt[0]);
-            float cy = TileMap.tileCentreY(lt[1]);
-            float flicker = 0.80f + 0.20f * (float)Math.sin(stateTime * 4.0f + i * 1.7f);
-            sr.setColor(1.00f, 0.94f, 0.40f, 0.10f * flicker);
-            sr.circle(cx, cy - ts * 0.10f, ts * 0.70f, 24);
-            sr.setColor(1.00f, 0.88f, 0.22f, 0.06f * flicker);
-            sr.circle(cx, cy - ts * 0.10f, ts * 1.02f, 28);
-        }
-        sr.end();
-        batch.begin();
-        for (int[] lt : lights) {
-            float cx = TileMap.tileCentreX(lt[0]);
-            float cy = TileMap.tileCentreY(lt[1]);
-            sprites.drawCentered(batch, "ceilingLight", cx, cy + ts * 0.32f, ts * 0.64f, 0.92f);
-        }
-        batch.end();
-    }
 
     private void renderSecurityCameras(float ts, float stateTime, int[][] camPositions,
                                         boolean[] cctvAlerted, GameEntity playerEntity,
@@ -384,10 +348,6 @@ public class CyberWorldRenderer {
             batch.setColor(Color.WHITE);
         }
         batch.end();
-    }
-
-    private void renderTerminalWifiBadge(float ts) {
-        // Intentionally empty — world-prompt card handles proximity UI
     }
 
     private void drawSoftCone(ShapeRenderer renderer, float ox, float oy, float facingDeg,

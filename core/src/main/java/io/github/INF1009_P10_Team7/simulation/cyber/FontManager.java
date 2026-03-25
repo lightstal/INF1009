@@ -19,8 +19,8 @@ public final class FontManager {
 
     /**
      * Base pixel size at scale 1.0 in virtual-resolution units.
-     * The old default BitmapFont was ~15 px; we target ~15 px at scale 1.0
-     * then multiply by screen density so the texture is rendered at the
+     * Tuned for crisp, readable text at the default 1280×720 window.
+     * Multiply by screen density so the texture is rendered at the
      * physical pixel count needed for crispness.
      */
     private static final int BASE_PX = 15;
@@ -34,12 +34,11 @@ public final class FontManager {
     // ── Public API ───────────────────────────────────────────────────────
 
     /**
-     * Creates a regular-weight font at {@code scale × BASE_PX × density}.
-     * The returned font's internal scale is adjusted so it occupies the
-     * same virtual-space size as the old {@code BitmapFont + setScale(scale)}.
+     * Creates a bold-weight font at {@code scale × BASE_PX × density}.
+     * Bold is the default — sharper and more readable at small sizes.
      */
     public static BitmapFont create(float scale) {
-        return build(getRegular(), scale);
+        return build(getBold(), scale);
     }
 
     /** Bold-weight variant. */
@@ -66,7 +65,7 @@ public final class FontManager {
         if (d > 1.01f) {
             f.getData().setScale(1f / d);
         }
-        f.setUseIntegerPositions(false);
+        f.setUseIntegerPositions(true);
         return f;
     }
 
@@ -127,7 +126,7 @@ public final class FontManager {
         if (d > 1.01f) {
             f.getData().setScale(1f / d);
         }
-        f.setUseIntegerPositions(false);
+        f.setUseIntegerPositions(true);
         return f;
     }
 
@@ -136,8 +135,9 @@ public final class FontManager {
         p.size       = px;
         p.mono       = true;
         p.hinting    = FreeTypeFontGenerator.Hinting.Full;
-        p.minFilter  = Texture.TextureFilter.Linear;
-        p.magFilter  = Texture.TextureFilter.Linear;
+        p.minFilter  = Texture.TextureFilter.Nearest;
+        p.magFilter  = Texture.TextureFilter.Nearest;
+        p.renderCount = 2;   // double-strike for bolder, crisper glyphs
         p.characters = FreeTypeFontGenerator.DEFAULT_CHARS
                      + "↑↓←→·αβγ∅▶▸▪▫█░▒▓│┤┐└┘─┬├┼╔╗╚╝║═╠╣╩╦╬";
         return p;

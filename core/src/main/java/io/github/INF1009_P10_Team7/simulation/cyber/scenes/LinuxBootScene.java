@@ -165,7 +165,7 @@ public class LinuxBootScene extends Scene {
 
         // Text lines (bottom-up scrolling feel)
         batch.begin();
-        float lineH = 15f;
+        float lineH = 20f;
         float startY = TileMap.WORLD_H - 20f;
         int maxVisible = (int)(TileMap.WORLD_H / lineH) - 1;
         int fromLine = Math.max(0, lineShown - maxVisible);
