@@ -117,8 +117,9 @@ public class CyberWorldRenderer {
                 if (dist(pp.x, pp.y, tx, ty) < TileMap.TILE_SIZE * 2.0f) {
                     boolean locked = !clueSystem.canAccessTerminal(i, terminalTiles.length);
                     if (locked) {
+                        int requiredForThis = Math.min(i - 1, clueSystem.getTotalClueObjects());
                         String status = clueSystem.getCollectedCount() + "/"
-                            + clueSystem.getTotalClueObjects() + " INTEL";
+                            + requiredForThis + " INTEL";
                         drawWorldPromptCard(tx, ty + ts * 0.52f,
                             "LOCKED", status, new Color(1f, 0.34f, 0.24f, 1f));
                     } else {
