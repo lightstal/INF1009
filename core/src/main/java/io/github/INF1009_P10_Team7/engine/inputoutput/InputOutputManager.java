@@ -8,7 +8,6 @@ import java.util.Map;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 
-
 /**
  * The concrete implementation of the {@link IInputController} interface.
  * <p>
@@ -19,9 +18,10 @@ import com.badlogic.gdx.InputAdapter;
  * <li>Managing the mapping (binding) between abstract Action Names ("JUMP") and physical keys.</li>
  * <li>Polling hardware state every frame.</li>
  * <li>Delegating audio requests to the {@link AudioOutput} system.</li>
+ * <li>Routing raw OS-level text and control keys to active UI listeners.</li>
  * </ul>
  */
-public class InputOutputManager implements IInputController, IAudioController{
+public class InputOutputManager implements IInputController, IAudioController {
 	
 	private AudioOutput audioOutput;
 	
@@ -38,9 +38,16 @@ public class InputOutputManager implements IInputController, IAudioController{
      * {@code Action Name (String) -> Key/Button Code (Integer)}.
      */
     private Map<String, Integer> keyBindings;
+
+    /** The currently active text input listener (for UI elements like Terminals). */
+    private ITextInputListener currentTextListener;
+
+    /** The pending callback for key rebinding (for the Settings Menu). */
+    private InputCallback nextKeyCallback;
     
     /**
      * Initializes the InputOutputManager and its sub-components (Audio, Keyboard, Mouse).
+     * Also establishes the global unified input processor for the engine.
      */
 	public InputOutputManager() {
 		this.audioOutput = new AudioOutput();
@@ -51,6 +58,48 @@ public class InputOutputManager implements IInputController, IAudioController{
         // Register default devices
         registerDevice(new KeyboardDevice());
         registerDevice(new MouseDevice());
+
+        // --- ONE UNIFIED GLOBAL INPUT ADAPTER ---
+        // This acts as a traffic cop, routing raw OS events exactly where they need to go.
+        Gdx.input.setInputProcessor(new InputAdapter() {
+            
+            @Override
+            public boolean keyDown(int keycode) {
+                // Check if it is for key rebind
+                if (nextKeyCallback != null) {
+                    nextKeyCallback.onInputReceived(0, keycode); // 0 = Keyboard
+                    nextKeyCallback = null; // Clear it so it only fires once
+                    return true;
+                }
+                
+                // Check if need constant polling for hardware inputs into the iomanager
+                if (currentTextListener != null) {
+                    currentTextListener.onControlKeyPressed(keycode);
+                }
+                return false;
+            }
+
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                // check for mouse click
+                if (nextKeyCallback != null) {
+                    nextKeyCallback.onInputReceived(1, button); // 1 = Mouse
+                    nextKeyCallback = null; // Clear it so it only fires once
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public boolean keyTyped(char character) {
+                // heck if need constant polling for hardware inputs into the iomanager
+                if (currentTextListener != null) {
+                    currentTextListener.onCharTyped(character);
+                    return true; // Consume the typed character so nothing else processes it
+                }
+                return false;
+            }
+        });
 	}
 	
 	/**
@@ -64,7 +113,7 @@ public class InputOutputManager implements IInputController, IAudioController{
 
     /**
      * Routes a global key code to the correct registered hardware device.
-     * * @param globalCode The integer code retrieved from the key bindings map.
+     * @param globalCode The integer code retrieved from the key bindings map.
      * @return The {@link DeviceInput} responsible for handling this code, or {@code null} if none match.
      */
     private DeviceInput getTargetDevice(int globalCode) {
@@ -80,7 +129,7 @@ public class InputOutputManager implements IInputController, IAudioController{
      * Retrieves a registered device by its unique ID.
      * <p>
      * Used internally to route dynamic binding requests to the correct hardware.
-     * * @param id The integer ID of the device to find.
+     * @param id The integer ID of the device to find.
      * @return The {@link DeviceInput} matching the ID, or {@code null} if no such device is registered.
      */
     private DeviceInput getDeviceByID(int id) {
@@ -204,29 +253,15 @@ public class InputOutputManager implements IInputController, IAudioController{
 
     /**
      * {@inheritDoc}
-     * <p>add listener for next key press</p>
+     * <p>Add listener for next key press</p>
      * 
      * @param callback when key is pressed
      */
     @Override
-    public void listenForNextKey(final IInputController.InputCallback callback) {
-
-        // set a temporary processor to catch exactly ONE key or mouse click
-        Gdx.input.setInputProcessor(new InputAdapter() {
-            @Override
-            public boolean keyDown(int keycode) {
-            	// Device ID 0 = Keyboard
-                callback.onInputReceived(0, keycode);
-                return true;
-            }
-
-            @Override
-            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-            	// Device ID 1 = Mouse
-                callback.onInputReceived(1, button);
-                return true;
-            }
-        });
+    public void listenForNextKey(final InputCallback callback) {
+        // The global InputAdapter set in the constructor will catch the next key or click
+        // and fire this callback, then clear it automatically.
+        this.nextKeyCallback = callback;
     }
 
      /**
@@ -250,6 +285,26 @@ public class InputOutputManager implements IInputController, IAudioController{
         }
         return 0;
     }
+    
+    // --- Text Input Management Implementation ---
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setTextInputListener(ITextInputListener listener) {
+        this.currentTextListener = listener;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void clearTextInputListener() {
+        this.currentTextListener = null;
+    }
+
+    // --- Audio System Delegation ---
 
 	@Override
 	public float getMusicVolume() {

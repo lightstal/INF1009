@@ -2,8 +2,6 @@ package io.github.INF1009_P10_Team7.simulation.cyber.minigame;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -36,7 +34,8 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * Provides a frequency-analysis hint to guide the player.</p>
  *
  * <p>Implements {@link IMiniGame} so it is handled uniformly by
- * {@code CyberGameScene} (OCP, LSP).</p>
+ * {@code CyberGameScene} (OCP, LSP). Relies on the engine's text input 
+ * listener for abstract OS-level character typing.</p>
  */
 public class CaesarCipherGame implements IMiniGame {
 
@@ -62,38 +61,13 @@ public class CaesarCipherGame implements IMiniGame {
     private BitmapFont smallFont;   // 0.78x — hints, nav text
     private GlyphLayout layout;
 
-    private final InputAdapter captureAdapter = new InputAdapter() {
-        @Override public boolean keyDown(int k) {
-            if (!open || solved) return false;
-            if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
-                panicked = true; close(); return true;
-            }
-            if (k == Input.Keys.LEFT  || k == Input.Keys.A) {
-                shift = (shift + 25) % 26;
-                shiftAnimTimer = 0.1f;
-                return true;
-            }
-            if (k == Input.Keys.RIGHT || k == Input.Keys.D) {
-                shift = (shift + 1) % 26;
-                shiftAnimTimer = 0.1f;
-                return true;
-            }
-            if (k == Input.Keys.ENTER) {
-                if (shift == CORRECT_SHIFT) { solved = true; solveTimer = 0f; }
-                else wrongFlash = 0.7f;
-                return true;
-            }
-            return false;
-        }
-    };
-
     @Override
     public void open() {
         open = true; solved = false; panicked = false;
         shift = 0; shiftAnimTimer = 0f;
         stateTime = 0f; wrongFlash = 0f; solveTimer = 0f;
         buildFonts();
-        Gdx.input.setInputProcessor(captureAdapter);
+        // The scene automatically routes input to this game via ITextInputListener
     }
 
     private void buildFonts() {
@@ -103,6 +77,7 @@ public class CaesarCipherGame implements IMiniGame {
         smallFont = FontManager.create(0.78f);
         layout    = new GlyphLayout();
     }
+    
     private void disposeFonts() {
         if (bigFont   != null) bigFont.dispose();
         if (medFont   != null) medFont.dispose();
@@ -110,7 +85,7 @@ public class CaesarCipherGame implements IMiniGame {
         bigFont = medFont = smallFont = null;
     }
 
-    @Override public void close()          { open = false; disposeFonts(); Gdx.input.setInputProcessor(null); }
+    @Override public void close()          { open = false; disposeFonts(); }
     @Override public boolean isOpen()      { return open; }
     @Override public boolean isSolved()    { return solved; }
     @Override public boolean wasPanicked() { return panicked; }
@@ -368,5 +343,38 @@ public class CaesarCipherGame implements IMiniGame {
             sb.append((c >= 'A' && c <= 'Z') ? (char)(((c - 'A' + s) % 26) + 'A') : c);
         }
         return sb.toString();
+    }
+
+    // --- ITextInputListener Implementation (Forced by IMiniGame) ---
+    
+    @Override
+    public void onCharTyped(char c) {
+        // Not used for Caesar Cipher, input is entirely arrow keys and enter
+    }
+
+    @Override
+    public void onControlKeyPressed(int k) {
+        if (!open || solved) return;
+        
+        if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
+            panicked = true; 
+            close(); 
+            return;
+        }
+        
+        if (k == Input.Keys.LEFT || k == Input.Keys.A) {
+            shift = (shift + 25) % 26;
+            shiftAnimTimer = 0.1f;
+        } else if (k == Input.Keys.RIGHT || k == Input.Keys.D) {
+            shift = (shift + 1) % 26;
+            shiftAnimTimer = 0.1f;
+        } else if (k == Input.Keys.ENTER) {
+            if (shift == CORRECT_SHIFT) { 
+                solved = true; 
+                solveTimer = 0f; 
+            } else {
+                wrongFlash = 0.7f;
+            }
+        }
     }
 }

@@ -102,4 +102,50 @@ public interface IInputController {
     interface InputCallback {
         void onInputReceived(int keycode, int localCode);
     }
+    
+    // --- Text Input Management ---
+    
+    /**
+     * Registers a listener to receive raw text events directly from the OS.
+     * <p>
+     * This is used by UI elements like terminals or text boxes that require 
+     * OS-level character mapping (e.g., shift-modifiers) and key-repeating, 
+     * which standard state-polling cannot provide. Only one text listener 
+     * can be active at a time.
+     * 
+     * @param listener The object (e.g., TerminalEmulator) that will receive typing events.
+     */
+    void setTextInputListener(ITextInputListener listener);
+
+    /** 
+     * Unregisters the current text listener and releases the OS input processor.
+     * <p>
+     * Must be called when the UI element requesting text input is closed to 
+     * return input control to the standard game loop.
+     */
+    void clearTextInputListener();
+
+    /**
+     * Interface for UI elements that need raw typing data.
+     * Implementing classes will receive direct callbacks from the engine when keys are struck.
+     */
+    interface ITextInputListener {
+        
+        /** 
+         * Called when a printable character or a backspace is typed.
+         * 
+         * @param c The resolved character typed by the user (accounts for Shift/Caps Lock).
+         */
+        void onCharTyped(char c);
+        
+        /** 
+         * Called when a non-printable control/navigation key is pressed.
+         * <p>
+         * Useful for handling keys that require OS-level key-repeating when held down,
+         * such as Arrow keys for history navigation, or Page Up/Page Down for scrolling.
+         * 
+         * @param libgdxKeyCode The raw integer keycode from {@link com.badlogic.gdx.Input.Keys}.
+         */
+        void onControlKeyPressed(int libgdxKeyCode);
+    }
 }

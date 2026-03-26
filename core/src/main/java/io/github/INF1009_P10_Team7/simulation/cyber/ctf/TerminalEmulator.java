@@ -2,8 +2,6 @@ package io.github.INF1009_P10_Team7.simulation.cyber.ctf;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -15,14 +13,22 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
 
 /**
  * A full-featured terminal emulator widget for LibGDX.
  *
+ * <p>Refactored to rely purely on the abstract GameEngine:
+ * <ul>
+ *   <li>Implements ITextInputListener to receive OS-level typing and control keys</li>
+ *   <li>No longer fights for control of the Gdx InputProcessor</li>
+ * </ul>
+ * 
  * <p>Features:
  * <ul>
- *   <li>Real keyboard input via InputAdapter.keyTyped</li>
+ *   <li>Real keyboard input via inherited listener methods</li>
  *   <li>Typewriter reveal effect</li>
  *   <li>Command history via UP/DOWN arrows</li>
  *   <li>Mouse-wheel / PAGE UP/DOWN scrolling</li>
@@ -33,7 +39,7 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * <p>render() uses its own pre-scaled fonts created in open(),
  * never mutating the caller's shared hudFont reference.
  */
-public class TerminalEmulator {
+public class TerminalEmulator implements IInputController.ITextInputListener {
 
     // ---- Layout (HUD coords at 1280x704) ----
     private static final float WIN_X  = 32f;
@@ -65,26 +71,26 @@ public class TerminalEmulator {
     private boolean cursorVisible = true;
     private int     scrollOffset  = 0;
 
-    // ---- Own fonts (per-instance, never shared with HUD) ----
-    private BitmapFont bodyFont;     // 0.88 scale  -  main terminal text
-    private BitmapFont smallFont;    // 0.75 scale  -  scroll indicator
-    private BitmapFont solvedFont;   // 1.1  scale  -  solved flash
+    // ---- Own fonts ----
+    private BitmapFont bodyFont;     
+    private BitmapFont smallFont;    
+    private BitmapFont solvedFont;   
     private GlyphLayout glLayout;
-
-    // ---- LibGDX input adapter ----
-    private final TerminalInputAdapter adapter = new TerminalInputAdapter();
 
     // ---- Glitch effect ----
     private float glitchTimer = 0f;
     private float stateTime   = 0f;
     private float solveTimer  = 0f;
     private long  lastDeleteNanos = 0L;
-    private InputProcessor previousProcessor;
 
     // =========================================================================
     // PUBLIC API
     // =========================================================================
 
+    /**
+     * Opens the terminal emulator and loads the provided CTF challenge.
+     * @param c The challenge configuration to load.
+     */
     public void open(ICTFChallenge c) {
         challenge      = c;
         open           = true;
@@ -115,16 +121,14 @@ public class TerminalEmulator {
         addLine(TerminalLine.blank());
         for (TerminalLine l : c.getWelcomeLines()) addLine(l);
         addLine(TerminalLine.blank());
-
-        previousProcessor = Gdx.input.getInputProcessor();
-        Gdx.input.setInputProcessor(adapter);
+        
+        // Note: The parent TerminalMiniGame routes the engine input to us automatically!
     }
 
+    /** Closes the terminal and cleans up resources. */
     public void close() {
         open = false;
         disposeFonts();
-        Gdx.input.setInputProcessor(previousProcessor);
-        previousProcessor = null;
     }
 
     public boolean isOpen()     { return open; }
@@ -162,7 +166,7 @@ public class TerminalEmulator {
     }
 
     // =========================================================================
-    // RENDER — uses own fonts, never mutates the caller's passed-in font
+    // RENDER 
     // =========================================================================
 
     public void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont ignoredFont) {
@@ -277,102 +281,88 @@ public class TerminalEmulator {
     }
 
     // =========================================================================
-    // INPUT ADAPTER
+    // ITextInputListener IMPLEMENTATION
     // =========================================================================
 
-    private class TerminalInputAdapter extends InputAdapter {
+    @Override
+    public void onCharTyped(char c) {
+        if (!open || !waitingForInput) return;
 
-        @Override
-        public boolean keyTyped(char c) {
-            if (!open || !waitingForInput) return true;
+        if (c == '\b' || c == 127) {
+            if (!recentDeleteEvent()) deleteLastChar();
+            return;
+        }
+        
+        // Enter is handled in onControlKeyPressed
+        if (c == '\r' || c == '\n') return;
 
-            if (c == '\b' || c == 127) {
-                if (!recentDeleteEvent()) deleteLastChar();
-                return true;
-            }
-            if (c == '\r' || c == '\n') {
-                submitCommand();
-                return true;
-            }
-            if (c >= 32 && c < 127) {
-                inputBuffer.append(c);
-            }
-            return true;
+        if (c >= 32 && c < 127) {
+            inputBuffer.append(c);
+        }
+    }
+
+    @Override
+    public void onControlKeyPressed(int keycode) {
+        if (!open) return;
+
+        if (keycode == Input.Keys.TAB || keycode == Input.Keys.ESCAPE) {
+            panicked = true;
+            close();
+            return;
         }
 
-        @Override
-        public boolean keyDown(int keycode) {
-            if (!open) return false;
+        boolean ctrlDown = Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
+            || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
 
-            if (keycode == Input.Keys.TAB || keycode == Input.Keys.ESCAPE) {
-                panicked = true;
-                close();
-                return true;
-            }
-
-            boolean ctrlDown = Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
-                || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
-
-            if (waitingForInput && ctrlDown && keycode == Input.Keys.V) {
-                tryPasteClipboard();
-                return true;
-            }
-
-            if (keycode == Input.Keys.BACKSPACE || keycode == Input.Keys.DEL || keycode == Input.Keys.FORWARD_DEL) {
-                if (ctrlDown) {
-                    while (inputBuffer.length() > 0 && inputBuffer.charAt(inputBuffer.length() - 1) == ' ') {
-                        inputBuffer.deleteCharAt(inputBuffer.length() - 1);
-                    }
-                    while (inputBuffer.length() > 0 && inputBuffer.charAt(inputBuffer.length() - 1) != ' ') {
-                        inputBuffer.deleteCharAt(inputBuffer.length() - 1);
-                    }
-                    lastDeleteNanos = TimeUtils.nanoTime();
-                } else {
-                    deleteLastChar();
-                }
-                return true;
-            }
-
-            if (keycode == Input.Keys.ENTER || keycode == Input.Keys.NUMPAD_ENTER) {
-                if (waitingForInput) submitCommand();
-                return true;
-            }
-
-            if (keycode == Input.Keys.UP) {
-                if (!cmdHistory.isEmpty()) {
-                    historyIdx = Math.min(historyIdx + 1, cmdHistory.size() - 1);
-                    inputBuffer.setLength(0);
-                    inputBuffer.append(cmdHistory.get(cmdHistory.size() - 1 - historyIdx));
-                }
-                return true;
-            }
-            if (keycode == Input.Keys.DOWN) {
-                if (historyIdx > 0) {
-                    historyIdx--;
-                    inputBuffer.setLength(0);
-                    inputBuffer.append(cmdHistory.get(cmdHistory.size() - 1 - historyIdx));
-                } else {
-                    historyIdx = -1;
-                    inputBuffer.setLength(0);
-                }
-                return true;
-            }
-
-            if (keycode == Input.Keys.PAGE_UP)   { scrollOffset += 5; clampScroll(); return true; }
-            if (keycode == Input.Keys.PAGE_DOWN) { scrollOffset = Math.max(0, scrollOffset - 5); return true; }
-            if (keycode == Input.Keys.HOME)      { scrollOffset = Math.max(0, displayLines.size() - MAX_VISIBLE); return true; }
-            if (keycode == Input.Keys.END)       { scrollOffset = 0; return true; }
-
-            return false;
+        if (waitingForInput && ctrlDown && keycode == Input.Keys.V) {
+            tryPasteClipboard();
+            return;
         }
 
-        @Override
-        public boolean scrolled(float amountX, float amountY) {
-            scrollOffset = Math.max(0, Math.min(
-                scrollOffset + (int)(amountY * 2),
-                Math.max(0, displayLines.size() - MAX_VISIBLE)));
-            return true;
+        if (keycode == Input.Keys.BACKSPACE || keycode == Input.Keys.DEL || keycode == Input.Keys.FORWARD_DEL) {
+            if (ctrlDown) {
+                while (inputBuffer.length() > 0 && inputBuffer.charAt(inputBuffer.length() - 1) == ' ') {
+                    inputBuffer.deleteCharAt(inputBuffer.length() - 1);
+                }
+                while (inputBuffer.length() > 0 && inputBuffer.charAt(inputBuffer.length() - 1) != ' ') {
+                    inputBuffer.deleteCharAt(inputBuffer.length() - 1);
+                }
+                lastDeleteNanos = TimeUtils.nanoTime();
+            } else {
+                deleteLastChar();
+            }
+            return;
         }
+
+        if (keycode == Input.Keys.ENTER || keycode == Input.Keys.NUMPAD_ENTER) {
+            if (waitingForInput) submitCommand();
+            return;
+        }
+
+        if (keycode == Input.Keys.UP) {
+            if (!cmdHistory.isEmpty()) {
+                historyIdx = Math.min(historyIdx + 1, cmdHistory.size() - 1);
+                inputBuffer.setLength(0);
+                inputBuffer.append(cmdHistory.get(cmdHistory.size() - 1 - historyIdx));
+            }
+            return;
+        }
+        if (keycode == Input.Keys.DOWN) {
+            if (historyIdx > 0) {
+                historyIdx--;
+                inputBuffer.setLength(0);
+                inputBuffer.append(cmdHistory.get(cmdHistory.size() - 1 - historyIdx));
+            } else {
+                historyIdx = -1;
+                inputBuffer.setLength(0);
+            }
+            return;
+        }
+
+        if (keycode == Input.Keys.PAGE_UP)   { scrollOffset += 5; clampScroll(); return; }
+        if (keycode == Input.Keys.PAGE_DOWN) { scrollOffset = Math.max(0, scrollOffset - 5); return; }
+        if (keycode == Input.Keys.HOME)      { scrollOffset = Math.max(0, displayLines.size() - MAX_VISIBLE); return; }
+        if (keycode == Input.Keys.END)       { scrollOffset = 0; return; }
     }
 
     // =========================================================================
@@ -476,6 +466,4 @@ public class TerminalEmulator {
         if (smallFont  != null) { smallFont.dispose();  smallFont  = null; }
         if (solvedFont != null) { solvedFont.dispose(); solvedFont = null; }
     }
-
-    public InputAdapter getAdapter() { return adapter; }
 }

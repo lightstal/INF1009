@@ -2,7 +2,6 @@ package io.github.INF1009_P10_Team7.simulation.cyber.minigame;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -35,7 +34,8 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * at construction time. Level 1 uses well-known ports (22, 80, 443 …);
  * Level 2 uses less common protocols (SMTP, POP3, IMAP …).</p>
  *
- * <p>Implements {@link IMiniGame} (OCP, LSP).</p>
+ * <p>Implements {@link IMiniGame} (OCP, LSP). Receives input directly from 
+ * the Scene via inherited listener methods.</p>
  */
 public class PortMatchGame implements IMiniGame {
 
@@ -43,9 +43,6 @@ public class PortMatchGame implements IMiniGame {
     private static final float H = 704f;
 
     // ── Port / service data injected via constructor ───────────────────────────
-    // ports[i]   = port number string shown on the left for row i  (e.g. "22")
-    // services[j] = service name shown on the right for letter (A + j)
-    // correct[i] = index into services[] that ports[i] should map to
     private final String[] ports;
     private final String[] services;
     private final int[]    correct;
@@ -63,16 +60,11 @@ public class PortMatchGame implements IMiniGame {
     private float   wrongFlash = 0f;
     private float   solveTimer = 0f;
 
-    // -1 = unmatched; otherwise = matched service index
     private int[]     portMatched;
-    // tracks which services are already taken
     private boolean[] serviceTaken;
 
-    // Input state machine
     private int    selectedPort = -1;   // 0-4, -1 = none selected yet
     private String wrongMsg     = "";
-
-    private final InputAdapter adapter = new PortInputAdapter();
 
     // ── Constructor ───────────────────────────────────────────────────────────
     /**
@@ -114,7 +106,6 @@ public class PortMatchGame implements IMiniGame {
         portMatched  = new int[]{ -1, -1, -1, -1, -1 };
         serviceTaken = new boolean[5];
         wrongMsg     = "";
-        Gdx.input.setInputProcessor(adapter);
     }
 
     @Override
@@ -123,7 +114,6 @@ public class PortMatchGame implements IMiniGame {
         disposeFonts();
         selectedPort = -1;
         wrongMsg     = "";
-        Gdx.input.setInputProcessor(null);
     }
 
     @Override public boolean isOpen()      { return open; }
@@ -173,7 +163,7 @@ public class PortMatchGame implements IMiniGame {
 
         // Row highlights
         float rowH  = 56f;
-        float rowY0 = wy + 140 + 240;   // y of the topmost row's bottom edge
+        float rowY0 = wy + 140 + 240;   
         for (int i = 0; i < 5; i++) {
             float ry = rowY0 - i * rowH;
 
@@ -246,28 +236,23 @@ public class PortMatchGame implements IMiniGame {
         for (int i = 0; i < 5; i++) {
             float ry = rowY0f - i * rowH + rowH / 2f + 8f;
 
-            // Port number badge
             medFont.setColor(0.5f, 0.5f, 0.55f, 1f);
             medFont.draw(batch, "[" + (i + 1) + "]", wx + 50, ry);
 
-            // Port value
             boolean pDone = portMatched[i] >= 0;
             boolean pSel  = selectedPort == i;
             medFont.setColor(pDone ? Color.GREEN : (pSel ? Color.YELLOW : Color.WHITE));
             medFont.draw(batch, ports[i], wx + 90, ry);
 
-            // Matched service annotation on port side
             if (pDone) {
                 smallFont.setColor(0f, 0.7f, 0.3f, 0.8f);
                 medFont.draw(batch, "-> " + services[portMatched[i]] + " [OK]", wx + 170, ry);
             }
 
-            // Service letter badge
             medFont.setColor(0.5f, 0.5f, 0.55f, 1f);
             char letter = (char)('A' + i);
             medFont.draw(batch, "[" + letter + "]", wx + 630, ry);
 
-            // Service name
             boolean sDone = serviceTaken[i];
             medFont.setColor(sDone ? Color.GREEN : Color.WHITE);
             medFont.draw(batch, services[i], wx + 668, ry);
@@ -297,61 +282,65 @@ public class PortMatchGame implements IMiniGame {
         batch.end();
     }
 
-    // ── Keyboard input adapter ────────────────────────────────────────────────
-    private class PortInputAdapter extends InputAdapter {
+    // ── Input Handling (Inherited from ITextInputListener) ────────────────────
 
-        @Override
-        public boolean keyDown(int k) {
-            if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
-                panicked = true; close(); return true;
+    @Override
+    public void onCharTyped(char c) {
+        // Not used, parsing keys directly via onControlKeyPressed for matching 
+    }
+
+    @Override
+    public void onControlKeyPressed(int k) {
+        if (!open || solved) return;
+
+        if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
+            panicked = true; 
+            close(); 
+            return;
+        }
+
+        // Select a port (keys 1-5)
+        if (k >= Input.Keys.NUM_1 && k <= Input.Keys.NUM_5) {
+            int idx = k - Input.Keys.NUM_1;
+            if (portMatched[idx] >= 0) {
+                wrongMsg   = "PORT " + ports[idx] + " IS ALREADY MATCHED";
+                wrongFlash = 0.7f;
+            } else {
+                selectedPort = idx;
             }
-            if (solved) return false;
+            return;
+        }
 
-            // Select a port (keys 1-5)
-            if (k >= Input.Keys.NUM_1 && k <= Input.Keys.NUM_5) {
-                int idx = k - Input.Keys.NUM_1;
-                if (portMatched[idx] >= 0) {
-                    wrongMsg   = "PORT " + ports[idx] + " IS ALREADY MATCHED";
-                    wrongFlash = 0.7f;
+        // Select a service (keys A-E) — only active once a port is selected
+        if (selectedPort >= 0) {
+            int svcIdx = -1;
+            if (k == Input.Keys.A) svcIdx = 0;
+            else if (k == Input.Keys.B) svcIdx = 1;
+            else if (k == Input.Keys.C) svcIdx = 2;
+            else if (k == Input.Keys.D) svcIdx = 3;
+            else if (k == Input.Keys.E) svcIdx = 4;
+
+            if (svcIdx >= 0) {
+                if (serviceTaken[svcIdx]) {
+                    wrongMsg     = "SERVICE " + services[svcIdx] + " IS ALREADY TAKEN";
+                    wrongFlash   = 0.7f;
+                    selectedPort = -1;
+                    return;
+                }
+                if (correct[selectedPort] == svcIdx) {
+                    portMatched[selectedPort] = svcIdx;
+                    serviceTaken[svcIdx]      = true;
+                    selectedPort              = -1;
+                    wrongFlash = 0f;
+                    boolean allDone = true;
+                    for (int m : portMatched) if (m < 0) { allDone = false; break; }
+                    if (allDone) { solved = true; solveTimer = 0f; }
                 } else {
-                    selectedPort = idx;
-                }
-                return true;
-            }
-
-            // Select a service (keys A-E) — only active once a port is selected
-            if (selectedPort >= 0) {
-                int svcIdx = -1;
-                if (k == Input.Keys.A) svcIdx = 0;
-                if (k == Input.Keys.B) svcIdx = 1;
-                if (k == Input.Keys.C) svcIdx = 2;
-                if (k == Input.Keys.D) svcIdx = 3;
-                if (k == Input.Keys.E) svcIdx = 4;
-
-                if (svcIdx >= 0) {
-                    if (serviceTaken[svcIdx]) {
-                        wrongMsg     = "SERVICE " + services[svcIdx] + " IS ALREADY TAKEN";
-                        wrongFlash   = 0.7f;
-                        selectedPort = -1;
-                        return true;
-                    }
-                    if (correct[selectedPort] == svcIdx) {
-                        portMatched[selectedPort] = svcIdx;
-                        serviceTaken[svcIdx]      = true;
-                        selectedPort              = -1;
-                        wrongFlash = 0f;
-                        boolean allDone = true;
-                        for (int m : portMatched) if (m < 0) { allDone = false; break; }
-                        if (allDone) { solved = true; solveTimer = 0f; }
-                    } else {
-                        wrongMsg     = "WRONG MATCH  -  TRY AGAIN";
-                        wrongFlash   = 0.8f;
-                        selectedPort = -1;
-                    }
-                    return true;
+                    wrongMsg     = "WRONG MATCH  -  TRY AGAIN";
+                    wrongFlash   = 0.8f;
+                    selectedPort = -1;
                 }
             }
-            return false;
         }
     }
 }

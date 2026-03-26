@@ -75,7 +75,6 @@ class CyberVictoryScene extends Scene {
     @Override
     protected void onUpdate(float dt) {
         stateTime += dt;
-        Gdx.input.setInputProcessor(null);
         if (input.isActionJustPressed("START_GAME") || input.isActionJustPressed("INTERACT")) {
             nav.requestScene(factory.createLevelSelectScene());
         }

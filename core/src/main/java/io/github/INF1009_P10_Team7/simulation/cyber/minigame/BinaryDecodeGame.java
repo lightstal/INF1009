@@ -2,7 +2,6 @@ package io.github.INF1009_P10_Team7.simulation.cyber.minigame;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -33,7 +32,8 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * the decoded ASCII string to solve the challenge.</p>
  *
  * <p>Implements {@link IMiniGame} so it is handled uniformly by
- * {@code CyberGameScene} (OCP, LSP).</p>
+ * {@code CyberGameScene} (OCP, LSP). Relies on the engine's text input 
+ * listener for abstract OS-level character typing.</p>
  */
 public class BinaryDecodeGame implements IMiniGame {
 
@@ -77,39 +77,6 @@ public class BinaryDecodeGame implements IMiniGame {
 
     // ─────────────────────────────────────────────────────────────────────────
 
-    private final InputAdapter adapter = new InputAdapter() {
-        @Override
-        public boolean keyDown(int k) {
-            if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
-                panicked = true; close(); return true;
-            }
-            if (!open || solved) return false;
-            if ((k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL)
-                && inputBuf.length() > 0) {
-                inputBuf.deleteCharAt(inputBuf.length() - 1); return true;
-            }
-            if (k == Input.Keys.ENTER || k == Input.Keys.NUMPAD_ENTER) {
-                String typed = inputBuf.toString().trim().toUpperCase();
-                inputBuf.setLength(0);
-                if (typed.length() == 1 && typed.charAt(0) == secretWord.charAt(currentByte)) {
-                    decoded[currentByte] = secretWord.charAt(currentByte);
-                    currentByte++;
-                    if (currentByte >= secretWord.length()) { solved = true; solveTimer = 0f; }
-                } else {
-                    wrongFlash = 0.7f;
-                }
-                return true;
-            }
-            return false;
-        }
-        @Override
-        public boolean keyTyped(char c) {
-            if (!open || solved) return true;
-            if (c >= 32 && c < 127 && inputBuf.length() < 3) inputBuf.append(c);
-            return true;
-        }
-    };
-
     @Override
     public void open() {
         open = true; solved = false; panicked = false;
@@ -118,7 +85,7 @@ public class BinaryDecodeGame implements IMiniGame {
         decoded = new char[secretWord.length()];
         inputBuf.setLength(0);
         buildFonts();
-        Gdx.input.setInputProcessor(adapter);
+        // The scene automatically routes input to this game via ITextInputListener
     }
 
     private void buildFonts() {
@@ -128,6 +95,7 @@ public class BinaryDecodeGame implements IMiniGame {
         smallFont = FontManager.create(0.78f);
         layout    = new GlyphLayout();
     }
+    
     private void disposeFonts() {
         if (bigFont   != null) bigFont.dispose();
         if (medFont   != null) medFont.dispose();
@@ -135,7 +103,7 @@ public class BinaryDecodeGame implements IMiniGame {
         bigFont = medFont = smallFont = null;
     }
 
-    @Override public void close()          { open = false; disposeFonts(); Gdx.input.setInputProcessor(null); }
+    @Override public void close()          { open = false; disposeFonts(); }
     @Override public boolean isOpen()      { return open; }
     @Override public boolean isSolved()    { return solved; }
     @Override public boolean wasPanicked() { return panicked; }
@@ -328,5 +296,48 @@ public class BinaryDecodeGame implements IMiniGame {
         }
 
         batch.end();
+    }
+
+    // ── Engine-Driven Input Callbacks ────────────────────────────────────────
+
+    @Override
+    public void onCharTyped(char c) {
+        if (!open || solved) return;
+        if (c >= 32 && c < 127 && inputBuf.length() < 3) {
+            inputBuf.append(c);
+        }
+    }
+
+    @Override
+    public void onControlKeyPressed(int k) {
+        if (!open || solved) return;
+
+        if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
+            panicked = true; 
+            close(); 
+            return;
+        }
+        
+        if (k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL) {
+            if (inputBuf.length() > 0) {
+                inputBuf.deleteCharAt(inputBuf.length() - 1);
+            }
+            return;
+        }
+        
+        if (k == Input.Keys.ENTER || k == Input.Keys.NUMPAD_ENTER) {
+            String typed = inputBuf.toString().trim().toUpperCase();
+            inputBuf.setLength(0);
+            if (typed.length() == 1 && typed.charAt(0) == secretWord.charAt(currentByte)) {
+                decoded[currentByte] = secretWord.charAt(currentByte);
+                currentByte++;
+                if (currentByte >= secretWord.length()) { 
+                    solved = true; 
+                    solveTimer = 0f; 
+                }
+            } else {
+                wrongFlash = 0.7f;
+            }
+        }
     }
 }

@@ -2,13 +2,11 @@ package io.github.INF1009_P10_Team7.simulation.cyber.minigame;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-
 import java.util.Random;
 import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
 
@@ -18,8 +16,6 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * A hex dump is displayed. The player must identify the protocol
  * (HTTP, DNS, SSH, FTP, SMTP) from recognisable byte patterns and
  * ASCII-decoded hints in the dump.
- *
- * Implements IMiniGame (Strategy pattern).
  */
 /**
  * PacketSnifferGame — mini-game where the player identifies malicious network
@@ -27,7 +23,8 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  *
  * <p>The player is shown a stream of fake network packets and must select those
  * that match a given suspicious pattern (e.g. unauthorised port, unusual
- * payload, suspicious IP range). Implements {@link IMiniGame} (OCP, LSP).</p>
+ * payload, suspicious IP range). Implements {@link IMiniGame} (OCP, LSP). 
+ * Relies on inherited listener methods for input.</p>
  */
 public class PacketSnifferGame implements IMiniGame {
 
@@ -90,7 +87,6 @@ public class PacketSnifferGame implements IMiniGame {
 
     private BitmapFont titleFont, bodyFont, hexFont, hintFont, resultFont;
     private final StringBuilder inputBuf = new StringBuilder();
-    private final InputAdapter adapter = new SnifferInputAdapter();
     private final Random rng = new Random();
 
     @Override
@@ -105,10 +101,9 @@ public class PacketSnifferGame implements IMiniGame {
         hexFont    = makeFont(0.82f);
         hintFont   = makeFont(0.78f);
         resultFont = makeFont(1.2f);
-        Gdx.input.setInputProcessor(adapter);
     }
 
-    @Override public void close()         { open = false; disposeFonts(); Gdx.input.setInputProcessor(null); }
+    @Override public void close()         { open = false; disposeFonts(); }
     @Override public boolean isOpen()     { return open; }
     @Override public boolean isSolved()   { return solved; }
     @Override public boolean wasPanicked(){ return panicked; }
@@ -137,10 +132,8 @@ public class PacketSnifferGame implements IMiniGame {
         sr.setColor(0f, 0.06f, 0.18f, 1f); sr.rect(wx, wy + wh - 38, ww, 38);
         sr.setColor(0.05f, 0.18f * pulse, 0.4f * pulse, 0.2f); sr.rect(wx - 5, wy - 5, ww + 10, wh + 10);
 
-        // Hex dump background
         sr.setColor(0.01f, 0.02f, 0.04f, 1f); sr.rect(wx + 30, wy + 180, ww - 60, 280);
 
-        // Input box
         float inputY = wy + 100f;
         sr.setColor(0.02f, 0.04f, 0.02f, 1f); sr.rect(wx + 30, inputY, ww - 60, 34f);
 
@@ -166,7 +159,6 @@ public class PacketSnifferGame implements IMiniGame {
         hintFont.setColor(0.3f, 0.5f, 0.3f, 1f);
         hintFont.draw(batch, pkt[1], wx + 40, wy + wh - 96f);
 
-        // Hex lines
         float hexY = wy + 440f;
         for (int i = 2; i < pkt.length; i++) {
             hexFont.setColor(0f, 0.85f, 0.55f, 1f);
@@ -174,7 +166,6 @@ public class PacketSnifferGame implements IMiniGame {
             hexY -= 18f;
         }
 
-        // Input
         bodyFont.setColor(0.5f, 0.5f, 0.6f, 1f);
         bodyFont.draw(batch, "TYPE THE PROTOCOL NAME", wx + 35, inputY + 74f);
         bodyFont.draw(batch, "(HTTP, DNS, SSH, FTP, SMTP)  [ENTER] submit", wx + 35, inputY + 56f);
@@ -208,22 +199,38 @@ public class PacketSnifferGame implements IMiniGame {
         titleFont = bodyFont = hexFont = hintFont = resultFont = null;
     }
 
-    private class SnifferInputAdapter extends InputAdapter {
-        @Override public boolean keyDown(int k) {
-            if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) { panicked = true; close(); return true; }
-            if ((k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL) && inputBuf.length() > 0) { inputBuf.deleteCharAt(inputBuf.length()-1); return true; }
-            if (k == Input.Keys.ENTER || k == Input.Keys.NUMPAD_ENTER) {
-                String ans = inputBuf.toString().trim().toUpperCase();
-                if (ans.equals(PACKETS[packetIdx][0])) { solved = true; solveTimer = 0f; }
-                else { wrongFlash = 0.8f; inputBuf.setLength(0); }
-                return true;
-            }
-            return false;
+    // --- Input Handling (Inherited from ITextInputListener) ---
+    @Override
+    public void onCharTyped(char c) {
+        if (solved || !open) return;
+        if (c >= 32 && c < 127 && inputBuf.length() < 16) {
+            inputBuf.append(c);
         }
-        @Override public boolean keyTyped(char c) {
-            if (solved || !open) return true;
-            if (c >= 32 && c < 127 && inputBuf.length() < 16) inputBuf.append(c);
-            return true;
+    }
+
+    @Override
+    public void onControlKeyPressed(int k) {
+        if (!open) return;
+        if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) { 
+            panicked = true; 
+            close(); 
+            return; 
+        }
+        if (solved) return;
+        
+        if ((k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL) && inputBuf.length() > 0) { 
+            inputBuf.deleteCharAt(inputBuf.length() - 1); 
+            return; 
+        }
+        if (k == Input.Keys.ENTER || k == Input.Keys.NUMPAD_ENTER) {
+            String ans = inputBuf.toString().trim().toUpperCase();
+            if (ans.equals(PACKETS[packetIdx][0])) { 
+                solved = true; 
+                solveTimer = 0f; 
+            } else { 
+                wrongFlash = 0.8f; 
+                inputBuf.setLength(0); 
+            }
         }
     }
 }

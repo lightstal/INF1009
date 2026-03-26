@@ -2,7 +2,6 @@ package io.github.INF1009_P10_Team7.simulation.cyber.minigame;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -39,7 +38,8 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * {@link io.github.INF1009_P10_Team7.simulation.cyber.Level2Config}).
  * Level 1 uses a plaintext code; Level 2 encodes it with Atbash cipher.</p>
  *
- * <p>Implements {@link IMiniGame} (OCP, LSP).</p>
+ * <p>Implements {@link IMiniGame} (OCP, LSP). Receives input directly from 
+ * the Scene via inherited listener methods.</p>
  */
 public class LogAnalysisGame implements IMiniGame {
 
@@ -48,11 +48,6 @@ public class LogAnalysisGame implements IMiniGame {
     private static final int   VISIBLE_LINES = 32;
 
     // ── Content injected via constructor ──────────────────────────────────────
-    // document       — array of lines shown in the scrollable email viewer
-    // acceptedAnswer — lowercase string the player must type to win
-    // highlightWord  — any line containing this string gets a green highlight
-    // hintText       — instruction shown in the strip above the input box
-    // wrongText      — message shown when the player types a wrong answer
     private final String[] document;
     private final String   acceptedAnswer;
     private final String   highlightWord;
@@ -74,7 +69,6 @@ public class LogAnalysisGame implements IMiniGame {
     private int scrollOffset = 0;
 
     private final StringBuilder inputBuf = new StringBuilder();
-    private final InputAdapter  adapter  = new LogInputAdapter();
 
     // ── Constructor ───────────────────────────────────────────────────────────
     /**
@@ -119,14 +113,13 @@ public class LogAnalysisGame implements IMiniGame {
         scrollOffset = 0;
         inputBuf.setLength(0);
         buildFonts();
-        Gdx.input.setInputProcessor(adapter);
+        // Listener assignment handled automatically by CyberGameScene
     }
 
     @Override
     public void close() {
         open = false;
         disposeFonts();
-        Gdx.input.setInputProcessor(null);
     }
 
     @Override public boolean isOpen()      { return open; }
@@ -240,7 +233,7 @@ public class LogAnalysisGame implements IMiniGame {
         medFont.draw(batch, "  [ DOC FORENSICS // INTERCEPTED MAIL DUMP ]    [ESC/TAB CLOSE]",
             wx + 10, wy + wh - 12f);
         smallFont.setColor(0.5f, 0.4f, 0.15f, 1f);
-        smallFont.draw(batch, "[UP/DOWN = SCROLL]", wx + ww - 175f, wy + wh - 12f);
+        smallFont.draw(batch, "[UP/DOWN/PgUp/PgDn = SCROLL]", wx + ww - 245f, wy + wh - 12f);
 
         // Document lines with syntax colouring
         float lineY = lineYStart;
@@ -253,7 +246,7 @@ public class LogAnalysisGame implements IMiniGame {
                 || line.startsWith("DATE:") || line.startsWith("SUBJECT:")) {
                 medFont.setColor(0.85f, 0.70f, 0.25f, 1f);
             } else if (line.contains(highlightWord)) {
-                medFont.setColor(0f, 1f, 0.4f, 1f);   // bright green — draws the eye
+                medFont.setColor(0f, 1f, 0.4f, 1f);   
             } else if (line.startsWith("  [") || line.startsWith("     >>>")) {
                 medFont.setColor(0.9f, 0.9f, 0.55f, 1f);
             } else if (line.startsWith("Dear") || line.startsWith("Team,")
@@ -302,53 +295,44 @@ public class LogAnalysisGame implements IMiniGame {
         batch.end();
     }
 
-    // ── Input adapter ─────────────────────────────────────────────────────────
-    private class LogInputAdapter extends InputAdapter {
+    // ── Input Handling (Inherited from ITextInputListener) ────────────────────
 
-        @Override
-        public boolean keyDown(int k) {
-            if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
-                panicked = true; close(); return true;
-            }
-            if (solved) return false;
-
-            if (k == Input.Keys.UP)        { scrollOffset = Math.max(0, scrollOffset - 1); return true; }
-            if (k == Input.Keys.DOWN)      { scrollOffset = Math.min(document.length - VISIBLE_LINES, scrollOffset + 1); return true; }
-            if (k == Input.Keys.PAGE_UP)   { scrollOffset = Math.max(0, scrollOffset - 8); return true; }
-            if (k == Input.Keys.PAGE_DOWN) { scrollOffset = Math.min(document.length - VISIBLE_LINES, scrollOffset + 8); return true; }
-            if (k == Input.Keys.HOME)      { scrollOffset = 0; return true; }
-            if (k == Input.Keys.END)       { scrollOffset = Math.max(0, document.length - VISIBLE_LINES); return true; }
-
-            if ((k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL)
-                && inputBuf.length() > 0) {
-                inputBuf.deleteCharAt(inputBuf.length() - 1); return true;
-            }
-            if (k == Input.Keys.ENTER || k == Input.Keys.NUMPAD_ENTER) {
-                String typed = inputBuf.toString().trim().toLowerCase();
-                if (typed.equals(acceptedAnswer)) {
-                    solved     = true;
-                    solveTimer = 0f;
-                } else {
-                    wrongFlash = 0.8f;
-                    inputBuf.setLength(0);
-                }
-                return true;
-            }
-            return false;
+    @Override
+    public void onCharTyped(char c) {
+        if (solved || !open) return;
+        if (c >= 32 && c < 127 && inputBuf.length() < 32) {
+            inputBuf.append(c);
         }
+    }
 
-        @Override
-        public boolean keyTyped(char c) {
-            if (solved || !open) return true;
-            if (c >= 32 && c < 127 && inputBuf.length() < 32) inputBuf.append(c);
-            return true;
+    @Override
+    public void onControlKeyPressed(int k) {
+        if (!open) return;
+        if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
+            panicked = true; 
+            close(); 
+            return;
         }
+        if (solved) return;
 
-        @Override
-        public boolean scrolled(float ax, float ay) {
-            int mScroll = Math.max(0, document.length - VISIBLE_LINES);
-            scrollOffset = Math.max(0, Math.min(mScroll, scrollOffset + (int)(ay * 2)));
-            return true;
+        if (k == Input.Keys.UP)        { scrollOffset = Math.max(0, scrollOffset - 1); }
+        else if (k == Input.Keys.DOWN)      { scrollOffset = Math.min(document.length - VISIBLE_LINES, scrollOffset + 1); }
+        else if (k == Input.Keys.PAGE_UP)   { scrollOffset = Math.max(0, scrollOffset - 8); }
+        else if (k == Input.Keys.PAGE_DOWN) { scrollOffset = Math.min(document.length - VISIBLE_LINES, scrollOffset + 8); }
+        else if (k == Input.Keys.HOME)      { scrollOffset = 0; }
+        else if (k == Input.Keys.END)       { scrollOffset = Math.max(0, document.length - VISIBLE_LINES); }
+        else if ((k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL) && inputBuf.length() > 0) {
+            inputBuf.deleteCharAt(inputBuf.length() - 1);
+        }
+        else if (k == Input.Keys.ENTER || k == Input.Keys.NUMPAD_ENTER) {
+            String typed = inputBuf.toString().trim().toLowerCase();
+            if (typed.equals(acceptedAnswer)) {
+                solved     = true;
+                solveTimer = 0f;
+            } else {
+                wrongFlash = 0.8f;
+                inputBuf.setLength(0);
+            }
         }
     }
 }

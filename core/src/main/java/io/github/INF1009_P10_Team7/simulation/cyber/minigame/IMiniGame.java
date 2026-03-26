@@ -4,6 +4,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
+import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
+
 /**
  * IMiniGame — interface for all in-game interactive challenge puzzles.
  *
@@ -20,7 +22,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
  *   <li>{@link #close()}  — called when the player exits or the challenge ends</li>
  * </ol>
  */
-public interface IMiniGame {
+public interface IMiniGame extends IInputController.ITextInputListener {
 
     /** @return the display title shown in the terminal header */
     String getTitle();

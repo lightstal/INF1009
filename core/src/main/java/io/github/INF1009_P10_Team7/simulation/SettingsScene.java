@@ -27,9 +27,6 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
 
 /**
- * Settings screen with volume slider, key rebinding, RESUME, and RETURN MENU.
- */
-/**
  * SettingsScene — in-game settings overlay for adjusting audio volumes
  * and rebinding keyboard/mouse controls.
  *
@@ -38,7 +35,9 @@ import io.github.INF1009_P10_Team7.simulation.cyber.FontManager;
  * to pause movement and collision while the settings are open.</p>
  *
  * <p>Uses {@link io.github.INF1009_P10_Team7.engine.UIManagement.KeyBindingButton}
- * widgets to allow interactive key rebinding.</p>
+ * widgets to allow interactive key rebinding. Carefully manages the LibGDX 
+ * InputProcessor to ensure control is returned to the global input manager 
+ * upon closing.</p>
  */
 public class SettingsScene extends Scene {
 
@@ -74,6 +73,12 @@ public class SettingsScene extends Scene {
     private Stage stage;
     private UIElement uiElement;
     private List<KeyBindingButton> keyBindingButtons;
+
+    /** 
+     * Stores the global input processor before Settings steals it, 
+     * so it can be restored when the menu closes. 
+     */
+    private com.badlogic.gdx.InputProcessor previousProcessor;
 
     private static final float ACTION_BUTTON_WIDTH  = 280f;
     private static final float ACTION_BUTTON_HEIGHT = 54f;
@@ -178,8 +183,13 @@ public class SettingsScene extends Scene {
         quitBtnY   = resumeBtnY;
     }
 
+    /**
+     * Initializes the LibGDX Stage and temporarily stores the global input
+     * processor before overtaking the input stream.
+     */
     private void initializeStage() {
         stage = new Stage(viewport);
+        previousProcessor = Gdx.input.getInputProcessor();
         Gdx.input.setInputProcessor(stage);
     }
 
@@ -211,14 +221,20 @@ public class SettingsScene extends Scene {
 
     private void createActionButtons() {
         resumeButton = uiElement.createButton("RESUME",
-            ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, () -> nav.popScene());
+            ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, () -> {
+                restoreInputProcessor();
+                nav.popScene();
+            });
         resumeButton.getLabel().setFontScale(0.30f);
         resumeButton.setPosition(resumeBtnX, resumeBtnY);
         stage.addActor(resumeButton);
 
         quitButton = uiElement.createButton("RETURN MENU",
             ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT,
-            () -> nav.requestScene(factory.createMainMenuScene()));
+            () -> {
+                restoreInputProcessor();
+                nav.requestScene(factory.createMainMenuScene());
+            });
         quitButton.getLabel().setFontScale(0.30f);
         quitButton.setPosition(quitBtnX, quitBtnY);
         stage.addActor(quitButton);
@@ -290,7 +306,15 @@ public class SettingsScene extends Scene {
         if (input.isActionJustPressed("MENU_BACK")
                 || input.isActionJustPressed("MENU_CONFIRM")
                 || input.isActionJustPressed("SETTINGS")) {
+            restoreInputProcessor();
             nav.popScene();
+        }
+    }
+
+    /** Restores the global input processor that was active before Settings opened. */
+    private void restoreInputProcessor() {
+        if (previousProcessor != null) {
+            Gdx.input.setInputProcessor(previousProcessor);
         }
     }
 
@@ -487,7 +511,6 @@ public class SettingsScene extends Scene {
         if (titleFont   != null) titleFont.dispose();
         if (volFont     != null) volFont.dispose();
         if (sectionFont != null) sectionFont.dispose();
-        // skinFont is owned by the Skin and disposed with it
         if (skin  != null) skin.dispose();
         if (stage != null) stage.dispose();
     }

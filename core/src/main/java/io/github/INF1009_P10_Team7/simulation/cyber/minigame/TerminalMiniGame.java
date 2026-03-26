@@ -8,16 +8,12 @@ import io.github.INF1009_P10_Team7.simulation.cyber.ctf.ICTFChallenge;
 import io.github.INF1009_P10_Team7.simulation.cyber.ctf.TerminalEmulator;
 
 /**
- * Adapter that wraps the classic ICTFChallenge + TerminalEmulator pair
- * into the IMiniGame interface so CyberGameScene can treat all challenges uniformly.
- */
-/**
  * TerminalMiniGame — adapts an {@link ICTFChallenge} into the {@link IMiniGame}
  * interface so {@code CyberGameScene} can treat CTF challenges uniformly with
  * other mini-games (Adapter Pattern, OCP, LSP).
  *
  * <p>Delegates all command processing to the wrapped {@link ICTFChallenge}
- * and delegates all rendering to the shared {@link TerminalEmulator}.</p>
+ * and delegates all rendering/input to the shared {@link TerminalEmulator}.</p>
  */
 public class TerminalMiniGame implements IMiniGame {
 
@@ -39,4 +35,16 @@ public class TerminalMiniGame implements IMiniGame {
         emulator.render(sr, batch, font);
     }
     @Override public String getTitle() { return challenge.getTitle(); }
+
+    // --- Route the text listener requests down to the emulator ---
+
+    @Override
+    public void onCharTyped(char c) {
+        emulator.onCharTyped(c);
+    }
+
+    @Override
+    public void onControlKeyPressed(int keycode) {
+        emulator.onControlKeyPressed(keycode);
+    }
 }

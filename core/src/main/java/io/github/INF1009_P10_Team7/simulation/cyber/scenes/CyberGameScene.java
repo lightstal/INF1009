@@ -534,7 +534,7 @@ public class CyberGameScene extends Scene {
     private float tileDistance(int colA, int rowA, int colB, int rowB) {
         float dx = colA - colB;
         float dy = rowA - rowB;
-        return (float)Math.sqrt(dx * dx + dy * dy);
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     private void resetDroneAwareness(float suppressSeconds) {
@@ -730,6 +730,10 @@ public class CyberGameScene extends Scene {
                 activeChallenge.update(delta);
             }
             if (!activeChallenge.isOpen()) {
+                
+                // Tells the engine to stop routing typing to the minigame
+                input.clearTextInputListener();
+                
                 if (activeChallenge.isSolved()) {
                     terminalSolved[activeChallengeIdx] = true;
                     keysCollected++;
@@ -831,9 +835,14 @@ public class CyberGameScene extends Scene {
                             showBanner("ACCESS DENIED", hint != null ? hint : "Insufficient intel clearance.", 2.0f);
                             break;
                         }
+                        
                         activeChallenge = challenges[i];
                         activeChallengeIdx = i;
                         activeChallenge.open();
+                        
+                        // Tells the engine to route typing events to this minigame
+                        input.setTextInputListener(activeChallenge);
+                        
                         break;
                     }
                 }
@@ -1094,9 +1103,14 @@ public class CyberGameScene extends Scene {
         if (viewport    != null) viewport.update(w, h, true);
         if (hudViewport != null) hudViewport.update(w, h, true);
     }
+    
     @Override protected void onUnload() { Gdx.app.log("CyberGame", "unloading level " + config.getLevelNumber()); }
+    
     @Override protected void onDispose() {
-        if (activeChallenge != null && activeChallenge.isOpen()) activeChallenge.close();
+        if (activeChallenge != null && activeChallenge.isOpen()) {
+            activeChallenge.close();
+            input.clearTextInputListener(); // Ensure cleanup on scene destruction
+        }
         if (playerAnimator != null) playerAnimator.dispose();
         if (sr     != null) sr.dispose();
         if (batch  != null) batch.dispose();
@@ -1114,9 +1128,6 @@ public class CyberGameScene extends Scene {
     public boolean blocksWorldUpdate() {
         return activeChallenge != null && activeChallenge.isOpen();
     }
-
-
-
 
     private float dist(float x1, float y1, float x2, float y2) {
         float dx = x1 - x2, dy = y1 - y2;
