@@ -16,7 +16,7 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
  * <ul>
  *   <li>{@link io.github.INF1009_P10_Team7.simulation.PlayerMovement}
  *       — WASD for the Part 1 demo scene</li>
- *   <li>{@link io.github.INF1009_P10_Team7.simulation.cyber.CyberPlayerMovement}
+ *   <li>{@link io.github.INF1009_P10_Team7.cyber.CyberPlayerMovement}
  *       — WASD with diagonal normalisation for Cyber Maze Escape</li>
  * </ul>
  */
