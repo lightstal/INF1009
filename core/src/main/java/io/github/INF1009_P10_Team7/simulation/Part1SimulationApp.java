@@ -12,7 +12,7 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
-import io.github.INF1009_P10_Team7.simulation.cyber.CyberSceneFactory;
+import io.github.INF1009_P10_Team7.cyber.CyberSceneFactory;
 
 /**
  * Composition root for Cyber Maze Escape.
@@ -66,10 +66,15 @@ public class Part1SimulationApp extends ApplicationAdapter {
         input.bindInput("MENU_BACK",    0, Input.Keys.ESCAPE);
 
         // ── Scene factory wiring ─────────────────────────────────────────────
-        CyberSceneFactory factory = new CyberSceneFactory(
+        // SettingsScene is owned by simulation and injected into cyber via a
+        // Supplier so that cyber never imports any simulation code directly.
+        final CyberSceneFactory[] factoryRef = new CyberSceneFactory[1];
+        factoryRef[0] = new CyberSceneFactory(
             input, audio, nav, entityQuery,
-            entitySystem, collisionSystem, movementSystem
+            entitySystem, collisionSystem, movementSystem,
+            () -> new SettingsScene(input, audio, nav, factoryRef[0])
         );
+        CyberSceneFactory factory = factoryRef[0];
 
         // Boot → Main Menu → Level Select → Cutscene → Game
         nav.setScene(factory.createBootScene());
