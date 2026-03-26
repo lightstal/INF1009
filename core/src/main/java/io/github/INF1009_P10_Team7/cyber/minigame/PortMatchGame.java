@@ -1,14 +1,9 @@
 package io.github.INF1009_P10_Team7.cyber.minigame;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import io.github.INF1009_P10_Team7.cyber.FontManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.KeyCode;
+import io.github.INF1009_P10_Team7.engine.render.IShapeDraw;
+import io.github.INF1009_P10_Team7.engine.render.ITextDraw;
+import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
  * CHALLENGE: PORT MAPPER
@@ -53,10 +48,6 @@ public class PortMatchGame implements IMiniGame {
     private boolean panicked = false;
     private float   stateTime  = 0f;
 
-    // Pre-scaled fonts — built once in open(), never rescaled in render()
-    private BitmapFont bigFont, medFont, smallFont;
-    private GlyphLayout glLayout;
-
     private float   wrongFlash = 0f;
     private float   solveTimer = 0f;
 
@@ -78,20 +69,6 @@ public class PortMatchGame implements IMiniGame {
         this.correct  = correct;
     }
 
-    // ── Fonts ─────────────────────────────────────────────────────────────────
-    private void buildFonts() {
-        disposeFonts();
-        bigFont   = FontManager.create(1.1f);
-        medFont   = FontManager.create(0.9f);
-        smallFont = FontManager.create(0.76f);
-        glLayout  = new GlyphLayout();
-    }
-    private void disposeFonts() {
-        if (bigFont   != null) { bigFont.dispose();   bigFont   = null; }
-        if (medFont   != null) { medFont.dispose();   medFont   = null; }
-        if (smallFont != null) { smallFont.dispose(); smallFont = null; }
-    }
-
     // ── IMiniGame ─────────────────────────────────────────────────────────────
     @Override
     public void open() {
@@ -99,7 +76,6 @@ public class PortMatchGame implements IMiniGame {
         solved       = false;
         panicked     = false;
         stateTime    = 0f;
-        buildFonts();
         wrongFlash   = 0f;
         solveTimer   = 0f;
         selectedPort = -1;
@@ -111,7 +87,6 @@ public class PortMatchGame implements IMiniGame {
     @Override
     public void close() {
         open         = false;
-        disposeFonts();
         selectedPort = -1;
         wrongMsg     = "";
     }
@@ -134,15 +109,17 @@ public class PortMatchGame implements IMiniGame {
 
     // ── Render ────────────────────────────────────────────────────────────────
     @Override
-    public void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont ignoredFont) {
+    public void render(MiniGameRenderContext context) {
         if (!open) return;
+        IShapeDraw sr = context.shape();
+        ITextDraw title = context.titleText();
+        ITextDraw med = context.text();
+        ITextDraw small = context.smallText();
 
         float pulse = 0.5f + 0.5f * (float) Math.sin(stateTime * 3f);
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-
         // --- Overlay ---
-        sr.begin(ShapeRenderer.ShapeType.Filled);
+        sr.beginFilled();
         sr.setColor(0f, 0f, 0f, 0.90f);
         sr.rect(0, 0, W, H);
 
@@ -203,7 +180,7 @@ public class PortMatchGame implements IMiniGame {
         sr.end();
 
         // --- Borders ---
-        sr.begin(ShapeRenderer.ShapeType.Line);
+        sr.beginLine();
         sr.setColor(pulse, 0.3f, 0f, 0.9f);
         sr.rect(wx, wy, ww, wh);
         sr.line(wx, wy + wh - titleH, wx + ww, wy + wh - titleH);
@@ -214,21 +191,21 @@ public class PortMatchGame implements IMiniGame {
         sr.end();
 
         // --- Text ---
-        batch.begin();
-        medFont.setColor(1f, 0.6f, 0.1f, 1f);
-        medFont.draw(batch, "  [ NETWORK CONFIG // PORT MAPPER ]    [ESC/TAB=CLOSE]",
+        med.begin();
+        title.setColor(1f, 0.6f, 0.1f, 1f);
+        title.draw("  [ NETWORK CONFIG // PORT MAPPER ]    [ESC/TAB=CLOSE]",
             wx + 10, wy + wh - 13f);
 
         // Column headers
-        medFont.setColor(new Color(0.7f, 0.4f, 0f, 1f));
-        medFont.draw(batch, "PORTS",    wx + 155, wy + 445f);
-        medFont.draw(batch, "SERVICES", wx + 718, wy + 445f);
+        med.setColor(0.7f, 0.4f, 0f, 1f);
+        med.draw("PORTS",    wx + 155, wy + 445f);
+        med.draw("SERVICES", wx + 718, wy + 445f);
 
         // Instructions
-        smallFont.setColor(0.45f, 0.45f, 0.45f, 1f);
-        smallFont.draw(batch, "Instructions:  Press a port number ( 1  -  5 ) to select it,",
+        small.setColor(0.45f, 0.45f, 0.45f, 1f);
+        small.draw("Instructions:  Press a port number ( 1  -  5 ) to select it,",
             wx + 55, wy + wh - 48f);
-        smallFont.draw(batch, "then press a service letter ( A  -  E ) to make the match.",
+        small.draw("then press a service letter ( A  -  E ) to make the match.",
             wx + 55, wy + wh - 64f);
 
         // Port and service rows
@@ -236,35 +213,38 @@ public class PortMatchGame implements IMiniGame {
         for (int i = 0; i < 5; i++) {
             float ry = rowY0f - i * rowH + rowH / 2f + 8f;
 
-            medFont.setColor(0.5f, 0.5f, 0.55f, 1f);
-            medFont.draw(batch, "[" + (i + 1) + "]", wx + 50, ry);
+            med.setColor(0.5f, 0.5f, 0.55f, 1f);
+            med.draw("[" + (i + 1) + "]", wx + 50, ry);
 
             boolean pDone = portMatched[i] >= 0;
             boolean pSel  = selectedPort == i;
-            medFont.setColor(pDone ? Color.GREEN : (pSel ? Color.YELLOW : Color.WHITE));
-            medFont.draw(batch, ports[i], wx + 90, ry);
+            if (pDone) med.setColor(0f, 1f, 0f, 1f);
+            else if (pSel) med.setColor(1f, 1f, 0f, 1f);
+            else med.setColor(1f, 1f, 1f, 1f);
+            med.draw(ports[i], wx + 90, ry);
 
             if (pDone) {
-                smallFont.setColor(0f, 0.7f, 0.3f, 0.8f);
-                medFont.draw(batch, "-> " + services[portMatched[i]] + " [OK]", wx + 170, ry);
+                small.setColor(0f, 0.7f, 0.3f, 0.8f);
+                med.draw("-> " + services[portMatched[i]] + " [OK]", wx + 170, ry);
             }
 
-            medFont.setColor(0.5f, 0.5f, 0.55f, 1f);
+            med.setColor(0.5f, 0.5f, 0.55f, 1f);
             char letter = (char)('A' + i);
-            medFont.draw(batch, "[" + letter + "]", wx + 630, ry);
+            med.draw("[" + letter + "]", wx + 630, ry);
 
             boolean sDone = serviceTaken[i];
-            medFont.setColor(sDone ? Color.GREEN : Color.WHITE);
-            medFont.draw(batch, services[i], wx + 668, ry);
+            if (sDone) med.setColor(0f, 1f, 0f, 1f);
+            else med.setColor(1f, 1f, 1f, 1f);
+            med.draw(services[i], wx + 668, ry);
         }
 
         // Status / selection prompt
         if (selectedPort < 0) {
-            medFont.setColor(Color.WHITE);
-            medFont.draw(batch, "Press a port number:  1  2  3  4  5", wx + 280, wy + 115f);
+            med.setColor(1f, 1f, 1f, 1f);
+            med.draw("Press a port number:  1  2  3  4  5", wx + 280, wy + 115f);
         } else {
-            medFont.setColor(Color.YELLOW);
-            medFont.draw(batch,
+            med.setColor(1f, 1f, 0f, 1f);
+            med.draw(
                 "Port " + ports[selectedPort] + " selected  -  now press a service letter:  A  B  C  D  E",
                 wx + 130, wy + 115f);
         }
@@ -272,14 +252,14 @@ public class PortMatchGame implements IMiniGame {
         // Result / error messages
         if (solved) {
             float fl = 0.5f + 0.5f * (float) Math.sin(stateTime * 8f);
-            medFont.setColor(0f, fl, fl * 0.4f, 1f);
-            medFont.draw(batch, "[OK] ALL PORTS MAPPED - KEY ACQUIRED (closing...)", wx + 180, wy + 48f);
+            med.setColor(0f, fl, fl * 0.4f, 1f);
+            med.draw("[OK] ALL PORTS MAPPED - KEY ACQUIRED (closing...)", wx + 180, wy + 48f);
         } else if (wrongFlash > 0) {
-            medFont.setColor(1f, 0.2f, 0.2f, 1f);
-            medFont.draw(batch, "[X] " + wrongMsg, wx + 280, wy + 48f);
+            med.setColor(1f, 0.2f, 0.2f, 1f);
+            med.draw("[X] " + wrongMsg, wx + 280, wy + 48f);
         }
 
-        batch.end();
+        med.end();
     }
 
     // ── Input Handling (Inherited from ITextInputListener) ────────────────────
@@ -293,15 +273,15 @@ public class PortMatchGame implements IMiniGame {
     public void onControlKeyPressed(int k) {
         if (!open || solved) return;
 
-        if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
+        if (k == KeyCode.TAB || k == KeyCode.ESCAPE) {
             panicked = true; 
             close(); 
             return;
         }
 
         // Select a port (keys 1-5)
-        if (k >= Input.Keys.NUM_1 && k <= Input.Keys.NUM_5) {
-            int idx = k - Input.Keys.NUM_1;
+        if (k >= KeyCode.NUM_1 && k <= KeyCode.NUM_5) {
+            int idx = k - KeyCode.NUM_1;
             if (portMatched[idx] >= 0) {
                 wrongMsg   = "PORT " + ports[idx] + " IS ALREADY MATCHED";
                 wrongFlash = 0.7f;
@@ -314,11 +294,11 @@ public class PortMatchGame implements IMiniGame {
         // Select a service (keys A-E) — only active once a port is selected
         if (selectedPort >= 0) {
             int svcIdx = -1;
-            if (k == Input.Keys.A) svcIdx = 0;
-            else if (k == Input.Keys.B) svcIdx = 1;
-            else if (k == Input.Keys.C) svcIdx = 2;
-            else if (k == Input.Keys.D) svcIdx = 3;
-            else if (k == Input.Keys.E) svcIdx = 4;
+            if (k == KeyCode.A) svcIdx = 0;
+            else if (k == KeyCode.B) svcIdx = 1;
+            else if (k == KeyCode.C) svcIdx = 2;
+            else if (k == KeyCode.D) svcIdx = 3;
+            else if (k == KeyCode.E) svcIdx = 4;
 
             if (svcIdx >= 0) {
                 if (serviceTaken[svcIdx]) {

@@ -1,14 +1,10 @@
 package io.github.INF1009_P10_Team7.cyber.minigame;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import java.util.Random;
-import io.github.INF1009_P10_Team7.cyber.FontManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.KeyCode;
+import io.github.INF1009_P10_Team7.engine.render.IShapeDraw;
+import io.github.INF1009_P10_Team7.engine.render.ITextDraw;
+import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
  * CHALLENGE: PACKET SNIFFER
@@ -84,8 +80,6 @@ public class PacketSnifferGame implements IMiniGame {
     private boolean open = false, solved = false, panicked = false;
     private float stateTime = 0f, wrongFlash = 0f, solveTimer = 0f;
     private int packetIdx = 0;
-
-    private BitmapFont titleFont, bodyFont, hexFont, hintFont, resultFont;
     private final StringBuilder inputBuf = new StringBuilder();
     private final Random rng = new Random();
 
@@ -95,15 +89,9 @@ public class PacketSnifferGame implements IMiniGame {
         stateTime = 0f; wrongFlash = 0f; solveTimer = 0f;
         inputBuf.setLength(0);
         packetIdx = rng.nextInt(PACKETS.length);
-        disposeFonts();
-        titleFont  = makeFont(1.1f);
-        bodyFont   = makeFont(0.85f);
-        hexFont    = makeFont(0.82f);
-        hintFont   = makeFont(0.78f);
-        resultFont = makeFont(1.2f);
     }
 
-    @Override public void close()         { open = false; disposeFonts(); }
+    @Override public void close()         { open = false; }
     @Override public boolean isOpen()     { return open; }
     @Override public boolean isSolved()   { return solved; }
     @Override public boolean wasPanicked(){ return panicked; }
@@ -118,13 +106,17 @@ public class PacketSnifferGame implements IMiniGame {
     }
 
     @Override
-    public void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont ignoredFont) {
-        if (!open || bodyFont == null) return;
+    public void render(MiniGameRenderContext context) {
+        if (!open) return;
+        IShapeDraw sr = context.shape();
+        ITextDraw title = context.titleText();
+        ITextDraw body = context.text();
+        ITextDraw hint = context.smallText();
+        ITextDraw hex = context.monoText();
+        ITextDraw result = context.titleText();
         float pulse = 0.5f + 0.5f * (float)Math.sin(stateTime * 2.5f);
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-
-        sr.begin(ShapeRenderer.ShapeType.Filled);
+        sr.beginFilled();
         sr.setColor(0f, 0f, 0f, 0.92f); sr.rect(0, 0, W, H);
 
         float wx = 140f, wy = 60f, ww = 1000f, wh = 584f;
@@ -140,63 +132,52 @@ public class PacketSnifferGame implements IMiniGame {
         if (wrongFlash > 0) { sr.setColor(0.7f, 0f, 0f, wrongFlash * 0.35f); sr.rect(wx, wy, ww, wh); }
         sr.end();
 
-        sr.begin(ShapeRenderer.ShapeType.Line);
+        sr.beginLine();
         sr.setColor(0.2f, 0.4f, 0.9f, 0.8f); sr.rect(wx, wy, ww, wh);
         sr.setColor(0f, 0.5f, 0.3f, 0.7f); sr.rect(wx + 30, inputY, ww - 60, 34f);
         sr.setColor(0.15f, 0.3f, 0.6f, 0.5f); sr.rect(wx + 30, wy + 180, ww - 60, 280);
         sr.end();
 
-        batch.begin();
+        // Text pass (single SpriteBatch begin/end via one adapter)
+        body.begin();
         String[] pkt = PACKETS[packetIdx];
 
-        titleFont.setColor(0.4f, 0.7f, 1f, 1f);
-        titleFont.draw(batch, "  [ PACKET SNIFFER ]    [ESC/TAB CLOSE]", wx + 10, wy + wh - 12f);
+        title.setColor(0.4f, 0.7f, 1f, 1f);
+        title.draw("  [ PACKET SNIFFER ]    [ESC/TAB CLOSE]", wx + 10, wy + wh - 12f);
 
-        bodyFont.setColor(0.7f, 0.8f, 0.9f, 1f);
-        bodyFont.draw(batch, "CAPTURED PACKET - Identify the protocol below.", wx + 40, wy + wh - 55f);
-        bodyFont.draw(batch, "Use the hex dump and ASCII hints in the capture.", wx + 40, wy + wh - 73f);
+        body.setColor(0.7f, 0.8f, 0.9f, 1f);
+        body.draw("CAPTURED PACKET - Identify the protocol below.", wx + 40, wy + wh - 55f);
+        body.draw("Use the hex dump and ASCII hints in the capture.", wx + 40, wy + wh - 73f);
 
-        hintFont.setColor(0.3f, 0.5f, 0.3f, 1f);
-        hintFont.draw(batch, pkt[1], wx + 40, wy + wh - 96f);
+        hint.setColor(0.3f, 0.5f, 0.3f, 1f);
+        hint.draw(pkt[1], wx + 40, wy + wh - 96f);
 
         float hexY = wy + 440f;
         for (int i = 2; i < pkt.length; i++) {
-            hexFont.setColor(0f, 0.85f, 0.55f, 1f);
-            hexFont.draw(batch, pkt[i], wx + 40, hexY);
+            hex.setColor(0f, 0.85f, 0.55f, 1f);
+            hex.draw(pkt[i], wx + 40, hexY);
             hexY -= 18f;
         }
 
-        bodyFont.setColor(0.5f, 0.5f, 0.6f, 1f);
-        bodyFont.draw(batch, "TYPE THE PROTOCOL NAME", wx + 35, inputY + 74f);
-        bodyFont.draw(batch, "(HTTP, DNS, SSH, FTP, SMTP)  [ENTER] submit", wx + 35, inputY + 56f);
+        body.setColor(0.5f, 0.5f, 0.6f, 1f);
+        body.draw("TYPE THE PROTOCOL NAME", wx + 35, inputY + 74f);
+        body.draw("(HTTP, DNS, SSH, FTP, SMTP)  [ENTER] submit", wx + 35, inputY + 56f);
 
-        hexFont.setColor(0f, 0.7f, 0.3f, 1f);
-        hexFont.draw(batch, "$ identify>", wx + 38, inputY + 24f);
-        hexFont.setColor(Color.WHITE);
+        hex.setColor(0f, 0.7f, 0.3f, 1f);
+        hex.draw("$ identify>", wx + 38, inputY + 24f);
+        hex.setColor(1f, 1f, 1f, 1f);
         boolean blink = ((int)(stateTime * 2)) % 2 == 0;
-        hexFont.draw(batch, inputBuf.toString() + (blink ? "|" : " "), wx + 150, inputY + 24f);
+        hex.draw(inputBuf.toString() + (blink ? "|" : " "), wx + 150, inputY + 24f);
 
         if (solved) {
             float fl = 0.5f + 0.5f * (float)Math.sin(stateTime * 8f);
-            resultFont.setColor(0f, fl, fl * 0.4f, 1f);
-            resultFont.draw(batch, "[OK]  PROTOCOL IDENTIFIED - KEY ACQUIRED", wx + 200, wy + 50f);
+            result.setColor(0f, fl, fl * 0.4f, 1f);
+            result.draw("[OK]  PROTOCOL IDENTIFIED - KEY ACQUIRED", wx + 200, wy + 50f);
         } else if (wrongFlash > 0) {
-            resultFont.setColor(1f, 0.2f, 0.1f, 1f);
-            resultFont.draw(batch, "[X]  WRONG PROTOCOL - TRY AGAIN", wx + 280, wy + 50f);
+            result.setColor(1f, 0.2f, 0.1f, 1f);
+            result.draw("[X]  WRONG PROTOCOL - TRY AGAIN", wx + 280, wy + 50f);
         }
-        batch.end();
-    }
-
-    private BitmapFont makeFont(float s) {
-        return FontManager.create(s);
-    }
-    private void disposeFonts() {
-        if (titleFont  != null) titleFont.dispose();
-        if (bodyFont   != null) bodyFont.dispose();
-        if (hexFont    != null) hexFont.dispose();
-        if (hintFont   != null) hintFont.dispose();
-        if (resultFont != null) resultFont.dispose();
-        titleFont = bodyFont = hexFont = hintFont = resultFont = null;
+        body.end();
     }
 
     // --- Input Handling (Inherited from ITextInputListener) ---
@@ -211,18 +192,18 @@ public class PacketSnifferGame implements IMiniGame {
     @Override
     public void onControlKeyPressed(int k) {
         if (!open) return;
-        if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) { 
+        if (k == KeyCode.TAB || k == KeyCode.ESCAPE) { 
             panicked = true; 
             close(); 
             return; 
         }
         if (solved) return;
         
-        if ((k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL) && inputBuf.length() > 0) { 
+        if ((k == KeyCode.BACKSPACE || k == KeyCode.DEL || k == KeyCode.FORWARD_DEL) && inputBuf.length() > 0) { 
             inputBuf.deleteCharAt(inputBuf.length() - 1); 
             return; 
         }
-        if (k == Input.Keys.ENTER || k == Input.Keys.NUMPAD_ENTER) {
+        if (k == KeyCode.ENTER || k == KeyCode.NUMPAD_ENTER) {
             String ans = inputBuf.toString().trim().toUpperCase();
             if (ans.equals(PACKETS[packetIdx][0])) { 
                 solved = true; 

@@ -20,24 +20,24 @@ package io.github.INF1009_P10_Team7.cyber.ctf;
  * </ul>
  */
 
-import com.badlogic.gdx.graphics.Color;
+import io.github.INF1009_P10_Team7.engine.render.ColorValue;
 
 /** Immutable coloured line of text for the terminal display. */
 public final class TerminalLine {
     public final String text;
-    public final Color  color;
+    public final ColorValue color;
 
     // Palette constants so challenges read cleanly
-    public static final Color C_GREEN   = new Color(0.00f, 1.00f, 0.25f, 1f);
-    public static final Color C_DIMGREEN= new Color(0.00f, 0.55f, 0.15f, 1f);
-    public static final Color C_CYAN    = new Color(0.00f, 1.00f, 1.00f, 1f);
-    public static final Color C_YELLOW  = new Color(1.00f, 0.95f, 0.00f, 1f);
-    public static final Color C_RED     = new Color(1.00f, 0.20f, 0.10f, 1f);
-    public static final Color C_WHITE   = new Color(0.90f, 0.90f, 0.90f, 1f);
-    public static final Color C_GRAY    = new Color(0.45f, 0.45f, 0.50f, 1f);
-    public static final Color C_ORANGE  = new Color(1.00f, 0.60f, 0.00f, 1f);
+    public static final ColorValue C_GREEN   = new ColorValue(0.00f, 1.00f, 0.25f, 1f);
+    public static final ColorValue C_DIMGREEN= new ColorValue(0.00f, 0.55f, 0.15f, 1f);
+    public static final ColorValue C_CYAN    = new ColorValue(0.00f, 1.00f, 1.00f, 1f);
+    public static final ColorValue C_YELLOW  = new ColorValue(1.00f, 0.95f, 0.00f, 1f);
+    public static final ColorValue C_RED     = new ColorValue(1.00f, 0.20f, 0.10f, 1f);
+    public static final ColorValue C_WHITE   = new ColorValue(0.90f, 0.90f, 0.90f, 1f);
+    public static final ColorValue C_GRAY    = new ColorValue(0.45f, 0.45f, 0.50f, 1f);
+    public static final ColorValue C_ORANGE  = new ColorValue(1.00f, 0.60f, 0.00f, 1f);
 
-    public TerminalLine(String text, Color color) {
+    public TerminalLine(String text, ColorValue color) {
         this.text  = text;
         this.color = color;
     }

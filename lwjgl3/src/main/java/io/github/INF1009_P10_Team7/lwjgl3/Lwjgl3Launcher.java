@@ -2,6 +2,10 @@ package io.github.INF1009_P10_Team7.lwjgl3;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Window;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowAdapter;
+import org.lwjgl.glfw.GLFW;
+
 import io.github.INF1009_P10_Team7.simulation.Part1SimulationApp;
 
 
@@ -22,7 +26,7 @@ public class Lwjgl3Launcher {
         configuration.setTitle("Cyber Maze Escape — CTF Infiltration Sim");
 
 
-        configuration.useVsync(true);
+        configuration.useVsync(true); 
 
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
 
@@ -35,6 +39,23 @@ public class Lwjgl3Launcher {
 
 
         configuration.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.ANGLE_GLES20, 0, 0);
+
+        // Ensure the game window gains focus on startup (Windows taskbar issue).
+        configuration.setWindowListener(new Lwjgl3WindowAdapter() {
+            @Override
+            public void created(Lwjgl3Window window) {
+                long handle = window.getWindowHandle();
+                // Try hard to bring window to foreground on Windows.
+                // (Windows focus-stealing prevention can ignore glfwFocusWindow otherwise.)
+                GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_FOCUS_ON_SHOW, GLFW.GLFW_TRUE);
+                GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_FLOATING, GLFW.GLFW_TRUE); // temporarily always-on-top
+
+                GLFW.glfwShowWindow(handle);
+                GLFW.glfwRequestWindowAttention(handle);
+                GLFW.glfwFocusWindow(handle);
+                GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_FLOATING, GLFW.GLFW_FALSE);
+            }
+        });
 
         new Lwjgl3Application(new Part1SimulationApp(), configuration);
     }

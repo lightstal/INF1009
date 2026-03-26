@@ -9,10 +9,16 @@ import io.github.INF1009_P10_Team7.engine.entity.IEntityQuery;
 import io.github.INF1009_P10_Team7.engine.entity.IEntitySystem;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
+import io.github.INF1009_P10_Team7.engine.map.ILevelMapRuntime;
+import io.github.INF1009_P10_Team7.engine.map.tiled.TiledLevelMapRuntime;
 import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
+import io.github.INF1009_P10_Team7.cyber.level.LevelConfig;
+import io.github.INF1009_P10_Team7.cyber.level.Level1Config;
+import io.github.INF1009_P10_Team7.cyber.level.Level2Config;
+import io.github.INF1009_P10_Team7.cyber.level.TileMap;
 import io.github.INF1009_P10_Team7.cyber.scenes.CyberEndScenesFactory;
 import io.github.INF1009_P10_Team7.cyber.scenes.CyberGameScene;
 import io.github.INF1009_P10_Team7.cyber.scenes.CyberMainMenuScene;
@@ -112,8 +118,18 @@ public class CyberSceneFactory implements SceneFactory {
     public Scene createGameScene(int level) {
         Supplier<LevelConfig> supplier = levelConfigs.getOrDefault(level, Level1Config::new);
         LevelConfig config = supplier.get();
+        ILevelMapRuntime mapRuntime = new TiledLevelMapRuntime(
+            config.getMapFile(),
+            config.getCollisionLayer(),
+            config.getWallLayer(),
+            config.getDoorLayer(),
+            "terminal",
+            TileMap.COLS,
+            TileMap.ROWS,
+            TileMap.TILE_SIZE
+        );
         return new CyberGameScene(input, audio, nav,
-            entitySystem, collisionSystem, movementSystem, this, config);
+            entitySystem, collisionSystem, movementSystem, this, config, mapRuntime);
     }
 
     public Scene createCutsceneScene(int level) {

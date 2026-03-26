@@ -1,10 +1,7 @@
 package io.github.INF1009_P10_Team7.cyber.minigame;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
+import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
  * IMiniGame — interface for all in-game interactive challenge puzzles.
@@ -47,11 +44,9 @@ public interface IMiniGame extends IInputController.ITextInputListener {
      * Renders the mini-game UI using the provided rendering resources.
      * The caller is responsible for setting projection matrices.
      *
-     * @param sr    the active ShapeRenderer
-     * @param batch the active SpriteBatch
-     * @param font  the font to use for text rendering
+     * @param context engine-provided render context for this frame
      */
-    void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont font);
+    void render(MiniGameRenderContext context);
 
     /** @return {@code true} if the player has completed this challenge */
     boolean isSolved();

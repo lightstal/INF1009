@@ -1,13 +1,9 @@
 package io.github.INF1009_P10_Team7.cyber.minigame;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import io.github.INF1009_P10_Team7.cyber.FontManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.KeyCode;
+import io.github.INF1009_P10_Team7.engine.render.IShapeDraw;
+import io.github.INF1009_P10_Team7.engine.render.ITextDraw;
+import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
  * CAESAR CIPHER DECODER — Cyberpunk Hacker Terminal UI
@@ -55,37 +51,15 @@ public class CaesarCipherGame implements IMiniGame {
     private float   shiftAnimTimer;     // smooth animation countdown
     private float   stateTime, wrongFlash, solveTimer;
 
-    // Pre-built fonts at fixed scales — never touched after open()
-    private BitmapFont bigFont;     // 1.6x  — encrypted / decoded text
-    private BitmapFont medFont;     // 1.0x  — labels, strip letters
-    private BitmapFont smallFont;   // 0.78x — hints, nav text
-    private GlyphLayout layout;
-
     @Override
     public void open() {
         open = true; solved = false; panicked = false;
         shift = 0; shiftAnimTimer = 0f;
         stateTime = 0f; wrongFlash = 0f; solveTimer = 0f;
-        buildFonts();
         // The scene automatically routes input to this game via ITextInputListener
     }
 
-    private void buildFonts() {
-        disposeFonts();
-        bigFont   = FontManager.create(1.6f);
-        medFont   = FontManager.create(1.0f);
-        smallFont = FontManager.create(0.78f);
-        layout    = new GlyphLayout();
-    }
-    
-    private void disposeFonts() {
-        if (bigFont   != null) bigFont.dispose();
-        if (medFont   != null) medFont.dispose();
-        if (smallFont != null) smallFont.dispose();
-        bigFont = medFont = smallFont = null;
-    }
-
-    @Override public void close()          { open = false; disposeFonts(); }
+    @Override public void close()          { open = false; }
     @Override public boolean isOpen()      { return open; }
     @Override public boolean isSolved()    { return solved; }
     @Override public boolean wasPanicked() { return panicked; }
@@ -104,14 +78,16 @@ public class CaesarCipherGame implements IMiniGame {
     }
 
     @Override
-    public void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont ignored) {
-        if (!open || bigFont == null) return;
+    public void render(MiniGameRenderContext context) {
+        if (!open) return;
+        IShapeDraw sr = context.shape();
+        ITextDraw big = context.titleText();
+        ITextDraw med = context.text();
+        ITextDraw small = context.smallText();
         float pulse = 0.5f + 0.5f * (float)Math.sin(stateTime * 3f);
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-
         // ── Full-screen dark overlay ─────────────────────────────────────
-        sr.begin(ShapeRenderer.ShapeType.Filled);
+        sr.beginFilled();
         sr.setColor(0f, 0f, 0.01f, 0.92f);
         sr.rect(0, 0, W, H);
 
@@ -191,7 +167,7 @@ public class CaesarCipherGame implements IMiniGame {
         sr.end();
 
         // ── Borders ─────────────────────────────────────────────────────
-        sr.begin(ShapeRenderer.ShapeType.Line);
+        sr.beginLine();
         sr.setColor(0f, 0.55f, 0.7f, 0.6f + pulse * 0.2f);
         sr.rect(WX, WY, WW, WH);
         sr.line(WX, WY + WH - TITLE_H, WX + WW, WY + WH - TITLE_H);
@@ -204,67 +180,65 @@ public class CaesarCipherGame implements IMiniGame {
         sr.end();
 
         // ── Text ────────────────────────────────────────────────────────
-        batch.begin();
+        med.begin();
 
         // Title bar
-        medFont.setColor(0f, 0.85f, 0.95f, 1f);
-        medFont.draw(batch, "  [ CRYPTOGRAPHY // CAESAR CIPHER DECODER ]",
+        med.setColor(0f, 0.85f, 0.95f, 1f);
+        med.draw("  [ CRYPTOGRAPHY // CAESAR CIPHER DECODER ]",
             WX + 10, WY + WH - 13f);
-        smallFont.setColor(0.4f, 0.5f, 0.6f, 0.9f);
-        smallFont.draw(batch, "[ESC] CLOSE",
+        small.setColor(0.4f, 0.5f, 0.6f, 0.9f);
+        small.draw("[ESC] CLOSE",
             WX + WW - 120f, WY + WH - 15f);
 
         // ── CIPHER row — perfectly centered letters ─────────────────────
-        smallFont.setColor(0.5f, 0.55f, 0.7f, 0.9f);
-        smallFont.draw(batch, "CIPHER", WX + 12, stripCipherY + stripH / 2f + 5f);
+        small.setColor(0.5f, 0.55f, 0.7f, 0.9f);
+        small.draw("CIPHER", WX + 12, stripCipherY + stripH / 2f + 5f);
 
         for (int i = 0; i < 26; i++) {
             char c = (char)('A' + i);
             String cs = String.valueOf(c);
-            layout.setText(medFont, cs);
-            float charW = layout.width;
-            float charH = layout.height;
+            float charW = med.measureWidth(cs);
+            float charH = med.measureHeight(cs);
             // Center each character precisely in its cell
             float lx = stripX + i * cellW + (cellW - charW) / 2f;
             float ly = stripCipherY + stripH / 2f + charH / 2f;
 
             boolean isHighlighted = (i == 12);
             if (isHighlighted) {
-                medFont.setColor(1f, 0.88f, 0.2f, 1f);
+                med.setColor(1f, 0.88f, 0.2f, 1f);
             } else {
-                medFont.setColor(1f, 0.72f, 0.15f, 0.9f);
+                med.setColor(1f, 0.72f, 0.15f, 0.9f);
             }
-            medFont.draw(batch, cs, lx, ly);
+            med.draw(cs, lx, ly);
         }
 
         // ── PLAIN row — perfectly centered shifted letters ──────────────
-        smallFont.setColor(0.35f, 0.65f, 0.4f, 0.9f);
-        smallFont.draw(batch, "PLAIN", WX + 14, stripPlainY + stripH / 2f + 5f);
+        small.setColor(0.35f, 0.65f, 0.4f, 0.9f);
+        small.draw("PLAIN", WX + 14, stripPlainY + stripH / 2f + 5f);
 
         for (int i = 0; i < 26; i++) {
             char c = (char)('A' + (i + 26 - shift) % 26);
             String cs = String.valueOf(c);
-            layout.setText(medFont, cs);
-            float charW = layout.width;
-            float charH = layout.height;
+            float charW = med.measureWidth(cs);
+            float charH = med.measureHeight(cs);
             float lx = stripX + i * cellW + (cellW - charW) / 2f;
             float ly = stripPlainY + stripH / 2f + charH / 2f;
 
             boolean isActive = (i == shift);
             if (solved) {
                 float fl = 0.6f + 0.4f * (float)Math.sin(stateTime * 10f);
-                medFont.setColor(0f, fl, fl * 0.55f, 1f);
+                med.setColor(0f, fl, fl * 0.55f, 1f);
             } else if (isActive) {
-                medFont.setColor(0.3f, 1f, 0.5f, 1f);
+                med.setColor(0.3f, 1f, 0.5f, 1f);
             } else {
-                medFont.setColor(0.4f, 0.82f, 0.5f, 0.85f);
+                med.setColor(0.4f, 0.82f, 0.5f, 0.85f);
             }
-            medFont.draw(batch, cs, lx, ly);
+            med.draw(cs, lx, ly);
         }
 
         // ── Connection dots between rows ────────────────────────────────
-        batch.end();
-        sr.begin(ShapeRenderer.ShapeType.Filled);
+        med.end();
+        sr.beginFilled();
         float dotX = hlX + cellW / 2f;
         float dotStartY = stripPlainY + stripH;
         float dotEndY   = stripCipherY;
@@ -273,68 +247,68 @@ public class CaesarCipherGame implements IMiniGame {
             sr.circle(dotX, dy, 1.5f, 6);
         }
         sr.end();
-        batch.begin();
+        med.begin();
 
         // ── Shift counter + controls ────────────────────────────────────
         float cursorBlink = ((int)(stateTime * 3f) % 2 == 0) ? 1f : 0.3f;
-        medFont.setColor(0f, 0.9f, 1f, 1f);
-        medFont.draw(batch, "SHIFT:  " + shift, WX + 16, stripPlainY - 22f);
+        med.setColor(0f, 0.9f, 1f, 1f);
+        med.draw("SHIFT:  " + shift, WX + 16, stripPlainY - 22f);
 
         // Blinking cursor
-        medFont.setColor(0f, 0.9f, 1f, cursorBlink * 0.6f);
-        medFont.draw(batch, "_", WX + 16 + 95f, stripPlainY - 22f);
+        med.setColor(0f, 0.9f, 1f, cursorBlink * 0.6f);
+        med.draw("_", WX + 16 + 95f, stripPlainY - 22f);
 
-        smallFont.setColor(0.4f, 0.5f, 0.55f, 0.85f);
-        smallFont.draw(batch,
+        small.setColor(0.4f, 0.5f, 0.55f, 0.85f);
+        small.draw(
             "[ A / LEFT ] rotate left    [ D / RIGHT ] rotate right    [ ENTER ] submit",
             WX + 200f, stripPlainY - 22f);
 
         // ── Encrypted message (neon amber) ─────────────────────────────
-        smallFont.setColor(0.45f, 0.5f, 0.6f, 0.9f);
-        smallFont.draw(batch, "INTERCEPTED CIPHERTEXT:", WX + 40, WY + 270f);
+        small.setColor(0.45f, 0.5f, 0.6f, 0.9f);
+        small.draw("INTERCEPTED CIPHERTEXT:", WX + 40, WY + 270f);
 
-        bigFont.setColor(1f, 0.78f, 0.12f, 1f);
-        bigFont.draw(batch, ENCRYPTED, WX + 40, WY + 240f);
+        big.setColor(1f, 0.78f, 0.12f, 1f);
+        big.draw(ENCRYPTED, WX + 40, WY + 240f);
 
         // ── Decoded output (softer neon green) ──────────────────────────
-        smallFont.setColor(0.45f, 0.5f, 0.6f, 0.9f);
-        smallFont.draw(batch, "DECODED PLAINTEXT:", WX + 40, WY + 192f);
+        small.setColor(0.45f, 0.5f, 0.6f, 0.9f);
+        small.draw("DECODED PLAINTEXT:", WX + 40, WY + 192f);
 
         String decoded = applyShift(ENCRYPTED, shift);
         if (solved) {
             float fl = 0.55f + 0.45f * (float)Math.sin(stateTime * 10f);
-            bigFont.setColor(0f, fl, fl * 0.55f, 1f);
+            big.setColor(0f, fl, fl * 0.55f, 1f);
         } else if (wrongFlash > 0) {
-            bigFont.setColor(1f, 0.2f, 0.2f, 1f);
+            big.setColor(1f, 0.2f, 0.2f, 1f);
         } else {
-            bigFont.setColor(0.25f, 0.92f, 0.5f, 1f);
+            big.setColor(0.25f, 0.92f, 0.5f, 1f);
         }
-        bigFont.draw(batch, decoded, WX + 40, WY + 162f);
+        big.draw(decoded, WX + 40, WY + 162f);
 
         // ── Status / hint ──────────────────────────────────────────────
         if (solved) {
-            medFont.setColor(0f, 1f, 0.5f, 1f);
+            med.setColor(0f, 1f, 0.5f, 1f);
             String solvedMsg = "[OK] CIPHER BROKEN - KEY ACQUIRED (closing...)";
-            layout.setText(medFont, solvedMsg);
-            medFont.draw(batch, solvedMsg, WX + WW / 2f - layout.width / 2f, WY + 110f);
+            float mw = med.measureWidth(solvedMsg);
+            med.draw(solvedMsg, WX + WW / 2f - mw / 2f, WY + 110f);
         } else if (wrongFlash > 0) {
-            medFont.setColor(1f, 0.2f, 0.2f, 1f);
+            med.setColor(1f, 0.2f, 0.2f, 1f);
             String wrongMsg = "[X] WRONG SHIFT - TRY AGAIN";
-            layout.setText(medFont, wrongMsg);
-            medFont.draw(batch, wrongMsg, WX + WW / 2f - layout.width / 2f, WY + 110f);
+            float mw = med.measureWidth(wrongMsg);
+            med.draw(wrongMsg, WX + WW / 2f - mw / 2f, WY + 110f);
         } else {
-            smallFont.setColor(0.3f, 0.42f, 0.38f, 0.8f);
-            smallFont.draw(batch,
+            small.setColor(0.3f, 0.42f, 0.38f, 0.8f);
+            small.draw(
                 "HINT: ROT-13 is the most famous Caesar cipher. Each letter shifts exactly halfway through the alphabet.",
                 WX + 40, WY + 100f);
         }
 
         // ── Bottom status bar ──────────────────────────────────────────
-        smallFont.setColor(0.25f, 0.4f, 0.45f, 0.6f);
-        smallFont.draw(batch, "SYS://crypto.decoder v2.1  |  session active  |  entropy: nominal",
+        small.setColor(0.25f, 0.4f, 0.45f, 0.6f);
+        small.draw("SYS://crypto.decoder v2.1  |  session active  |  entropy: nominal",
             WX + 14, WY + 22f);
 
-        batch.end();
+        med.end();
     }
 
     private String applyShift(String text, int s) {
@@ -356,19 +330,19 @@ public class CaesarCipherGame implements IMiniGame {
     public void onControlKeyPressed(int k) {
         if (!open || solved) return;
         
-        if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
+        if (k == KeyCode.TAB || k == KeyCode.ESCAPE) {
             panicked = true; 
             close(); 
             return;
         }
         
-        if (k == Input.Keys.LEFT || k == Input.Keys.A) {
+        if (k == KeyCode.LEFT || k == KeyCode.A) {
             shift = (shift + 25) % 26;
             shiftAnimTimer = 0.1f;
-        } else if (k == Input.Keys.RIGHT || k == Input.Keys.D) {
+        } else if (k == KeyCode.RIGHT || k == KeyCode.D) {
             shift = (shift + 1) % 26;
             shiftAnimTimer = 0.1f;
-        } else if (k == Input.Keys.ENTER) {
+        } else if (k == KeyCode.ENTER) {
             if (shift == CORRECT_SHIFT) { 
                 solved = true; 
                 solveTimer = 0f; 

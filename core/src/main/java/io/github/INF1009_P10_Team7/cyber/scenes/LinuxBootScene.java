@@ -1,21 +1,12 @@
 package io.github.INF1009_P10_Team7.cyber.scenes;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
-
 import io.github.INF1009_P10_Team7.engine.inputoutput.IAudioController;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.cyber.CyberSceneFactory;
-import io.github.INF1009_P10_Team7.cyber.TileMap;
-import io.github.INF1009_P10_Team7.cyber.FontManager;
+import io.github.INF1009_P10_Team7.cyber.level.TileMap;
+import io.github.INF1009_P10_Team7.cyber.render.LinuxBootRenderer;
 
 /**
  * LinuxBootScene  -  animated Linux kernel boot sequence.
@@ -36,11 +27,7 @@ public class LinuxBootScene extends Scene {
 
     private final CyberSceneFactory factory;
 
-    private ShapeRenderer sr;
-    private SpriteBatch   batch;
-    private BitmapFont    font;
-    private OrthographicCamera camera;
-    private StretchViewport viewport;
+    private LinuxBootRenderer renderer;
 
     private float stateTime  = 0f;
     private int   lineShown  = 0;
@@ -108,15 +95,8 @@ public class LinuxBootScene extends Scene {
 
     @Override
     protected void onLoad() {
-        camera = new OrthographicCamera();
-        viewport = new StretchViewport(TileMap.WORLD_W, TileMap.WORLD_H, camera);
-        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
-        camera.position.set(TileMap.WORLD_W/2f, TileMap.WORLD_H/2f, 0);
-        camera.update();
-
-        sr    = new ShapeRenderer();
-        batch = new SpriteBatch();
-        font = FontManager.create(0.88f);
+        renderer = new LinuxBootRenderer(TileMap.WORLD_W, TileMap.WORLD_H);
+        renderer.load();
 
     }
 
@@ -135,8 +115,17 @@ public class LinuxBootScene extends Scene {
             holdTimer += dt;
         }
 
-        // Skip
-        if (input.isActionJustPressed("START_GAME") || Gdx.input.justTouched()) {
+        // Skip (keyboard SPACE or mouse click)
+        // Use both "just pressed" and "pressed" so holding SPACE/clicking still skips
+        // even if the press happened before the first poll/update tick.
+        boolean skip = input.isActionJustPressed("START_GAME")
+            || input.isActionJustPressed("BOOT_SKIP")
+            || input.isActionJustPressed("MENU_CLICK")
+            || input.isActionJustPressed("MENU_CONFIRM")
+            || input.isActionPressed("START_GAME")
+            || input.isActionPressed("BOOT_SKIP")
+            || input.isActionPressed("MENU_CLICK");
+        if (skip) {
             nav.requestScene(factory.createMainMenuScene());
         }
         if (allShown && holdTimer >= HOLD_DELAY) {
@@ -146,61 +135,12 @@ public class LinuxBootScene extends Scene {
 
     @Override
     protected void onRender() {
-        viewport.apply();
-        camera.update();
-
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        sr.setProjectionMatrix(camera.combined);
-        batch.setProjectionMatrix(camera.combined);
-
-        // Subtle scanlines
-        sr.begin(ShapeRenderer.ShapeType.Filled);
-        sr.setColor(0f, 0.01f, 0f, 1f);
-        sr.rect(0, 0, TileMap.WORLD_W, TileMap.WORLD_H);
-        sr.setColor(0f, 0f, 0f, 0.04f);
-        for (float y=0; y<TileMap.WORLD_H; y+=3f) sr.rect(0, y, TileMap.WORLD_W, 1.5f);
-        sr.end();
-
-        // Text lines (bottom-up scrolling feel)
-        batch.begin();
-        float lineH = 20f;
-        float startY = TileMap.WORLD_H - 20f;
-        int maxVisible = (int)(TileMap.WORLD_H / lineH) - 1;
-        int fromLine = Math.max(0, lineShown - maxVisible);
-        int toLine   = Math.min(lineShown, BOOT_LINES.length);
-
-        for (int i = fromLine; i < toLine; i++) {
-            int colourId = (Integer) BOOT_LINES[i][0];
-            String text  = (String) BOOT_LINES[i][1];
-            float y = startY - (i - fromLine) * lineH;
-
-            Color col;
-            switch (colourId) {
-                case 1:  col = new Color(0.1f, 0.9f, 0.25f, 1f); break;   // green OK
-                case 2:  col = new Color(1f, 0.85f, 0.1f, 1f);   break;   // yellow warn
-                case 3:  col = new Color(0.2f, 0.8f, 1f, 1f);    break;   // cyan
-                case 4:  col = new Color(1f, 1f, 1f, 1f);         break;   // white
-                default: col = new Color(0.35f, 0.48f, 0.38f, 1f); break; // dim green
-            }
-
-            // Blinking cursor on last shown line
-            String display = (i == lineShown - 1 && !allShown)
-                ? text + (((int)(stateTime * 3f)) % 2 == 0 ? "|" : " ")
-                : text;
-
-            font.setColor(col);
-            font.draw(batch, display, 14f, y);
-        }
-        batch.end();
+        renderer.render(stateTime, lineShown, allShown);
     }
 
-    @Override public void resize(int w, int h) { if (viewport != null) viewport.update(w, h, true); }
+    @Override public void resize(int w, int h) { if (renderer != null) renderer.resize(w, h); }
     @Override protected void onUnload()  {}
     @Override protected void onDispose() {
-        if (sr    != null) sr.dispose();
-        if (batch != null) batch.dispose();
-        if (font  != null) font.dispose();
+        if (renderer != null) renderer.dispose();
     }
 }

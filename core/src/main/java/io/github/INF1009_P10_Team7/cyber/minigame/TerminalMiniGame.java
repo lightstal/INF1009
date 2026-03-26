@@ -1,11 +1,8 @@
 package io.github.INF1009_P10_Team7.cyber.minigame;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-
 import io.github.INF1009_P10_Team7.cyber.ctf.ICTFChallenge;
 import io.github.INF1009_P10_Team7.cyber.ctf.TerminalEmulator;
+import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
  * TerminalMiniGame — adapts an {@link ICTFChallenge} into the {@link IMiniGame}
@@ -31,8 +28,8 @@ public class TerminalMiniGame implements IMiniGame {
     @Override public boolean isSolved()    { return emulator.isSolved();    }
     @Override public boolean wasPanicked() { return emulator.wasPanicked(); }
     @Override public void update(float dt) { emulator.update(dt);           }
-    @Override public void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont font) {
-        emulator.render(sr, batch, font);
+    @Override public void render(MiniGameRenderContext context) {
+        emulator.render(context);
     }
     @Override public String getTitle() { return challenge.getTitle(); }
 

@@ -95,7 +95,7 @@ public class CollisionManager implements ICollisionSystem {
                     String key = getCollisionKey(obj1.getObjectId(), obj2.getObjectId());
                     currentCollisions.add(key);
 
-                    if (!activeCollisions.contains(key)) {
+                    if (!activeCollisions.contains(key) || isContinuousCollision(obj1, obj2)) {
                         onCollision(obj1, obj2, collisionInfo);
                     }
                 }
@@ -104,6 +104,13 @@ public class CollisionManager implements ICollisionSystem {
 
         activeCollisions.clear();
         activeCollisions.addAll(currentCollisions);
+    }
+
+    private boolean isContinuousCollision(ICollidable obj1, ICollidable obj2) {
+        ICollisionResponse r1 = responses.get(obj1.getObjectId());
+        ICollisionResponse r2 = responses.get(obj2.getObjectId());
+        ICollisionResponse response = pickResponse(r1, r2);
+        return response instanceof IContinuousCollisionResponse;
     }
 
     /**

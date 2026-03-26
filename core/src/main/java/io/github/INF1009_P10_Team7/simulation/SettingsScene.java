@@ -24,7 +24,7 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneFactory;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
-import io.github.INF1009_P10_Team7.cyber.FontManager;
+import io.github.INF1009_P10_Team7.engine.render.FontManager;
 
 /**
  * SettingsScene — in-game settings overlay for adjusting audio volumes

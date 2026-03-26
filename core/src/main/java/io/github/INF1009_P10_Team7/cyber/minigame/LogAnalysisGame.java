@@ -1,14 +1,9 @@
 package io.github.INF1009_P10_Team7.cyber.minigame;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import io.github.INF1009_P10_Team7.cyber.FontManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.KeyCode;
+import io.github.INF1009_P10_Team7.engine.render.IShapeDraw;
+import io.github.INF1009_P10_Team7.engine.render.ITextDraw;
+import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
  * CHALLENGE: INTERCEPTED DOCUMENT ANALYSIS
@@ -60,9 +55,6 @@ public class LogAnalysisGame implements IMiniGame {
     private boolean panicked = false;
     private float   stateTime = 0f;
 
-    private BitmapFont bigFont, medFont, smallFont;
-    private GlyphLayout glLayout;
-
     private float wrongFlash = 0f;
     private float solveTimer = 0f;
 
@@ -87,20 +79,6 @@ public class LogAnalysisGame implements IMiniGame {
         this.wrongText      = wrongText;
     }
 
-    // ── Fonts ─────────────────────────────────────────────────────────────────
-    private void buildFonts() {
-        disposeFonts();
-        bigFont   = FontManager.create(1.1f);
-        medFont   = FontManager.create(0.9f);
-        smallFont = FontManager.create(0.76f);
-        glLayout  = new GlyphLayout();
-    }
-    private void disposeFonts() {
-        if (bigFont   != null) { bigFont.dispose();   bigFont   = null; }
-        if (medFont   != null) { medFont.dispose();   medFont   = null; }
-        if (smallFont != null) { smallFont.dispose(); smallFont = null; }
-    }
-
     // ── IMiniGame ─────────────────────────────────────────────────────────────
     @Override
     public void open() {
@@ -112,14 +90,12 @@ public class LogAnalysisGame implements IMiniGame {
         solveTimer   = 0f;
         scrollOffset = 0;
         inputBuf.setLength(0);
-        buildFonts();
         // Listener assignment handled automatically by CyberGameScene
     }
 
     @Override
     public void close() {
         open = false;
-        disposeFonts();
     }
 
     @Override public boolean isOpen()      { return open; }
@@ -140,13 +116,15 @@ public class LogAnalysisGame implements IMiniGame {
 
     // ── Render ────────────────────────────────────────────────────────────────
     @Override
-    public void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont ignoredFont) {
-        if (!open || medFont == null) return;
+    public void render(MiniGameRenderContext context) {
+        if (!open) return;
+        IShapeDraw sr = context.shape();
+        ITextDraw title = context.titleText();
+        ITextDraw med = context.text();
+        ITextDraw small = context.smallText();
 
         float pulse = 0.5f + 0.5f * (float) Math.sin(stateTime * 2f);
         boolean blink = ((int)(stateTime * 2)) % 2 == 0;
-
-        Gdx.gl.glEnable(GL20.GL_BLEND);
 
         float wx = 80f, wy = 30f, ww = 1120f, wh = 644f;
         float titleH     = 38f;
@@ -159,7 +137,7 @@ public class LogAnalysisGame implements IMiniGame {
         float hintStripH = 18f;
 
         // ── ShapeRenderer: backgrounds ────────────────────────────────────────
-        sr.begin(ShapeRenderer.ShapeType.Filled);
+        sr.beginFilled();
         sr.setColor(0f, 0f, 0f, 0.92f);
         sr.rect(0, 0, W, H);
 
@@ -213,7 +191,7 @@ public class LogAnalysisGame implements IMiniGame {
         sr.end();
 
         // ── Borders ───────────────────────────────────────────────────────────
-        sr.begin(ShapeRenderer.ShapeType.Line);
+        sr.beginLine();
         sr.setColor(0.6f, 0.45f * pulse, 0.05f, 1f);
         sr.rect(wx, wy, ww, wh);
         sr.line(wx, wy + wh - titleH, wx + ww, wy + wh - titleH);
@@ -226,14 +204,14 @@ public class LogAnalysisGame implements IMiniGame {
         sr.end();
 
         // ── Text ──────────────────────────────────────────────────────────────
-        batch.begin();
+        med.begin();
 
         // Title bar
-        bigFont.setColor(1f, 0.78f, 0.2f, 1f);
-        medFont.draw(batch, "  [ DOC FORENSICS // INTERCEPTED MAIL DUMP ]    [ESC/TAB CLOSE]",
+        title.setColor(1f, 0.78f, 0.2f, 1f);
+        title.draw("  [ DOC FORENSICS // INTERCEPTED MAIL DUMP ]    [ESC/TAB CLOSE]",
             wx + 10, wy + wh - 12f);
-        smallFont.setColor(0.5f, 0.4f, 0.15f, 1f);
-        smallFont.draw(batch, "[UP/DOWN/PgUp/PgDn = SCROLL]", wx + ww - 245f, wy + wh - 12f);
+        small.setColor(0.5f, 0.4f, 0.15f, 1f);
+        small.draw("[UP/DOWN/PgUp/PgDn = SCROLL]", wx + ww - 245f, wy + wh - 12f);
 
         // Document lines with syntax colouring
         float lineY = lineYStart;
@@ -241,58 +219,58 @@ public class LogAnalysisGame implements IMiniGame {
             String line = document[i];
 
             if (line.startsWith("===") || line.startsWith("---")) {
-                medFont.setColor(0.3f, 0.5f, 0.55f, 1f);
+                med.setColor(0.3f, 0.5f, 0.55f, 1f);
             } else if (line.startsWith("FROM:") || line.startsWith("TO:")
                 || line.startsWith("DATE:") || line.startsWith("SUBJECT:")) {
-                medFont.setColor(0.85f, 0.70f, 0.25f, 1f);
+                med.setColor(0.85f, 0.70f, 0.25f, 1f);
             } else if (line.contains(highlightWord)) {
-                medFont.setColor(0f, 1f, 0.4f, 1f);   
+                med.setColor(0f, 1f, 0.4f, 1f);
             } else if (line.startsWith("  [") || line.startsWith("     >>>")) {
-                medFont.setColor(0.9f, 0.9f, 0.55f, 1f);
+                med.setColor(0.9f, 0.9f, 0.55f, 1f);
             } else if (line.startsWith("Dear") || line.startsWith("Team,")
                 || line.startsWith("Robert") || line.startsWith("   --")) {
-                medFont.setColor(0.82f, 0.82f, 0.82f, 1f);
+                med.setColor(0.82f, 0.82f, 0.82f, 1f);
             } else if (line.isEmpty()) {
-                medFont.setColor(0.2f, 0.2f, 0.2f, 1f);
+                med.setColor(0.2f, 0.2f, 0.2f, 1f);
             } else {
-                medFont.setColor(0.72f, 0.72f, 0.72f, 1f);
+                med.setColor(0.72f, 0.72f, 0.72f, 1f);
             }
-            medFont.draw(batch, line, lineX, lineY);
+            med.draw(line, lineX, lineY);
             lineY -= lineH;
         }
 
         // Scroll indicators
         if (scrollOffset > 0) {
-            smallFont.setColor(0.5f, 0.4f, 0.1f, 1f);
-            smallFont.draw(batch, "Line " + (scrollOffset + 1) + "/" + document.length + ". Press UP to scroll.",
+            small.setColor(0.5f, 0.4f, 0.1f, 1f);
+            small.draw("Line " + (scrollOffset + 1) + "/" + document.length + ". Press UP to scroll.",
                 wx + 25, docY + docH - 2f);
         }
         if (scrollOffset < document.length - VISIBLE_LINES) {
-            smallFont.setColor(0.5f, 0.4f, 0.1f, 1f);
-            smallFont.draw(batch, "More below. Press DOWN to scroll.", wx + 25, docY + 16f);
+            small.setColor(0.5f, 0.4f, 0.1f, 1f);
+            small.draw("More below. Press DOWN to scroll.", wx + 25, docY + 16f);
         }
 
         // Input prompt
-        medFont.setColor(0.9f, 0.65f, 0.1f, 1f);
-        medFont.draw(batch, "$ submit>", wx + 28, inputY + 24f);
-        medFont.setColor(Color.WHITE);
-        medFont.draw(batch, inputBuf.toString() + (blink && !solved ? "|" : " "), wx + 120, inputY + 24f);
+        med.setColor(0.9f, 0.65f, 0.1f, 1f);
+        med.draw("$ submit>", wx + 28, inputY + 24f);
+        med.setColor(1f, 1f, 1f, 1f);
+        med.draw(inputBuf.toString() + (blink && !solved ? "|" : " "), wx + 120, inputY + 24f);
 
         // Hint strip
-        smallFont.setColor(0.7f, 0.55f, 0.2f, 1f);
-        smallFont.draw(batch, hintText, wx + 28, hintStripY + 14f);
+        small.setColor(0.7f, 0.55f, 0.2f, 1f);
+        small.draw(hintText, wx + 28, hintStripY + 14f);
 
         // Result messages
         if (solved) {
             float fl = 0.5f + 0.5f * (float) Math.sin(stateTime * 8f);
-            medFont.setColor(0f, fl, fl * 0.4f, 1f);
-            medFont.draw(batch, "[OK]  CREDENTIAL EXTRACTED - KEY ACQUIRED  (closing...)", wx + 200, wy + 46f);
+            med.setColor(0f, fl, fl * 0.4f, 1f);
+            med.draw("[OK]  CREDENTIAL EXTRACTED - KEY ACQUIRED  (closing...)", wx + 200, wy + 46f);
         } else if (wrongFlash > 0) {
-            medFont.setColor(1f, 0.2f, 0.1f, 1f);
-            medFont.draw(batch, "[X]  " + wrongText, wx + 310, wy + 46f);
+            med.setColor(1f, 0.2f, 0.1f, 1f);
+            med.draw("[X]  " + wrongText, wx + 310, wy + 46f);
         }
 
-        batch.end();
+        med.end();
     }
 
     // ── Input Handling (Inherited from ITextInputListener) ────────────────────
@@ -308,23 +286,23 @@ public class LogAnalysisGame implements IMiniGame {
     @Override
     public void onControlKeyPressed(int k) {
         if (!open) return;
-        if (k == Input.Keys.TAB || k == Input.Keys.ESCAPE) {
+        if (k == KeyCode.TAB || k == KeyCode.ESCAPE) {
             panicked = true; 
             close(); 
             return;
         }
         if (solved) return;
 
-        if (k == Input.Keys.UP)        { scrollOffset = Math.max(0, scrollOffset - 1); }
-        else if (k == Input.Keys.DOWN)      { scrollOffset = Math.min(document.length - VISIBLE_LINES, scrollOffset + 1); }
-        else if (k == Input.Keys.PAGE_UP)   { scrollOffset = Math.max(0, scrollOffset - 8); }
-        else if (k == Input.Keys.PAGE_DOWN) { scrollOffset = Math.min(document.length - VISIBLE_LINES, scrollOffset + 8); }
-        else if (k == Input.Keys.HOME)      { scrollOffset = 0; }
-        else if (k == Input.Keys.END)       { scrollOffset = Math.max(0, document.length - VISIBLE_LINES); }
-        else if ((k == Input.Keys.BACKSPACE || k == Input.Keys.DEL || k == Input.Keys.FORWARD_DEL) && inputBuf.length() > 0) {
+        if (k == KeyCode.UP)        { scrollOffset = Math.max(0, scrollOffset - 1); }
+        else if (k == KeyCode.DOWN)      { scrollOffset = Math.min(document.length - VISIBLE_LINES, scrollOffset + 1); }
+        else if (k == KeyCode.PAGE_UP)   { scrollOffset = Math.max(0, scrollOffset - 8); }
+        else if (k == KeyCode.PAGE_DOWN) { scrollOffset = Math.min(document.length - VISIBLE_LINES, scrollOffset + 8); }
+        else if (k == KeyCode.HOME)      { scrollOffset = 0; }
+        else if (k == KeyCode.END)       { scrollOffset = Math.max(0, document.length - VISIBLE_LINES); }
+        else if ((k == KeyCode.BACKSPACE || k == KeyCode.DEL || k == KeyCode.FORWARD_DEL) && inputBuf.length() > 0) {
             inputBuf.deleteCharAt(inputBuf.length() - 1);
         }
-        else if (k == Input.Keys.ENTER || k == Input.Keys.NUMPAD_ENTER) {
+        else if (k == KeyCode.ENTER || k == KeyCode.NUMPAD_ENTER) {
             String typed = inputBuf.toString().trim().toLowerCase();
             if (typed.equals(acceptedAnswer)) {
                 solved     = true;

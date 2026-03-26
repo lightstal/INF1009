@@ -1,21 +1,16 @@
 package io.github.INF1009_P10_Team7.cyber.ctf;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.TimeUtils;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
-import io.github.INF1009_P10_Team7.cyber.FontManager;
+import io.github.INF1009_P10_Team7.engine.inputoutput.KeyCode;
+import io.github.INF1009_P10_Team7.engine.render.IShapeDraw;
+import io.github.INF1009_P10_Team7.engine.render.ITextDraw;
+import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
  * A full-featured terminal emulator widget for LibGDX.
@@ -71,17 +66,15 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
     private boolean cursorVisible = true;
     private int     scrollOffset  = 0;
 
-    // ---- Own fonts ----
-    private BitmapFont bodyFont;     
-    private BitmapFont smallFont;    
-    private BitmapFont solvedFont;   
-    private GlyphLayout glLayout;
-
     // ---- Glitch effect ----
     private float glitchTimer = 0f;
     private float stateTime   = 0f;
     private float solveTimer  = 0f;
     private long  lastDeleteNanos = 0L;
+
+    // ---- Keyboard modifiers (engine-only) ----
+    private float ctrlLatchTimer = 0f;
+    private static final float CTRL_LATCH_SECONDS = 0.25f;
 
     // =========================================================================
     // PUBLIC API
@@ -106,13 +99,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         cursorTimer    = 0f;
         solveTimer     = 0f;
         lastDeleteNanos = 0L;
-
-        // Create own fonts at fixed scales — never re-scaled after creation
-        disposeFonts();
-        bodyFont   = makeFont(0.88f);
-        smallFont  = makeFont(0.75f);
-        solvedFont = makeFont(1.1f);
-        glLayout   = new GlyphLayout();
+        ctrlLatchTimer = 0f;
 
         // Queue welcome lines
         addLine(TerminalLine.dim("============================================================"));
@@ -128,7 +115,6 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
     /** Closes the terminal and cleans up resources. */
     public void close() {
         open = false;
-        disposeFonts();
     }
 
     public boolean isOpen()     { return open; }
@@ -143,6 +129,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         if (!open) return;
         stateTime  += dt;
         cursorTimer += dt;
+        if (ctrlLatchTimer > 0f) ctrlLatchTimer = Math.max(0f, ctrlLatchTimer - dt);
         if (cursorTimer > 0.5f) { cursorTimer = 0f; cursorVisible = !cursorVisible; }
 
         if (!pendingLines.isEmpty()) {
@@ -169,13 +156,17 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
     // RENDER 
     // =========================================================================
 
-    public void render(ShapeRenderer sr, SpriteBatch batch, BitmapFont ignoredFont) {
-        if (!open || bodyFont == null) return;
+    public void render(MiniGameRenderContext context) {
+        if (!open) return;
+        IShapeDraw sr = context.shape();
+        ITextDraw mono = context.monoText();
+        ITextDraw small = context.smallText();
+        ITextDraw solvedText = context.titleText();
 
         float glitch = (stateTime < 0.3f) ? (float)Math.sin(stateTime * 80f) * 3f : 0f;
 
         // ---- Background overlay ----
-        sr.begin(ShapeRenderer.ShapeType.Filled);
+        sr.beginFilled();
         sr.setColor(0f, 0f, 0f, 0.94f);
         sr.rect(0, 0, 1280, 704);
 
@@ -210,7 +201,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         }
         sr.end();
 
-        sr.begin(ShapeRenderer.ShapeType.Line);
+        sr.beginLine();
         sr.setColor(0.15f, 1f, 0.55f, 0.9f);
         sr.rect(WIN_X + glitch, WIN_Y, WIN_W, WIN_H);
         sr.rect(WIN_X + 6 + glitch, WIN_Y + 6, WIN_W - 12, WIN_H - 12);
@@ -218,17 +209,17 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         sr.end();
 
         // ---- Text rendering (own fonts) ----
-        batch.begin();
+        mono.begin();
 
         // Title bar text
-        bodyFont.setColor(0f, 1f, 0.45f, 1f);
+        mono.setColor(0f, 1f, 0.45f, 1f);
         float headerY = WIN_Y + WIN_H - 12f;
         float headerLeftW = WIN_W - PAD * 2f - 330f;
         String shellId = "analyst@kali:~/cases$";
-        bodyFont.draw(batch, fitToWidth(bodyFont, shellId + "  " + challenge.getTitle(), headerLeftW),
+        mono.draw(fitToWidth(mono, shellId + "  " + challenge.getTitle(), headerLeftW),
             WIN_X + PAD + glitch, headerY);
-        bodyFont.setColor(0.52f, 0.58f, 0.56f, 1f);
-        bodyFont.draw(batch, fitToWidth(bodyFont, "ESC close | TAB panic | ENTER run | PgUp/PgDn scroll", 310f),
+        mono.setColor(0.52f, 0.58f, 0.56f, 1f);
+        mono.draw(fitToWidth(mono, "ESC close | TAB panic | ENTER run | PgUp/PgDn scroll", 310f),
             WIN_X + WIN_W - 322f + glitch, headerY);
 
         // Output lines
@@ -241,15 +232,20 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         float lineY = WIN_Y + INPUT_H + PAD + (maxLines * LINE_H);
         for (int i = start; i < end; i++) {
             TerminalLine tl = displayLines.get(i);
-            bodyFont.setColor(tl.color);
-            bodyFont.draw(batch, fitToWidth(bodyFont, tl.text, WIN_W - PAD * 2f - 10f), WIN_X + PAD + glitch, lineY);
+            mono.setColor(tl.color.r, tl.color.g, tl.color.b, tl.color.a);
+            mono.draw(fitToWidth(mono, tl.text, WIN_W - PAD * 2f - 10f), WIN_X + PAD + glitch, lineY);
             lineY -= LINE_H;
         }
 
         // Scroll indicator
         if (scrollOffset > 0) {
-            smallFont.setColor(TerminalLine.C_YELLOW);
-            smallFont.draw(batch, "^ scrolled " + scrollOffset + " lines (PGDN to go back)",
+            small.setColor(
+                TerminalLine.C_YELLOW.r,
+                TerminalLine.C_YELLOW.g,
+                TerminalLine.C_YELLOW.b,
+                TerminalLine.C_YELLOW.a
+            );
+            small.draw("^ scrolled " + scrollOffset + " lines (PGDN to go back)",
                 WIN_X + WIN_W - 240f + glitch, WIN_Y + INPUT_H + 4f);
         }
 
@@ -260,24 +256,33 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         String cursor = showCursor ? "|" : " ";
 
         float inputY = WIN_Y + INPUT_H - 7f;
-        bodyFont.setColor(TerminalLine.C_GREEN);
-        String clippedPrompt = fitToWidth(bodyFont, prompt, 220f);
-        bodyFont.draw(batch, clippedPrompt, WIN_X + PAD + glitch, inputY);
+        mono.setColor(
+            TerminalLine.C_GREEN.r,
+            TerminalLine.C_GREEN.g,
+            TerminalLine.C_GREEN.b,
+            TerminalLine.C_GREEN.a
+        );
+        String clippedPrompt = fitToWidth(mono, prompt, 220f);
+        mono.draw(clippedPrompt, WIN_X + PAD + glitch, inputY);
 
-        glLayout.setText(bodyFont, clippedPrompt);
-        float promptW = glLayout.width;
+        float promptW = mono.measureWidth(clippedPrompt);
         float inputW = WIN_W - PAD * 2f - promptW - 18f;
-        bodyFont.setColor(TerminalLine.C_WHITE);
-        bodyFont.draw(batch, fitTailToWidth(bodyFont, inputStr + cursor, inputW), WIN_X + PAD + promptW + glitch, inputY);
+        mono.setColor(
+            TerminalLine.C_WHITE.r,
+            TerminalLine.C_WHITE.g,
+            TerminalLine.C_WHITE.b,
+            TerminalLine.C_WHITE.a
+        );
+        mono.draw(fitTailToWidth(mono, inputStr + cursor, inputW), WIN_X + PAD + promptW + glitch, inputY);
 
         // Solved flash
         if (challenge.isSolved()) {
             float fl = 0.5f + 0.5f * (float)Math.sin(stateTime * 8f);
-            solvedFont.setColor(0f, fl, fl * 0.5f, 1f);
-            solvedFont.draw(batch, "  [OK] TERMINAL SECURED - KEY ACQUIRED", WIN_X + PAD, WIN_Y + 6f);
+            solvedText.setColor(0f, fl, fl * 0.5f, 1f);
+            solvedText.draw("  [OK] TERMINAL SECURED - KEY ACQUIRED", WIN_X + PAD, WIN_Y + 6f);
         }
 
-        batch.end();
+        mono.end();
     }
 
     // =========================================================================
@@ -305,21 +310,19 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
     public void onControlKeyPressed(int keycode) {
         if (!open) return;
 
-        if (keycode == Input.Keys.TAB || keycode == Input.Keys.ESCAPE) {
+        if (keycode == KeyCode.TAB || keycode == KeyCode.ESCAPE) {
             panicked = true;
             close();
             return;
         }
 
-        boolean ctrlDown = Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
-            || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
-
-        if (waitingForInput && ctrlDown && keycode == Input.Keys.V) {
-            tryPasteClipboard();
+        if (keycode == KeyCode.CONTROL_LEFT || keycode == KeyCode.CONTROL_RIGHT) {
+            ctrlLatchTimer = CTRL_LATCH_SECONDS;
             return;
         }
 
-        if (keycode == Input.Keys.BACKSPACE || keycode == Input.Keys.DEL || keycode == Input.Keys.FORWARD_DEL) {
+        if (keycode == KeyCode.BACKSPACE || keycode == KeyCode.DEL || keycode == KeyCode.FORWARD_DEL) {
+            boolean ctrlDown = ctrlLatchTimer > 0f;
             if (ctrlDown) {
                 while (inputBuffer.length() > 0 && inputBuffer.charAt(inputBuffer.length() - 1) == ' ') {
                     inputBuffer.deleteCharAt(inputBuffer.length() - 1);
@@ -327,19 +330,19 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
                 while (inputBuffer.length() > 0 && inputBuffer.charAt(inputBuffer.length() - 1) != ' ') {
                     inputBuffer.deleteCharAt(inputBuffer.length() - 1);
                 }
-                lastDeleteNanos = TimeUtils.nanoTime();
+                lastDeleteNanos = System.nanoTime();
             } else {
                 deleteLastChar();
             }
             return;
         }
 
-        if (keycode == Input.Keys.ENTER || keycode == Input.Keys.NUMPAD_ENTER) {
+        if (keycode == KeyCode.ENTER || keycode == KeyCode.NUMPAD_ENTER) {
             if (waitingForInput) submitCommand();
             return;
         }
 
-        if (keycode == Input.Keys.UP) {
+        if (keycode == KeyCode.UP) {
             if (!cmdHistory.isEmpty()) {
                 historyIdx = Math.min(historyIdx + 1, cmdHistory.size() - 1);
                 inputBuffer.setLength(0);
@@ -347,7 +350,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
             }
             return;
         }
-        if (keycode == Input.Keys.DOWN) {
+        if (keycode == KeyCode.DOWN) {
             if (historyIdx > 0) {
                 historyIdx--;
                 inputBuffer.setLength(0);
@@ -359,10 +362,10 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
             return;
         }
 
-        if (keycode == Input.Keys.PAGE_UP)   { scrollOffset += 5; clampScroll(); return; }
-        if (keycode == Input.Keys.PAGE_DOWN) { scrollOffset = Math.max(0, scrollOffset - 5); return; }
-        if (keycode == Input.Keys.HOME)      { scrollOffset = Math.max(0, displayLines.size() - MAX_VISIBLE); return; }
-        if (keycode == Input.Keys.END)       { scrollOffset = 0; return; }
+        if (keycode == KeyCode.PAGE_UP)   { scrollOffset += 5; clampScroll(); return; }
+        if (keycode == KeyCode.PAGE_DOWN) { scrollOffset = Math.max(0, scrollOffset - 5); return; }
+        if (keycode == KeyCode.HOME)      { scrollOffset = Math.max(0, displayLines.size() - MAX_VISIBLE); return; }
+        if (keycode == KeyCode.END)       { scrollOffset = 0; }
     }
 
     // =========================================================================
@@ -373,24 +376,11 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         if (inputBuffer.length() > 0) {
             inputBuffer.deleteCharAt(inputBuffer.length() - 1);
         }
-        lastDeleteNanos = TimeUtils.nanoTime();
+        lastDeleteNanos = System.nanoTime();
     }
 
     private boolean recentDeleteEvent() {
-        return TimeUtils.timeSinceNanos(lastDeleteNanos) < 35_000_000L;
-    }
-
-    private void tryPasteClipboard() {
-        try {
-            if (Gdx.app.getClipboard() == null) return;
-            String clip = Gdx.app.getClipboard().getContents();
-            if (clip == null || clip.isEmpty()) return;
-            for (int i = 0; i < clip.length(); i++) {
-                char c = clip.charAt(i);
-                if (c >= 32 && c < 127) inputBuffer.append(c);
-            }
-        } catch (Exception ignored) {
-        }
+        return System.nanoTime() - lastDeleteNanos < 35_000_000L;
     }
 
     private void submitCommand() {
@@ -412,7 +402,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         waitingForInput = false;
         revealTimer     = 0f;
         TerminalLine[] response = challenge.processInput(cmd);
-        for (TerminalLine l : response) pendingLines.add(l);
+        Collections.addAll(pendingLines, response);
         pendingLines.add(TerminalLine.blank());
 
         scrollOffset = 0;
@@ -427,43 +417,29 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         scrollOffset = Math.min(scrollOffset, max);
     }
 
-    private String fitToWidth(BitmapFont font, String text, float maxWidth) {
+    private String fitToWidth(ITextDraw textDraw, String text, float maxWidth) {
         if (text == null) return "";
-        glLayout.setText(font, text);
-        if (glLayout.width <= maxWidth) return text;
+        if (textDraw.measureWidth(text) <= maxWidth) return text;
         String ellipsis = "...";
         int end = text.length();
         while (end > 0) {
             String candidate = text.substring(0, end) + ellipsis;
-            glLayout.setText(font, candidate);
-            if (glLayout.width <= maxWidth) return candidate;
+            if (textDraw.measureWidth(candidate) <= maxWidth) return candidate;
             end--;
         }
         return ellipsis;
     }
 
-    private String fitTailToWidth(BitmapFont font, String text, float maxWidth) {
+    private String fitTailToWidth(ITextDraw textDraw, String text, float maxWidth) {
         if (text == null) return "";
-        glLayout.setText(font, text);
-        if (glLayout.width <= maxWidth) return text;
+        if (textDraw.measureWidth(text) <= maxWidth) return text;
         String prefix = "...";
         int start = 0;
         while (start < text.length()) {
             String candidate = prefix + text.substring(start);
-            glLayout.setText(font, candidate);
-            if (glLayout.width <= maxWidth) return candidate;
+            if (textDraw.measureWidth(candidate) <= maxWidth) return candidate;
             start++;
         }
         return prefix;
-    }
-
-    private BitmapFont makeFont(float scale) {
-        return FontManager.create(scale);
-    }
-
-    private void disposeFonts() {
-        if (bodyFont   != null) { bodyFont.dispose();   bodyFont   = null; }
-        if (smallFont  != null) { smallFont.dispose();  smallFont  = null; }
-        if (solvedFont != null) { solvedFont.dispose(); solvedFont = null; }
     }
 }

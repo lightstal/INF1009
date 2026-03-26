@@ -51,6 +51,10 @@ public class Part1SimulationApp extends ApplicationAdapter {
         // NOTE: "BACK" (Q key) is checked in GameScene but not bound here.
         // Add: input.bindInput("BACK", 0, Input.Keys.Q); to enable that transition.
         input.bindInput("START_GAME",   0, Input.Keys.SPACE);
+        // Keep boot-skip parity: old code skipped on click (Gdx.input.justTouched()).
+        input.bindInput("BOOT_SKIP",    1, Input.Buttons.LEFT);
+        // Main menu uses hover+click for Start vs Exit.
+        input.bindInput("MENU_CLICK",   1, Input.Buttons.LEFT);
         input.bindInput("SETTINGS",     0, Input.Keys.ESCAPE);
         input.bindInput("LEFT",         0, Input.Keys.A);
         input.bindInput("RIGHT",        0, Input.Keys.D);
