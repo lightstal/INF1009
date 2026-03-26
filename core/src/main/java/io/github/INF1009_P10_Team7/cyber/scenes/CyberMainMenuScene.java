@@ -26,7 +26,7 @@ import io.github.INF1009_P10_Team7.cyber.TileMap;
  * Quit), and background music. Transitions to
  * {@link LevelSelectScene} when the player chooses to play.</p>
  *
- * <p>Depends only on {@link io.github.INF1009_P10_Team7.cyber.CyberSceneFactory}
+ * <p>Depends only on {@link io.io.github.INF1009_P10_Team7.cyber.CyberSceneFactory}
  * for creating downstream scenes (OCP, DIP).</p>
  */
 public class CyberMainMenuScene extends Scene {

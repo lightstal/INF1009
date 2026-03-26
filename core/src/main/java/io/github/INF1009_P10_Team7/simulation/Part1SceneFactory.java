@@ -23,7 +23,7 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
  * Part1SceneFactory — scene factory for the Part 1 engine demonstration.
  *
  * <p><b>NOTE:</b> The production entry point ({@code Part1SimulationApp})
- * uses {@link io.github.INF1009_P10_Team7.cyber.CyberSceneFactory}
+ * uses {@link io.io.github.INF1009_P10_Team7.cyber.CyberSceneFactory}
  * instead. This factory is retained for the standalone engine-demo mode
  * ({@link GameScene}, {@link MainMenuScene}, {@link SettingsScene}) but is
  * not instantiated anywhere in the current application flow.</p>
