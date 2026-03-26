@@ -4,7 +4,7 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 import io.github.INF1009_P10_Team7.engine.collision.IWorldCollisionQuery;
 
 /**
- * SearchState — drone AI state for investigating a last-known player position.
+ * SearchState, drone AI state for investigating a last-known player position.
  *
  * <p>After losing line of sight in {@link ChaseState}, the drone moves to the
  * last known player coordinates and sweeps the area for a short duration
@@ -14,9 +14,9 @@ import io.github.INF1009_P10_Team7.engine.collision.IWorldCollisionQuery;
  *
  * <p>Transitions:</p>
  * <ul>
- *   <li>→ {@link ChaseState}  if the player re-enters the sight cone</li>
- *   <li>→ {@link PatrolState} when the search timer expires or the drone
- *       is stuck and cannot reach the target</li>
+ * <li>→ {@link ChaseState} if the player re-enters the sight cone</li>
+ * <li>→ {@link PatrolState} when the search timer expires or the drone
+ * is stuck and cannot reach the target</li>
  * </ul>
  */
 public class SearchState implements DroneState {
@@ -25,7 +25,7 @@ public class SearchState implements DroneState {
     private final float duration;
     private float timer;
 
-    // Stuck detection — if drone barely moves for long enough, give up and patrol
+    // Stuck detection, if drone barely moves for long enough, give up and patrol
     private float stuckTimer = 0f;
     private float lastX = 0f, lastY = 0f;
     private static final float STUCK_TIMEOUT   = 0.6f;
@@ -101,7 +101,7 @@ public class SearchState implements DroneState {
         if (moved < STUCK_THRESHOLD) {
             stuckTimer += dt;
             if (stuckTimer >= STUCK_TIMEOUT) {
-                // Can't reach target — give up and return to patrol
+                // Can't reach target, give up and return to patrol
                 ai.transitionTo(new PatrolState(ai.getPatrolWaypoints()));
                 return;
             }

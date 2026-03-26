@@ -15,7 +15,7 @@ import io.github.INF1009_P10_Team7.engine.movement.IMovementSystem;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
- * CyberApp — standalone application entry for the Cyber game.
+ * CyberApp, standalone application entry for the Cyber game.
  *
  * <p>This is the composition root for the cyber package: it wires the engine,
  * binds input actions, constructs the {@link CyberSceneFactory}, and launches
@@ -40,7 +40,7 @@ public class CyberApp extends ApplicationAdapter {
         ICollisionSystem   collisionSystem = engine.getCollisionSystem();
         IMovementSystem    movementSystem  = engine.getMovementSystem();
 
-        // ── Key bindings: deviceID 0 = Keyboard, deviceID 1 = Mouse ─────────
+        // Key bindings: deviceID 0 = Keyboard, deviceID 1 = Mouse
         input.bindInput("START_GAME",   0, Input.Keys.SPACE);
         input.bindInput("BOOT_SKIP",    1, Input.Buttons.LEFT);
         input.bindInput("MENU_CLICK",   1, Input.Buttons.LEFT);
@@ -57,7 +57,7 @@ public class CyberApp extends ApplicationAdapter {
         input.bindInput("MENU_CONFIRM", 0, Input.Keys.ENTER);
         input.bindInput("MENU_BACK",    0, Input.Keys.ESCAPE);
 
-        // ── Scene factory wiring ───────────────────────────────────────────
+        // Scene factory wiring
         // Settings scene lives under cyber.scenes to avoid simulation coupling.
         final CyberSceneFactory[] factoryRef = new CyberSceneFactory[1];
         factoryRef[0] = new CyberSceneFactory(

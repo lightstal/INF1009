@@ -14,17 +14,17 @@ import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
  * All content is injected via the constructor so each level can have a
  * completely different email and answer without touching this file:
  *
- *   Level 1 (easy)  — plaintext override code sitting in the email.
- *                     Player just reads and copies it.
+ * Level 1 (easy) , plaintext override code sitting in the email.
+ * Player just reads and copies it.
  *
- *   Level 2 (hard)  — override code is Atbash-encoded (A<->Z mirror cipher).
- *                     Player must decode it using hints in the email.
+ * Level 2 (hard) , override code is Atbash-encoded (A<->Z mirror cipher).
+ * Player must decode it using hints in the email.
  *
  * To change either level's content, edit only the strings passed to the
  * constructor inside LevelConfig.
  */
 /**
- * LogAnalysisGame — mini-game where the player analyses an intercepted email/log
+ * LogAnalysisGame, mini-game where the player analyses an intercepted email/log
  * document and extracts a hidden override code.
  *
  * <p>The document content, expected answer, highlight keyword, and hint text are
@@ -33,7 +33,7 @@ import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
  * {@link io.github.INF1009_P10_Team7.cyber.Level2Config}).
  * Level 1 uses a plaintext code; Level 2 encodes it with Atbash cipher.</p>
  *
- * <p>Implements {@link IMiniGame} (OCP, LSP). Receives input directly from 
+ * <p>Implements {@link IMiniGame} (OCP, LSP). Receives input directly from
  * the Scene via inherited listener methods.</p>
  */
 public class LogAnalysisGame implements IMiniGame {
@@ -42,13 +42,13 @@ public class LogAnalysisGame implements IMiniGame {
     private static final float H = 704f;
     private static final int   VISIBLE_LINES = 32;
 
-    // ── Content injected via constructor ──────────────────────────────────────
+    // Content injected via constructor
     private final String[] document;
     private final String   acceptedAnswer;
     private final String   highlightWord;
     private final String   hintText;
     private final String   wrongText;
-    // ─────────────────────────────────────────────────────────────────────────
+    //
 
     private boolean open     = false;
     private boolean solved   = false;
@@ -62,13 +62,13 @@ public class LogAnalysisGame implements IMiniGame {
 
     private final StringBuilder inputBuf = new StringBuilder();
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // Constructor
     /**
-     * @param document       Lines of the email document to display.
+     * @param document Lines of the email document to display.
      * @param acceptedAnswer The plaintext answer the player must type (lowercase).
-     * @param highlightWord  Any line containing this word gets a green highlight.
-     * @param hintText       Short instruction shown above the input box.
-     * @param wrongText      Message shown when the player submits a wrong answer.
+     * @param highlightWord Any line containing this word gets a green highlight.
+     * @param hintText Short instruction shown above the input box.
+     * @param wrongText Message shown when the player submits a wrong answer.
      */
     public LogAnalysisGame(String[] document, String acceptedAnswer,
                            String highlightWord, String hintText, String wrongText) {
@@ -79,7 +79,7 @@ public class LogAnalysisGame implements IMiniGame {
         this.wrongText      = wrongText;
     }
 
-    // ── IMiniGame ─────────────────────────────────────────────────────────────
+    // IMiniGame
     @Override
     public void open() {
         open         = true;
@@ -114,7 +114,7 @@ public class LogAnalysisGame implements IMiniGame {
         }
     }
 
-    // ── Render ────────────────────────────────────────────────────────────────
+    // Render
     @Override
     public void render(MiniGameRenderContext context) {
         if (!open) return;
@@ -136,7 +136,7 @@ public class LogAnalysisGame implements IMiniGame {
         float hintStripY = inputY + 34f + 4f;
         float hintStripH = 18f;
 
-        // ── ShapeRenderer: backgrounds ────────────────────────────────────────
+        // ShapeRenderer: backgrounds
         sr.beginFilled();
         sr.setColor(0f, 0f, 0f, 0.92f);
         sr.rect(0, 0, W, H);
@@ -190,7 +190,7 @@ public class LogAnalysisGame implements IMiniGame {
 
         sr.end();
 
-        // ── Borders ───────────────────────────────────────────────────────────
+        // Borders
         sr.beginLine();
         sr.setColor(0.6f, 0.45f * pulse, 0.05f, 1f);
         sr.rect(wx, wy, ww, wh);
@@ -203,12 +203,12 @@ public class LogAnalysisGame implements IMiniGame {
         sr.rect(wx + 20, docY, ww - 40, docH);
         sr.end();
 
-        // ── Text ──────────────────────────────────────────────────────────────
+        // Text
         med.begin();
 
         // Title bar
         title.setColor(1f, 0.78f, 0.2f, 1f);
-        title.draw("  [ DOC FORENSICS // INTERCEPTED MAIL DUMP ]    [ESC/TAB CLOSE]",
+        title.draw("  [ DOC FORENSICS // INTERCEPTED MAIL DUMP ] [ESC/TAB CLOSE]",
             wx + 10, wy + wh - 12f);
         small.setColor(0.5f, 0.4f, 0.15f, 1f);
         small.draw("[UP/DOWN/PgUp/PgDn = SCROLL]", wx + ww - 245f, wy + wh - 12f);
@@ -273,7 +273,7 @@ public class LogAnalysisGame implements IMiniGame {
         med.end();
     }
 
-    // ── Input Handling (Inherited from ITextInputListener) ────────────────────
+    // Input Handling (Inherited from ITextInputListener)
 
     @Override
     public void onCharTyped(char c) {

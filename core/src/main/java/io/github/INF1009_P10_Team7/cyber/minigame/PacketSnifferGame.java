@@ -14,12 +14,12 @@ import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
  * ASCII-decoded hints in the dump.
  */
 /**
- * PacketSnifferGame — mini-game where the player identifies malicious network
+ * PacketSnifferGame, mini-game where the player identifies malicious network
  * packets from a simulated packet capture.
  *
  * <p>The player is shown a stream of fake network packets and must select those
  * that match a given suspicious pattern (e.g. unauthorised port, unusual
- * payload, suspicious IP range). Implements {@link IMiniGame} (OCP, LSP). 
+ * payload, suspicious IP range). Implements {@link IMiniGame} (OCP, LSP).
  * Relies on inherited listener methods for input.</p>
  */
 public class PacketSnifferGame implements IMiniGame {
@@ -27,7 +27,7 @@ public class PacketSnifferGame implements IMiniGame {
     private static final float W = 1280f;
     private static final float H = 704f;
 
-    // ── Packet data sets ────────────────────────────────────────────────────
+    // Packet data sets
     private static final String[][] PACKETS = {
         // [0] answer, [1] hint line, [2..] hex rows
         {

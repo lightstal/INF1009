@@ -8,7 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 
 /**
- * KeyBindingButton — a UI button that displays and allows rebinding of a
+ * KeyBindingButton, a UI button that displays and allows rebinding of a
  * named input action.
  *
  * <p>Shows the current key name for an action and, when clicked, listens for
@@ -28,10 +28,10 @@ public class KeyBindingButton extends TextButton {
      * Constructs for KeyBindingButton
      * </p>
      *
-     * @param action      The logical action name (e.g., "UP", "JUMP").
+     * @param action The logical action name (e.g., "UP", "JUMP").
      * @param displayName The text displayed on the button (e.g., "Move Up").
-     * @param skin        The UI Skin for styling.
-     * @param ctrl        The central Input Controller.
+     * @param skin The UI Skin for styling.
+     * @param ctrl The central Input Controller.
      */
     public KeyBindingButton(String action, String displayName, Skin skin, IInputController ctrl) {
         super("", skin);

@@ -11,7 +11,7 @@ import io.github.INF1009_P10_Team7.cyber.CyberApp;
 
 
 /**
- * Lwjgl3Launcher — desktop entry point for the application.
+ * Lwjgl3Launcher, desktop entry point for the application.
  *
  * <p>Configures the LWJGL3 backend (window title, size, FPS) and
  * launches the LibGDX application with {@code Part1SimulationApp} as
@@ -24,10 +24,10 @@ public class Lwjgl3Launcher {
 
 
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
-        configuration.setTitle("Cyber Maze Escape — CTF Infiltration Sim");
+        configuration.setTitle("Cyber Maze Escape - CTF Infiltration Sim");
 
 
-        configuration.useVsync(true); 
+        configuration.useVsync(true);
 
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
 

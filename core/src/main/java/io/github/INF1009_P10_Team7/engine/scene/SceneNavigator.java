@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
 /**
- * SceneNavigator — the scene-transition interface exposed to scenes.
+ * SceneNavigator, the scene-transition interface exposed to scenes.
  *
  * <p>Scenes receive only this narrow interface (ISP / DIP) rather than
  * the full {@link SceneManager}. This prevents scenes from accidentally
@@ -9,14 +9,14 @@ package io.github.INF1009_P10_Team7.engine.scene;
  *
  * <p>Three transition modes:</p>
  * <ul>
- *   <li>{@link #setScene}     — immediate full-stack replace (use sparingly;
- *       prefer {@link #requestScene} to avoid mid-frame issues)</li>
- *   <li>{@link #requestScene} — deferred full-stack replace at a safe frame
- *       boundary; engine clears all managers before the new scene loads</li>
- *   <li>{@link #pushScene}    — overlay a scene on top without destroying
- *       the one underneath (e.g. settings menu over the game)</li>
- *   <li>{@link #popScene}     — remove the top overlay and resume the scene
- *       beneath it</li>
+ * <li>{@link #setScene} , immediate full-stack replace (use sparingly;
+ * prefer {@link #requestScene} to avoid mid-frame issues)</li>
+ * <li>{@link #requestScene}, deferred full-stack replace at a safe frame
+ * boundary; engine clears all managers before the new scene loads</li>
+ * <li>{@link #pushScene} , overlay a scene on top without destroying
+ * the one underneath (e.g. settings menu over the game)</li>
+ * <li>{@link #popScene} , remove the top overlay and resume the scene
+ * beneath it</li>
  * </ul>
  */
 public interface SceneNavigator {

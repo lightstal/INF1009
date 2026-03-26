@@ -38,7 +38,7 @@ import io.github.INF1009_P10_Team7.cyber.minigame.*;
 import io.github.INF1009_P10_Team7.cyber.observer.GameEventSystem;
 
 /**
- * CyberGameScene — main gameplay scene for Levels 1 and 2.
+ * CyberGameScene, main gameplay scene for Levels 1 and 2.
  *
  * <p>Responsibilities: TMX map loading, player movement + collision,
  * drone AI updates, terminal/minigame management, intel clue system,
@@ -183,15 +183,15 @@ public class CyberGameScene extends Scene {
     private float bannerTimer = 0f;
     private float bannerDuration = 0f;
 
-    // ── Scene-entry fade transition ─────────────────────────────────────────
+    // Scene-entry fade transition
     private float transitionAlpha = 1f;  // starts black, fades in
 
-    // ── Player state system ──────────────────────────────────────────────────
+    // Player state system
     private PlayerState playerState = PlayerState.IDLE;
     private final ClueSystem clueSystem = new ClueSystem();
     private float scanAnimTimer = 0f;
 
-    // ── Particle effects ────────────────────────────────────────────────────
+    // Particle effects
     private static final int MAX_PARTICLES = 64;
     private final float[] pX = new float[MAX_PARTICLES];
     private final float[] pY = new float[MAX_PARTICLES];
@@ -284,7 +284,7 @@ public class CyberGameScene extends Scene {
     }
 
     // =========================================================================
-    // LEVEL CONFIG  -  reads terminal, drone, and challenge config from LevelConfig
+    // LEVEL CONFIG - reads terminal, drone, and challenge config from LevelConfig
     // =========================================================================
 
     private void initLevelConfig() {
@@ -409,7 +409,7 @@ public class CyberGameScene extends Scene {
     /**
      * Set up clue objects scattered around the level.
      * Players must collect these intel fragments before accessing
-     * later terminals — turning the game into a multi-room exploration.
+     * later terminals, turning the game into a multi-room exploration.
      */
     private void setupClueObjects() {
         clueSystem.reset();
@@ -869,7 +869,7 @@ public class CyberGameScene extends Scene {
             tc.getPosition().set(resolved[0], resolved[1]);
         }
 
-        // ── Player state tracking ────────────────────────────────────────
+        // Player state tracking
         if (tc != null) {
             PhysicComponent phys = playerEntity.getComponent(PhysicComponent.class);
             float vx = phys != null ? phys.getVelocity().x : 0f;
@@ -993,7 +993,7 @@ public class CyberGameScene extends Scene {
         );
     }
 
-    // ── Particles ─────────────────────────────────────────────────────────────
+    // Particles
     private void spawnParticles(float x, float y, float r, float g, float b, int count) {
         for (int i = 0; i < count && particleCount < MAX_PARTICLES; i++) {
             int idx = particleCount++;

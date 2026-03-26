@@ -75,8 +75,8 @@ public class CyberSprites implements Disposable {
             // TMX door layer uses two tiles ("closed door" vs "open door").
             // Slice order in `Textures/doors.png` may not match our initial
             // assumption, so we slice as:
-            //   - right half -> closed
-            //   - left half  -> open
+            // - right half -> closed
+            // - left half -> open
             if (!hasClosed) {
                 Pixmap closedPm = new Pixmap(tileW, tileH, sheet.getFormat());
                 closedPm.drawPixmap(sheet, 0, 0, tileW, tileH, tileW, 0);

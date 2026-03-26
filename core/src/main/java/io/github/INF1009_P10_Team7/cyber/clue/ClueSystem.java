@@ -8,7 +8,7 @@ import java.util.Map;
 import io.github.INF1009_P10_Team7.cyber.level.TileMap;
 
 /**
- * ClueSystem — tracks collectible intel fragments the player discovers
+ * ClueSystem, tracks collectible intel fragments the player discovers
  * by interacting with objects scattered across the level.
  */
 public class ClueSystem {

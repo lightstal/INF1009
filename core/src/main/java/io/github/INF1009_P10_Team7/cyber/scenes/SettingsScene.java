@@ -27,7 +27,7 @@ import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 import io.github.INF1009_P10_Team7.engine.render.FontManager;
 
 /**
- * SettingsScene — in-game settings overlay for adjusting audio volumes
+ * SettingsScene, in-game settings overlay for adjusting audio volumes
  * and rebinding keyboard/mouse controls.
  *
  * <p>Owned by the cyber game so it can run without the simulation package.</p>

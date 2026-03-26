@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.cyber.ctf;
 
 /**
- * TerminalLine — an immutable line of text rendered inside the {@link TerminalEmulator}.
+ * TerminalLine, an immutable line of text rendered inside the {@link TerminalEmulator}.
  *
  * <p>Each line carries its text content and a {@link Type} that controls
  * the colour used when rendered. Factory methods ({@link #out}, {@link #ok},
@@ -10,13 +10,13 @@ package io.github.INF1009_P10_Team7.cyber.ctf;
  *
  * <p>Colour mapping (rendered by {@code TerminalEmulator}):</p>
  * <ul>
- *   <li>{@code OUT}   — standard white terminal text</li>
- *   <li>{@code OK}    — green (success, found items)</li>
- *   <li>{@code WARN}  — amber/yellow (important hints)</li>
- *   <li>{@code ERR}   — red (error messages)</li>
- *   <li>{@code INFO}  — cyan (help / informational)</li>
- *   <li>{@code DIM}   — grey (background/metadata)</li>
- *   <li>{@code BLANK} — empty separator line</li>
+ * <li>{@code OUT} , standard white terminal text</li>
+ * <li>{@code OK} , green (success, found items)</li>
+ * <li>{@code WARN} , amber/yellow (important hints)</li>
+ * <li>{@code ERR} , red (error messages)</li>
+ * <li>{@code INFO} , cyan (help / informational)</li>
+ * <li>{@code DIM} , grey (background/metadata)</li>
+ * <li>{@code BLANK}, empty separator line</li>
  * </ul>
  */
 

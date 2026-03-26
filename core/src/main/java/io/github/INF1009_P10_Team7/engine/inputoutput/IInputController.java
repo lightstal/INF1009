@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.inputoutput;
 
 /**
- * IInputController — unified input binding and query interface.
+ * IInputController, unified input binding and query interface.
  *
  * <p>Provides a device-agnostic layer over keyboard and mouse input.
  * Callers bind abstract action names (e.g. {@code "JUMP"}, {@code "LEFT"})
@@ -15,8 +15,8 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
  *
  * <p>Device ID convention (matches {@link DeviceInput} base offsets):</p>
  * <ul>
- *   <li>{@code 0} — Keyboard (base offset 0)</li>
- *   <li>{@code 1} — Mouse    (base offset 300)</li>
+ * <li>{@code 0}, Keyboard (base offset 0)</li>
+ * <li>{@code 1}, Mouse (base offset 300)</li>
  * </ul>
  */
 
@@ -31,7 +31,7 @@ public interface IInputController {
     /**
      * Registers a new hardware device into the input engine dynamically.
      * <p>
-     * Allows external modules to inject custom input handlers (e.g., Gamepads, 
+     * Allows external modules to inject custom input handlers (e.g., Gamepads,
      * Steering Wheels, VR Controllers) without modifying engine internals.
      * * @param device The implemented {@link DeviceInput} to add to the system.
      */
@@ -42,8 +42,8 @@ public interface IInputController {
 	/**
      * Binds a physical input from any registered device to a logical action name.
      * <p>
-     * This unified method replaces device-specific binding methods. It uses the 
-     * {@code deviceID} to dynamically route the input to the correct hardware 
+     * This unified method replaces device-specific binding methods. It uses the
+     * {@code deviceID} to dynamically route the input to the correct hardware
      * and calculates the global routing code automatically.
      * <p>
      * Example Uses:
@@ -108,19 +108,19 @@ public interface IInputController {
     /**
      * Registers a listener to receive raw text events directly from the OS.
      * <p>
-     * This is used by UI elements like terminals or text boxes that require 
-     * OS-level character mapping (e.g., shift-modifiers) and key-repeating, 
-     * which standard state-polling cannot provide. Only one text listener 
+     * This is used by UI elements like terminals or text boxes that require
+     * OS-level character mapping (e.g., shift-modifiers) and key-repeating,
+     * which standard state-polling cannot provide. Only one text listener
      * can be active at a time.
-     * 
+     *
      * @param listener The object (e.g., TerminalEmulator) that will receive typing events.
      */
     void setTextInputListener(ITextInputListener listener);
 
-    /** 
+    /**
      * Unregisters the current text listener and releases the OS input processor.
      * <p>
-     * Must be called when the UI element requesting text input is closed to 
+     * Must be called when the UI element requesting text input is closed to
      * return input control to the standard game loop.
      */
     void clearTextInputListener();
@@ -131,19 +131,19 @@ public interface IInputController {
      */
     interface ITextInputListener {
         
-        /** 
+        /**
          * Called when a printable character or a backspace is typed.
-         * 
+         *
          * @param c The resolved character typed by the user (accounts for Shift/Caps Lock).
          */
         void onCharTyped(char c);
         
-        /** 
+        /**
          * Called when a non-printable control/navigation key is pressed.
          * <p>
          * Useful for handling keys that require OS-level key-repeating when held down,
          * such as Arrow keys for history navigation, or Page Up/Page Down for scrolling.
-         * 
+         *
          * @param libgdxKeyCode The raw integer keycode from {@link com.badlogic.gdx.Input.Keys}.
          */
         void onControlKeyPressed(int libgdxKeyCode);

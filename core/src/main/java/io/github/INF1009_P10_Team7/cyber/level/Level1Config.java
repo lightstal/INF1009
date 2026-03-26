@@ -24,18 +24,18 @@ public class Level1Config implements LevelConfig {
     @Override
     public IMiniGame[] createChallenges(TerminalEmulator terminal) {
 
-        // ── PortMatchGame — Level 1 (easy, well-known ports) ─────────────────
+        // PortMatchGame, Level 1 (easy, well-known ports)
         // ports[i] maps to services[correct[i]]
-        //   22   -> SSH   (index 2 = C)
-        //   80   -> HTTP  (index 4 = E)
-        //   443  -> HTTPS (index 3 = D)
-        //   3306 -> MySQL (index 0 = A)
-        //   21   -> FTP   (index 1 = B)
+        // 22 -> SSH (index 2 = C)
+        // 80 -> HTTP (index 4 = E)
+        // 443 -> HTTPS (index 3 = D)
+        // 3306 -> MySQL (index 0 = A)
+        // 21 -> FTP (index 1 = B)
         String[] pmPorts    = { "22",    "80",    "443",   "3306",  "21"   };
         String[] pmServices = { "MySQL", "FTP",   "SSH",   "HTTPS", "HTTP" };
         int[]    pmCorrect  = {  2,       4,       3,       0,       1     };
 
-        // ── LogAnalysisGame — Level 1 (plaintext, no cipher) ─────────────────
+        // LogAnalysisGame, Level 1 (plaintext, no cipher)
         // The override code appears in plain text inside the email.
         // Player just reads the document and copies it.
         // To change: edit lgAnswer and the matching line inside lgDocument.

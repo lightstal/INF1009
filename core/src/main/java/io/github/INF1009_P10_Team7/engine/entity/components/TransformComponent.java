@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.entity.components;
 
 /**
- * TransformComponent — stores the world-space position and rotation of an entity.
+ * TransformComponent, stores the world-space position and rotation of an entity.
  *
  * <p>This is the most fundamental component in the engine. Any entity that
  * exists in 2D space should have a TransformComponent so that movement,

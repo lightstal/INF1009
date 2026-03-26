@@ -1,15 +1,15 @@
 package io.github.INF1009_P10_Team7.cyber.ctf;
 
 /**
- * CTF Challenge 3  -  SQL Injection.
+ * CTF Challenge 3 - SQL Injection.
  *
  * Flow the player must find:
- *   sqlmap -u "http://10.10.10.50/login?id=1" -D appdb -T users --dump
- *   login admin S3cr3t!Flag
- *   cat /var/www/flag.txt  →  FLAG{sqli_d4t4b4s3_pwn3d}
+ * sqlmap -u "http://10.10.10.50/login?id=1" -D appdb -T users --dump
+ * login admin S3cr3t!Flag
+ * cat /var/www/flag.txt → FLAG{sqli_d4t4b4s3_pwn3d}
  */
 /**
- * SqlInjectionChallenge — CTF terminal challenge simulating a web SQL injection attack.
+ * SqlInjectionChallenge, CTF terminal challenge simulating a web SQL injection attack.
  *
  * <p>The player must dump credentials from the database, log in as admin, then read
  * {@code /var/www/flag.txt}.</p>
@@ -20,9 +20,9 @@ package io.github.INF1009_P10_Team7.cyber.ctf;
  *
  * <p>Progression stages:</p>
  * <ol>
- *   <li>{@code INITIAL}   — default start</li>
- *   <li>{@code DUMPED}    — after {@code sqlmap ... --dump}</li>
- *   <li>{@code LOGGED_IN} — after {@code login admin S3cr3t!Flag}</li>
+ * <li>{@code INITIAL} , default start</li>
+ * <li>{@code DUMPED} , after {@code sqlmap ... --dump}</li>
+ * <li>{@code LOGGED_IN}, after {@code login admin S3cr3t!Flag}</li>
  * </ol>
  */
 public class SqlInjectionChallenge implements ICTFChallenge {
@@ -39,7 +39,7 @@ public class SqlInjectionChallenge implements ICTFChallenge {
     public TerminalLine[] getWelcomeLines() {
         return new TerminalLine[]{
             TerminalLine.warn("OBJECTIVE: Dump the database and capture the flag."),
-            TerminalLine.out ("Target: http://10.10.10.50  |  Flag: /var/www/flag.txt"),
+            TerminalLine.out ("Target: http://10.10.10.50 | Flag: /var/www/flag.txt"),
             TerminalLine.dim ("Hint: sqlmap -u \"http://10.10.10.50/login?id=1\" -D appdb -T users --dump"),
         };
     }
@@ -67,7 +67,7 @@ public class SqlInjectionChallenge implements ICTFChallenge {
     @Override public boolean isSolved() { return solved; }
     @Override public void reset() { stage = Stage.INITIAL; solved = false; }
 
-    // ── sqlmap handler ────────────────────────────────────────────────
+    // sqlmap handler
 
     private TerminalLine[] handleSqlmap(String lo) {
         if (!lo.contains("10.10.10.50")) {
@@ -101,7 +101,7 @@ public class SqlInjectionChallenge implements ICTFChallenge {
         };
     }
 
-    // ── login handler ────────────────────────────────────────────────
+    // login handler
 
     private TerminalLine[] handleLogin(String cmd) {
         String[] parts = cmd.split("\\s+");
@@ -129,7 +129,7 @@ public class SqlInjectionChallenge implements ICTFChallenge {
         };
     }
 
-    // ── flag ─────────────────────────────────────────────────────────
+    // flag
 
     private TerminalLine[] catFlag() {
         solved = true;
@@ -143,7 +143,7 @@ public class SqlInjectionChallenge implements ICTFChallenge {
         };
     }
 
-    // ── help ─────────────────────────────────────────────────────────
+    // help
 
     private TerminalLine[] help() {
         return new TerminalLine[]{

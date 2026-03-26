@@ -11,7 +11,7 @@ import com.badlogic.gdx.Input;
  * allowing for "Just Pressed" (Edge Trigger) detection.
  */
 /**
- * KeyboardDevice — polls LibGDX keyboard state each frame.
+ * KeyboardDevice, polls LibGDX keyboard state each frame.
  *
  * <p>Base offset is {@code 0}, so LibGDX key codes are used directly as
  * global codes. The "just pressed" detection compares the current frame's
@@ -19,12 +19,12 @@ import com.badlogic.gdx.Input;
  */
 public class KeyboardDevice extends DeviceInput {
 	
-	/** 
+	/**
 	 * Stores the state of keys for the current frame.
 	 */
     private boolean[] currentKeys = new boolean[256];
     
-    /** 
+    /**
      * Stores the state of keys from the previous frame.
      */
     private boolean[] previousKeys = new boolean[256];

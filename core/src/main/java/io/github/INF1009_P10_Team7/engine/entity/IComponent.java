@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.entity;
 
 /**
- * IComponent — marker/lifecycle interface for all entity components.
+ * IComponent, marker/lifecycle interface for all entity components.
  *
  * <p>Every component that can be attached to an {@link Entity} must implement
  * this interface. The engine calls {@link #onAdded} and {@link #onRemoved}

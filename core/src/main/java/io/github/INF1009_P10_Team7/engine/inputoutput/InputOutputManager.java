@@ -170,11 +170,11 @@ public class InputOutputManager implements IInputController, IAudioController {
     /**
      * {@inheritDoc}
      * <p>
-     * <b>Dynamic Routing Logic:</b> 
+     * <b>Dynamic Routing Logic:</b>
      * <ol>
      * <li>Finds the target device in the registry using the {@code deviceID}.</li>
      * <li>Retrieves the device's specific {@code baseOffset}.</li>
-     * <li>Mathematically combines the offset with the {@code localCode} to create a 
+     * <li>Mathematically combines the offset with the {@code localCode} to create a
      * unique global code (e.g., Mouse Offset 300 + Left Click 0 = Global Code 300).</li>
      * <li>Stores the global code in the {@code keyBindings} map.</li>
      * </ol>
@@ -235,7 +235,7 @@ public class InputOutputManager implements IInputController, IAudioController {
     /**
      * {@inheritDoc}
      * <p>Get key code when pressed</p>
-     * 
+     *
      * @param action Get action name like ("UP", "DOWN")
      * @return Mouse click or Keyboard keycode or NONE or UNKNOWN(Error)
      */
@@ -254,7 +254,7 @@ public class InputOutputManager implements IInputController, IAudioController {
     /**
      * {@inheritDoc}
      * <p>Add listener for next key press</p>
-     * 
+     *
      * @param callback when key is pressed
      */
     @Override

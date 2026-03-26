@@ -17,18 +17,18 @@ import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
  *
  * <p>Refactored to rely purely on the abstract GameEngine:
  * <ul>
- *   <li>Implements ITextInputListener to receive OS-level typing and control keys</li>
- *   <li>No longer fights for control of the Gdx InputProcessor</li>
+ * <li>Implements ITextInputListener to receive OS-level typing and control keys</li>
+ * <li>No longer fights for control of the Gdx InputProcessor</li>
  * </ul>
- * 
+ *
  * <p>Features:
  * <ul>
- *   <li>Real keyboard input via inherited listener methods</li>
- *   <li>Typewriter reveal effect</li>
- *   <li>Command history via UP/DOWN arrows</li>
- *   <li>Mouse-wheel / PAGE UP/DOWN scrolling</li>
- *   <li>Blinking cursor</li>
- *   <li>Panic key (TAB)  -  instantly close terminal</li>
+ * <li>Real keyboard input via inherited listener methods</li>
+ * <li>Typewriter reveal effect</li>
+ * <li>Command history via UP/DOWN arrows</li>
+ * <li>Mouse-wheel / PAGE UP/DOWN scrolling</li>
+ * <li>Blinking cursor</li>
+ * <li>Panic key (TAB) - instantly close terminal</li>
  * </ul>
  *
  * <p>render() uses its own pre-scaled fonts created in open(),
@@ -36,7 +36,7 @@ import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
  */
 public class TerminalEmulator implements IInputController.ITextInputListener {
 
-    // ---- Layout (HUD coords at 1280x704) ----
+    // Layout (HUD coords at 1280x704)
     private static final float WIN_X  = 32f;
     private static final float WIN_Y  = 24f;
     private static final float WIN_W  = 1216f;
@@ -47,7 +47,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
     private static final float LINE_H = 18f;
     private static final int   MAX_VISIBLE = 32;
 
-    // ---- State ----
+    // State
     private boolean open = false;
     private boolean waitingForInput = true;
     private boolean panicked = false;
@@ -66,13 +66,13 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
     private boolean cursorVisible = true;
     private int     scrollOffset  = 0;
 
-    // ---- Glitch effect ----
+    // Glitch effect
     private float glitchTimer = 0f;
     private float stateTime   = 0f;
     private float solveTimer  = 0f;
     private long  lastDeleteNanos = 0L;
 
-    // ---- Keyboard modifiers (engine-only) ----
+    // Keyboard modifiers (engine-only)
     private float ctrlLatchTimer = 0f;
     private static final float CTRL_LATCH_SECONDS = 0.25f;
 
@@ -103,7 +103,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
 
         // Queue welcome lines
         addLine(TerminalLine.dim("============================================================"));
-        addLine(TerminalLine.info("  " + c.getTitle() + "  //  " + c.getTargetInfo()));
+        addLine(TerminalLine.info("  " + c.getTitle() + "  // " + c.getTargetInfo()));
         addLine(TerminalLine.dim("============================================================"));
         addLine(TerminalLine.blank());
         for (TerminalLine l : c.getWelcomeLines()) addLine(l);
@@ -153,7 +153,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
     }
 
     // =========================================================================
-    // RENDER 
+    // RENDER
     // =========================================================================
 
     public void render(MiniGameRenderContext context) {
@@ -165,7 +165,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
 
         float glitch = (stateTime < 0.3f) ? (float)Math.sin(stateTime * 80f) * 3f : 0f;
 
-        // ---- Background overlay ----
+        // Background overlay
         sr.beginFilled();
         sr.setColor(0f, 0f, 0f, 0.94f);
         sr.rect(0, 0, 1280, 704);
@@ -208,7 +208,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         sr.line(WIN_X + glitch, WIN_Y + WIN_H - TITLE_H, WIN_X + WIN_W + glitch, WIN_Y + WIN_H - TITLE_H);
         sr.end();
 
-        // ---- Text rendering (own fonts) ----
+        // Text rendering (own fonts)
         mono.begin();
 
         // Title bar text
@@ -249,7 +249,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
                 WIN_X + WIN_W - 240f + glitch, WIN_Y + INPUT_H + 4f);
         }
 
-        // ---- Input line ----
+        // Input line
         String prompt = challenge.getPrompt();
         String inputStr = inputBuffer.toString();
         boolean showCursor = waitingForInput && cursorVisible;

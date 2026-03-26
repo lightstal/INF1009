@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.cyber.ctf;
 
 /**
- * ICTFChallenge — interface for terminal-style CTF (Capture-The-Flag) challenges.
+ * ICTFChallenge, interface for terminal-style CTF (Capture-The-Flag) challenges.
  *
  * <p>Each challenge simulates a real-world hacking scenario inside the
  * {@link TerminalEmulator}. Concrete implementations define the command
@@ -15,19 +15,19 @@ public interface ICTFChallenge {
 
     /**
      * @return the display title shown at the top of the terminal window
-     *         (e.g. {@code "TERMINAL-01 // NETWORK RECON"})
+     * (e.g. {@code "TERMINAL-01 // NETWORK RECON"})
      */
     String getTitle();
 
     /**
      * @return a one-line target description shown below the title
-     *         (e.g. {@code "target: 192.168.10.0/24"})
+     * (e.g. {@code "target: 192.168.10.0/24"})
      */
     String getTargetInfo();
 
     /**
      * @return the shell prompt string rendered before each input line
-     *         (e.g. {@code "attacker@kali:~$ "})
+     * (e.g. {@code "attacker@kali:~$ "})
      */
     String getPrompt();
 
@@ -50,7 +50,7 @@ public interface ICTFChallenge {
 
     /**
      * @return {@code true} once the player has completed the challenge
-     *         (found the flag / extracted the key)
+     * (found the flag / extracted the key)
      */
     boolean isSolved();
 

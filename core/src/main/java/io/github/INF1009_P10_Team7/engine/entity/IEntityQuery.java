@@ -3,7 +3,7 @@ package io.github.INF1009_P10_Team7.engine.entity;
 import java.util.Map;
 
 /**
- * IEntityQuery — read-only view of the entity collection.
+ * IEntityQuery, read-only view of the entity collection.
  *
  * <p>Scenes and systems that only need to look up entities should depend on
  * this narrow interface rather than the full {@link EntityManager} (ISP / DIP).

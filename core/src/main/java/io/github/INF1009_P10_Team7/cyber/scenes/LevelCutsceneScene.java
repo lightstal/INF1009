@@ -8,23 +8,23 @@ import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
- * LevelCutsceneScene — pre-level cinematic scene shown before gameplay.
+ * LevelCutsceneScene, pre-level cinematic scene shown before gameplay.
  *
  * <p>This is a delegator: all rendering is done by {@link LevelCutsceneRenderer}
  * so this class remains focused on the typing/phase state machine.</p>
  */
 public class LevelCutsceneScene extends Scene {
 
-    // ── Timing ──────────────────────────────────────────────────────────────
+    // Timing
     private static final float FADE_IN_DUR = 0.55f;
     private static final float CHAR_DELAY = 0.032f;   // seconds per character
     private static final float LINE_PAUSE = 0.28f;    // extra pause between lines
     private static final float HOLD_DUR = 1.6f;        // pause after all text done
     private static final float FADE_OUT_DUR = 0.55f;
 
-    // ── Per-level briefing data ─────────────────────────────────────────────
+    // Per-level briefing data
     private static final Object[][][] LEVELS = {
-        { // Level 1 — INITIATION
+        { // Level 1, INITIATION
             { 0.20f, 0.45f, 1.00f },
             { "MISSION 01", "INITIATION — STAR FORMATION" },
             {
@@ -38,7 +38,7 @@ public class LevelCutsceneScene extends Scene {
             },
             { "BREACH ALL TERMINALS.",  "GET THE KEY.  ESCAPE." }
         },
-        { // Level 2 — INFILTRATION
+        { // Level 2, INFILTRATION
             { 0.00f, 0.80f, 0.55f },
             { "MISSION 02", "INFILTRATION — Z-SHAPE COMPLEX" },
             {
@@ -54,7 +54,7 @@ public class LevelCutsceneScene extends Scene {
         }
     };
 
-    // ── State ───────────────────────────────────────────────────────────────
+    // State
     private enum Phase { FADE_IN, TYPING, HOLD, FADE_OUT }
     private Phase phase = Phase.FADE_IN;
 
@@ -66,7 +66,7 @@ public class LevelCutsceneScene extends Scene {
     private boolean typingDone = false;
     private float overlayAlpha = 1f;  // 1 = black, 0 = clear
 
-    // Pre-created game scene — set by static factory method
+    // Pre-created game scene, set by static factory method
     private io.github.INF1009_P10_Team7.engine.scene.Scene gameSceneRef;
 
     private float[] accent;
@@ -163,7 +163,7 @@ public class LevelCutsceneScene extends Scene {
         if (charIdx < line.length()) {
             charIdx++;
         } else {
-            // Line done — pause then move to next
+            // Line done, pause then move to next
             charTimer -= LINE_PAUSE;
             lineIdx++;
             charIdx = 0;
@@ -215,7 +215,7 @@ public class LevelCutsceneScene extends Scene {
         if (renderer != null) renderer.dispose();
     }
 
-    // ── Static factory method (sets up gameSceneRef cleanly) ────────────────
+    // Static factory method (sets up gameSceneRef cleanly)
     public static LevelCutsceneScene create(IInputController input, IAudioController audio,
                                              SceneNavigator nav, CyberSceneFactory factory,
                                              int level) {

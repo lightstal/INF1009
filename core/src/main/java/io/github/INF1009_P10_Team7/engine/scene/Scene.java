@@ -22,9 +22,9 @@ public abstract class Scene {
      * <p>Creates a new Scene with the given dependencies.
      * Throws an exception if any dependency is null.</p>
      *
-     * @param input  the input controller
-     * @param audio  the audio controller
-     * @param nav    the scene navigator for switching scenes
+     * @param input the input controller
+     * @param audio the audio controller
+     * @param nav the scene navigator for switching scenes
      */
     protected Scene(IInputController input, IAudioController audio, SceneNavigator nav) {
         if (input == null || audio == null || nav == null) {
@@ -84,7 +84,7 @@ public abstract class Scene {
     /**
      * <p>Called when the window is resized. Does nothing by default.</p>
      *
-     * @param width  new width
+     * @param width new width
      * @param height new height
      */
     public void resize(int width, int height) { }

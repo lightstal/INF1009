@@ -6,7 +6,7 @@ import io.github.INF1009_P10_Team7.engine.render.ITextDraw;
 import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
- * CAESAR CIPHER DECODER — Cyberpunk Hacker Terminal UI
+ * CAESAR CIPHER DECODER, Cyberpunk Hacker Terminal UI
  *
  * Two alphabet strips slide relative to each other.
  * Students rotate with A/D (or LEFT/RIGHT) until the DECODED output
@@ -14,23 +14,23 @@ import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
  * Correct shift = 13 (ROT-13).
  *
  * UI features:
- *  - Perfectly centered monospaced letter alignment (both rows)
- *  - Smooth animated shift sliding
- *  - Neon glow on active column
- *  - CRT scanlines + grid background
- *  - Blinking cursor / typing feel
- *  - Glassmorphism panels
- *  - Neon amber (cipher) / neon green (decoded) color scheme
+ * - Perfectly centered monospaced letter alignment (both rows)
+ * - Smooth animated shift sliding
+ * - Neon glow on active column
+ * - CRT scanlines + grid background
+ * - Blinking cursor / typing feel
+ * - Glassmorphism panels
+ * - Neon amber (cipher) / neon green (decoded) color scheme
  */
 /**
- * CaesarCipherGame — mini-game where the player decrypts a Caesar-cipher message.
+ * CaesarCipherGame, mini-game where the player decrypts a Caesar-cipher message.
  *
  * <p>A ciphertext string is generated with a random shift (1–25). The player
  * must identify the shift and type the plaintext to complete the challenge.
  * Provides a frequency-analysis hint to guide the player.</p>
  *
  * <p>Implements {@link IMiniGame} so it is handled uniformly by
- * {@code CyberGameScene} (OCP, LSP). Relies on the engine's text input 
+ * {@code CyberGameScene} (OCP, LSP). Relies on the engine's text input
  * listener for abstract OS-level character typing.</p>
  */
 public class CaesarCipherGame implements IMiniGame {
@@ -42,7 +42,7 @@ public class CaesarCipherGame implements IMiniGame {
     private static final String SOLUTION     = "HELLO HACKER";
     private static final int    CORRECT_SHIFT = 13;
 
-    // Window geometry — wider panel, more breathing room
+    // Window geometry, wider panel, more breathing room
     private static final float WX = 100f, WY = 40f, WW = 1080f, WH = 620f;
     private static final float TITLE_H = 44f;
 
@@ -86,12 +86,12 @@ public class CaesarCipherGame implements IMiniGame {
         ITextDraw small = context.smallText();
         float pulse = 0.5f + 0.5f * (float)Math.sin(stateTime * 3f);
 
-        // ── Full-screen dark overlay ─────────────────────────────────────
+        // Full-screen dark overlay
         sr.beginFilled();
         sr.setColor(0f, 0f, 0.01f, 0.92f);
         sr.rect(0, 0, W, H);
 
-        // ── Grid background overlay ──────────────────────────────────────
+        // Grid background overlay
         sr.setColor(0.04f, 0.08f, 0.12f, 0.15f);
         float gridSize = 40f;
         for (float gx = 0; gx < W; gx += gridSize) {
@@ -101,7 +101,7 @@ public class CaesarCipherGame implements IMiniGame {
             sr.rect(0, gy, W, 1f);
         }
 
-        // ── Main panel (glassmorphism) ───────────────────────────────────
+        // Main panel (glassmorphism)
         // Outer glow
         sr.setColor(0f, 0.12f, 0.2f, 0.35f);
         sr.rect(WX - 6, WY - 6, WW + 12, WH + 12);
@@ -118,13 +118,13 @@ public class CaesarCipherGame implements IMiniGame {
         sr.setColor(0f, 0.65f, 0.75f, 0.5f);
         sr.rect(WX, WY, WW, 2f);
 
-        // ── CRT scanlines over panel ─────────────────────────────────────
+        // CRT scanlines over panel
         sr.setColor(0f, 0f, 0f, 0.05f);
         for (float sy = WY; sy < WY + WH; sy += 3f) {
             sr.rect(WX, sy, WW, 1f);
         }
 
-        // ── Alphabet strip layout ────────────────────────────────────────
+        // Alphabet strip layout
         float stripMarginL = 80f;
         float stripPadX = 14f;
         float stripX = WX + stripMarginL;
@@ -141,7 +141,7 @@ public class CaesarCipherGame implements IMiniGame {
         sr.rect(stripX, stripCipherY, stripW, stripH);
         sr.rect(stripX, stripPlainY,  stripW, stripH);
 
-        // ── Active column highlight — perfectly centered on letter ────────
+        // Active column highlight, perfectly centered on letter
         float hlCellIdx = 12f;
         float hlX = stripX + hlCellIdx * cellW;
         float hlFullH = stripH * 2f + gapBetween;
@@ -166,7 +166,7 @@ public class CaesarCipherGame implements IMiniGame {
         }
         sr.end();
 
-        // ── Borders ─────────────────────────────────────────────────────
+        // Borders
         sr.beginLine();
         sr.setColor(0f, 0.55f, 0.7f, 0.6f + pulse * 0.2f);
         sr.rect(WX, WY, WW, WH);
@@ -179,7 +179,7 @@ public class CaesarCipherGame implements IMiniGame {
         sr.rect(hlX, stripPlainY, cellW, hlFullH);
         sr.end();
 
-        // ── Text ────────────────────────────────────────────────────────
+        // Text
         med.begin();
 
         // Title bar
@@ -190,7 +190,7 @@ public class CaesarCipherGame implements IMiniGame {
         small.draw("[ESC] CLOSE",
             WX + WW - 120f, WY + WH - 15f);
 
-        // ── CIPHER row — perfectly centered letters ─────────────────────
+        // CIPHER row, perfectly centered letters
         small.setColor(0.5f, 0.55f, 0.7f, 0.9f);
         small.draw("CIPHER", WX + 12, stripCipherY + stripH / 2f + 5f);
 
@@ -212,7 +212,7 @@ public class CaesarCipherGame implements IMiniGame {
             med.draw(cs, lx, ly);
         }
 
-        // ── PLAIN row — perfectly centered shifted letters ──────────────
+        // PLAIN row, perfectly centered shifted letters
         small.setColor(0.35f, 0.65f, 0.4f, 0.9f);
         small.draw("PLAIN", WX + 14, stripPlainY + stripH / 2f + 5f);
 
@@ -236,7 +236,7 @@ public class CaesarCipherGame implements IMiniGame {
             med.draw(cs, lx, ly);
         }
 
-        // ── Connection dots between rows ────────────────────────────────
+        // Connection dots between rows
         med.end();
         sr.beginFilled();
         float dotX = hlX + cellW / 2f;
@@ -249,7 +249,7 @@ public class CaesarCipherGame implements IMiniGame {
         sr.end();
         med.begin();
 
-        // ── Shift counter + controls ────────────────────────────────────
+        // Shift counter + controls
         float cursorBlink = ((int)(stateTime * 3f) % 2 == 0) ? 1f : 0.3f;
         med.setColor(0f, 0.9f, 1f, 1f);
         med.draw("SHIFT:  " + shift, WX + 16, stripPlainY - 22f);
@@ -263,14 +263,14 @@ public class CaesarCipherGame implements IMiniGame {
             "[ A / LEFT ] rotate left    [ D / RIGHT ] rotate right    [ ENTER ] submit",
             WX + 200f, stripPlainY - 22f);
 
-        // ── Encrypted message (neon amber) ─────────────────────────────
+        // Encrypted message (neon amber)
         small.setColor(0.45f, 0.5f, 0.6f, 0.9f);
         small.draw("INTERCEPTED CIPHERTEXT:", WX + 40, WY + 270f);
 
         big.setColor(1f, 0.78f, 0.12f, 1f);
         big.draw(ENCRYPTED, WX + 40, WY + 240f);
 
-        // ── Decoded output (softer neon green) ──────────────────────────
+        // Decoded output (softer neon green)
         small.setColor(0.45f, 0.5f, 0.6f, 0.9f);
         small.draw("DECODED PLAINTEXT:", WX + 40, WY + 192f);
 
@@ -285,7 +285,7 @@ public class CaesarCipherGame implements IMiniGame {
         }
         big.draw(decoded, WX + 40, WY + 162f);
 
-        // ── Status / hint ──────────────────────────────────────────────
+        // Status / hint
         if (solved) {
             med.setColor(0f, 1f, 0.5f, 1f);
             String solvedMsg = "[OK] CIPHER BROKEN - KEY ACQUIRED (closing...)";
@@ -303,9 +303,9 @@ public class CaesarCipherGame implements IMiniGame {
                 WX + 40, WY + 100f);
         }
 
-        // ── Bottom status bar ──────────────────────────────────────────
+        // Bottom status bar
         small.setColor(0.25f, 0.4f, 0.45f, 0.6f);
-        small.draw("SYS://crypto.decoder v2.1  |  session active  |  entropy: nominal",
+        small.draw("SYS://crypto.decoder v2.1 | session active | entropy: nominal",
             WX + 14, WY + 22f);
 
         med.end();

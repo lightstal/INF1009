@@ -1,20 +1,20 @@
 package io.github.INF1009_P10_Team7.cyber.ctf;
 
 /**
- * CTF Challenge 1  -  Network Recon.
+ * CTF Challenge 1 - Network Recon.
  *
  * Flow the player must discover:
- *   nmap 192.168.10.0/24   → finds host .105
- *   connect 192.168.10.105 → SSH shell on target
- *   ls                     → see files
- *   cat notes.txt          → hint about hidden dir
- *   ls -la                 → see .secret/
- *   cd .secret             → enter dir
- *   ls                     → flag.txt
- *   cat flag.txt           → FLAG{r3c0n_m4st3r_1337}
+ * nmap 192.168.10.0/24 → finds host .105
+ * connect 192.168.10.105 → SSH shell on target
+ * ls → see files
+ * cat notes.txt → hint about hidden dir
+ * ls -la → see .secret/
+ * cd .secret → enter dir
+ * ls → flag.txt
+ * cat flag.txt → FLAG{r3c0n_m4st3r_1337}
  */
 /**
- * NmapReconChallenge — CTF terminal challenge simulating network reconnaissance.
+ * NmapReconChallenge, CTF terminal challenge simulating network reconnaissance.
  *
  * <p>The player must discover a hidden SSH server on 192.168.10.105, connect to it,
  * locate a hidden {@code .secret/} directory, and read {@code flag.txt}.</p>
@@ -26,9 +26,9 @@ package io.github.INF1009_P10_Team7.cyber.ctf;
  *
  * <p>State machine:</p>
  * <ul>
- *   <li>Not connected → connected after {@code connect 192.168.10.105}</li>
- *   <li>HOME dir → SECRET dir after {@code cd .secret}</li>
- *   <li>Solved = {@code true} after {@code cat flag.txt} in the SECRET dir</li>
+ * <li>Not connected → connected after {@code connect 192.168.10.105}</li>
+ * <li>HOME dir → SECRET dir after {@code cd .secret}</li>
+ * <li>Solved = {@code true} after {@code cat flag.txt} in the SECRET dir</li>
  * </ul>
  */
 public class NmapReconChallenge implements ICTFChallenge {
@@ -65,7 +65,7 @@ public class NmapReconChallenge implements ICTFChallenge {
         String cmd = raw.trim();
         String lo  = cmd.toLowerCase();
 
-        // ── Not yet connected ----------------------------------------
+        // Not yet connected
         if (!connected) {
             if (lo.startsWith("nmap")) {
                 if (lo.contains("192.168.10")) return nmapScan();
@@ -88,7 +88,7 @@ public class NmapReconChallenge implements ICTFChallenge {
             return unknown(cmd);
         }
 
-        // ── Connected  -  HOME dir ─────────────────────────────────────────────
+        // Connected - HOME dir
         if (currentDir == Dir.HOME) {
             if (lo.equals("ls")) return lsHome();
             if (lo.equals("ls -la") || lo.equals("ls -al") || lo.equals("ls -a")) return lsHomeHidden();
@@ -123,7 +123,7 @@ public class NmapReconChallenge implements ICTFChallenge {
             return unknown(cmd);
         }
 
-        // ── Connected  -  SECRET dir ───────────────────────────────────────────
+        // Connected - SECRET dir
         if (lo.equals("ls") || lo.equals("ls -la") || lo.equals("ls -al")) return lsSecret();
         if (lo.startsWith("cat flag.txt")) return catFlag();
         if (lo.startsWith("cat")) return err("cat: " + extractArg(cmd) + ": No such file or directory");
@@ -141,7 +141,7 @@ public class NmapReconChallenge implements ICTFChallenge {
     @Override public boolean isSolved() { return solved; }
     @Override public void reset() { connected = false; currentDir = Dir.HOME; solved = false; }
 
-    // ── Sub-responses ----------------------------------------────────
+    // Sub-responses
 
     private TerminalLine[] nmapScan() {
         return new TerminalLine[]{

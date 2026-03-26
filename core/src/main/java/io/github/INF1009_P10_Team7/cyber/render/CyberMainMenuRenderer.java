@@ -225,7 +225,7 @@ public class CyberMainMenuRenderer {
         sr.rect(exitBtnX + exitBtnW - 2f, exitBtnY, 2f, exitBtnH);
         sr.end();
 
-        // Text — each font is pre-generated at its native size, no bitmap stretching
+        // Text, each font is pre-generated at its native size, no bitmap stretching
         batch.begin();
 
         // Title

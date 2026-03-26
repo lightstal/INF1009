@@ -3,7 +3,7 @@ package io.github.INF1009_P10_Team7.engine.collision;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
- * ICollidable — contract for any object that participates in collision detection.
+ * ICollidable, contract for any object that participates in collision detection.
  *
  * <p>Entities that can collide implement this interface (or inherit from
  * {@link io.github.INF1009_P10_Team7.engine.entity.GameEntity} which already
@@ -32,19 +32,19 @@ public interface ICollidable {
 
     /**
      * @return {@code true} if this object should be included in collision
-     *         checks this frame (typically mirrors {@code Entity.isActive()})
+     * checks this frame (typically mirrors {@code Entity.isActive()})
      */
     boolean isCollidable();
 
     /**
      * @return {@code true} if this object has a physics component and can
-     *         have its position and velocity modified by the collision resolver
+     * have its position and velocity modified by the collision resolver
      */
     boolean isMovable();
 
     /**
      * @return the current velocity of this object, used by the bounce resolver
-     *         to reflect it on collision; returns a zero vector for static objects
+     * to reflect it on collision; returns a zero vector for static objects
      */
     Vector2 getVelocity();
 

@@ -9,7 +9,7 @@ import io.github.INF1009_P10_Team7.engine.movement.MovementBehaviour;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
- * DroneAIMovementBehaviour — routes drone movement through the engine
+ * DroneAIMovementBehaviour, routes drone movement through the engine
  * {@link io.github.INF1009_P10_Team7.engine.movement.IMovementSystem}.
  *
  * <p>The drone's state machine still decides behaviour, but the engine

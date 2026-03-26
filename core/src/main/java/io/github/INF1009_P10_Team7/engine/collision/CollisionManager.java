@@ -48,7 +48,7 @@ public class CollisionManager implements ICollisionSystem {
      * <p>Registers a collidable with its response. Duplicates are ignored.</p>
      *
      * @param collidable the object to register
-     * @param response   the response strategy for this object
+     * @param response the response strategy for this object
      */
     @Override
     public void registerCollidable(ICollidable collidable, ICollisionResponse response) {
@@ -88,7 +88,7 @@ public class CollisionManager implements ICollisionSystem {
                 ICollidable obj2 = collidableObjects.get(j);
                 if (obj2 == null || !obj2.isCollidable()) continue;
 
-                // Uses instance method  -  can be overridden by subclass (Inheritance)
+                // Uses instance method - can be overridden by subclass (Inheritance)
                 CollisionInfo collisionInfo = detector.getCollisionInfo(obj1, obj2);
 
                 if (collisionInfo != null) {
@@ -117,8 +117,8 @@ public class CollisionManager implements ICollisionSystem {
      * <p>Called when a collision is detected. Picks the right response
      * based on priority and resolves it.</p>
      *
-     * @param obj1          first colliding object
-     * @param obj2          second colliding object
+     * @param obj1 first colliding object
+     * @param obj2 second colliding object
      * @param collisionInfo details about the collision
      */
     public void onCollision(ICollidable obj1, ICollidable obj2, CollisionInfo collisionInfo) {

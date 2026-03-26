@@ -34,7 +34,7 @@ import io.github.INF1009_P10_Team7.engine.render.ISpriteDraw;
 import io.github.INF1009_P10_Team7.engine.render.ITextDraw;
 
 /**
- * CyberGameRenderer — owns all LibGDX rendering objects for CyberGameScene.
+ * CyberGameRenderer, owns all LibGDX rendering objects for CyberGameScene.
  * CyberGameScene should only maintain simulation/state; rendering is delegated here.
  */
 public class CyberGameRenderer {
@@ -198,7 +198,7 @@ public class CyberGameRenderer {
     ) {
         if (sr == null || batch == null) return;
 
-        // ── Main world pass ────────────────────────────────────────────────
+        // Main world pass
         Gdx.gl.glClearColor(0f, 0f, 0.02f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -226,7 +226,7 @@ public class CyberGameRenderer {
         renderPlayer(playerEntity, playerTc, frameDelta);
         renderParticles(pX, pY, pR, pG, pB, pLife, particleCount);
 
-        // ── Mini-game pass ────────────────────────────────────────────────
+        // Mini-game pass
         if (activeChallenge != null && activeChallenge.isOpen()) {
             hudViewport.apply();
             sr.setProjectionMatrix(hudCamera.combined);
@@ -238,7 +238,7 @@ public class CyberGameRenderer {
             return;
         }
 
-        // ── HUD pass ─────────────────────────────────────────────────────
+        // HUD pass
         hudViewport.apply();
         sr.setProjectionMatrix(hudCamera.combined);
         batch.setProjectionMatrix(hudCamera.combined);

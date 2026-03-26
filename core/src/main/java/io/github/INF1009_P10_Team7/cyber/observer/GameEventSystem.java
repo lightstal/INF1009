@@ -34,7 +34,7 @@ public class GameEventSystem {
     /**
      * Notifies all observers that the player collected a key.
      *
-     * @param total    total keys collected so far this run
+     * @param total total keys collected so far this run
      * @param required keys needed to unlock the exit
      */
     public void notifyKeyCollected(int total, int required) {

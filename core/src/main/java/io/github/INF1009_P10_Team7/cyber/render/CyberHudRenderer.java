@@ -16,10 +16,10 @@ import io.github.INF1009_P10_Team7.cyber.player.PlayerState;
 import io.github.INF1009_P10_Team7.cyber.components.drone.DroneAI;
 
 /**
- * CyberHudRenderer — renders all HUD overlays for CyberGameScene.
+ * CyberHudRenderer, renders all HUD overlays for CyberGameScene.
  *
  * <p>Extracted from CyberGameScene (SRP): this class owns all 2D overlay
- * drawing — status panel, alert bar, minimap, threat indicator, objective
+ * drawing, status panel, alert bar, minimap, threat indicator, objective
  * banners, chase warning, and end screen. CyberGameScene calls the public
  * render methods each frame; it retains no HUD-drawing logic itself.</p>
  *
@@ -458,7 +458,7 @@ public class CyberHudRenderer {
         if (win) {
             float fl = 0.6f + 0.4f * (float)Math.sin(stateTime * 3.5f);
             alertFont.setColor(fl, 0f, fl, 1f);
-            String t = "SYSTEM  BREACHED  //  ACCESS  GRANTED";
+            String t = "SYSTEM  BREACHED  // ACCESS GRANTED";
             layout.setText(alertFont, t);
             alertFont.draw(batch, t,
                 TileMap.WORLD_W / 2f - layout.width / 2f, TileMap.WORLD_H / 2f + 70f);
@@ -473,7 +473,7 @@ public class CyberHudRenderer {
         } else {
             float fl = 0.6f + 0.4f * (float)Math.sin(stateTime * 6f);
             alertFont.setColor(fl, 0f, 0f, 1f);
-            String m = "CONNECTION  SEVERED  //  MISSION  FAILED";
+            String m = "CONNECTION  SEVERED  // MISSION FAILED";
             layout.setText(alertFont, m);
             alertFont.draw(batch, m,
                 TileMap.WORLD_W / 2f - layout.width / 2f, TileMap.WORLD_H / 2f + 50f);
@@ -484,10 +484,8 @@ public class CyberHudRenderer {
         batch.end();
     }
 
-    // =========================================================================
-    // PRIVATE HELPERS
-    // =========================================================================
 
+    // private helpers
     private float maxAlert(DroneAI[] drones) {
         float m = 0;
         for (DroneAI d : drones) m = Math.max(m, d.getAlertLevel());

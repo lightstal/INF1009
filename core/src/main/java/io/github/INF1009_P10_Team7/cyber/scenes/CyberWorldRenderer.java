@@ -16,10 +16,10 @@ import io.github.INF1009_P10_Team7.cyber.level.TileMap;
 import io.github.INF1009_P10_Team7.cyber.render.CyberSprites;
 
 /**
- * CyberWorldRenderer — renders all in-world visual elements for CyberGameScene.
+ * CyberWorldRenderer, renders all in-world visual elements for CyberGameScene.
  *
  * <p>Extracted from CyberGameScene (SRP): this class owns all world-space
- * drawing — room props, security cameras, drones, terminals, clue objects,
+ * drawing, room props, security cameras, drones, terminals, clue objects,
  * signal ping effects, checkpoint beacon, exit door, and exit guidance.
  * CyberGameScene calls the public render methods each frame.</p>
  *
@@ -45,10 +45,6 @@ public class CyberWorldRenderer {
         this.sprites     = sprites;
         this.input       = input;
     }
-
-    // =========================================================================
-    // PUBLIC API
-    // =========================================================================
 
     /**
      * Renders all in-world room props: ceiling lights, security cameras,
@@ -227,10 +223,6 @@ public class CyberWorldRenderer {
         sr.triangle(tmxExitX, tmxExitY - s, tmxExitX - s, tmxExitY, tmxExitX + s, tmxExitY);
         sr.end();
     }
-
-    // =========================================================================
-    // PRIVATE HELPERS
-    // =========================================================================
 
     private void renderSecurityCameras(float ts, float stateTime, int[][] camPositions,
                                         boolean[] cctvAlerted, GameEntity playerEntity,

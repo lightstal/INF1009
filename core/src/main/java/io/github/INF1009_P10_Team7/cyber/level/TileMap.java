@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.cyber.level;
 
 /**
- * TileMap  -  static coordinate utilities for the 40x22 world grid.
+ * TileMap - static coordinate utilities for the 40x22 world grid.
  *
  * All level maps are now defined in Tiled (.tmx) files.
  * This class only provides the shared constants and helper methods

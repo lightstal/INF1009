@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 
 /**
- * IRenderBehaviour — Strategy interface for entity rendering.
+ * IRenderBehaviour, Strategy interface for entity rendering.
  *
  * <p>Concrete implementations ({@link CircleRenderer}, {@link RectangleRenderer},
  * {@link TriangleRenderer}) each draw the owning entity in a different shape.
@@ -27,7 +27,7 @@ public interface IRenderBehaviour {
      * implementations must NOT call {@code begin()} or {@code end()}.</p>
      *
      * @param entity the entity to draw
-     * @param shape  the active ShapeRenderer to draw with
+     * @param shape the active ShapeRenderer to draw with
      */
     void render(Entity entity, ShapeRenderer shape);
 }

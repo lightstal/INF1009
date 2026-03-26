@@ -12,7 +12,7 @@ public enum TileType {
     TERMINAL_INPUT(4),
     EXIT(5),
     TERMINAL_PRIV_ESC(6),
-    // Room-specific floor tiles  -  same walkable semantics as FLOOR, different colour zone
+    // Room-specific floor tiles - same walkable semantics as FLOOR, different colour zone
     ROOM_A(7),
     ROOM_B(8),
     ROOM_C(9),
@@ -36,7 +36,7 @@ public enum TileType {
 
     /**
      * @return {@code true} if this tile type blocks entity movement
-     *         (only {@link #WALL} is solid)
+     * (only {@link #WALL} is solid)
      */
     public boolean isSolid() { return this == WALL; }
 

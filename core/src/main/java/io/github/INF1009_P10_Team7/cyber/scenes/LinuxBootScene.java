@@ -9,7 +9,7 @@ import io.github.INF1009_P10_Team7.cyber.level.TileMap;
 import io.github.INF1009_P10_Team7.cyber.render.LinuxBootRenderer;
 
 /**
- * LinuxBootScene  -  animated Linux kernel boot sequence.
+ * LinuxBootScene - animated Linux kernel boot sequence.
  * Lines appear one-by-one then auto-transitions to the main menu.
  * Skippable by pressing SPACE or clicking.
  *
@@ -17,7 +17,7 @@ import io.github.INF1009_P10_Team7.cyber.render.LinuxBootRenderer;
  * game-specific UI (cyberpunk boot aesthetic).
  */
 /**
- * LinuxBootScene — simulated Linux boot sequence shown at application startup.
+ * LinuxBootScene, simulated Linux boot sequence shown at application startup.
  *
  * <p>Displays scrolling boot-log lines to create atmosphere before
  * transitioning to {@link CyberMainMenuScene}. The sequence can be
@@ -37,8 +37,8 @@ public class LinuxBootScene extends Scene {
     private boolean allShown = false;
     private float   holdTimer = 0f;
 
-    // ---- Boot log lines ----
-    // Format: [colour, text]  colour: 0=dim, 1=green, 2=yellow, 3=cyan, 4=white
+    // Boot log lines
+    // Format: [colour, text] colour: 0=dim, 1=green, 2=yellow, 3=cyan, 4=white
     private static final Object[][] BOOT_LINES = {
         {3, "GRUB 2.06  GNU GRUB  version 2.06"},
         {0, ""},

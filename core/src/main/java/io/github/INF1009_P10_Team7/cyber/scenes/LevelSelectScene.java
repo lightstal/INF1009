@@ -8,7 +8,7 @@ import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
- * Level select screen — delegates rendering to {@link LevelSelectRenderer}
+ * Level select screen, delegates rendering to {@link LevelSelectRenderer}
  * so this cyber scene contains no LibGDX imports/calls.
  */
 public class LevelSelectScene extends Scene {

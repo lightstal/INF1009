@@ -5,7 +5,7 @@ import io.github.INF1009_P10_Team7.cyber.ctf.TerminalEmulator;
 import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
- * TerminalMiniGame — adapts an {@link ICTFChallenge} into the {@link IMiniGame}
+ * TerminalMiniGame, adapts an {@link ICTFChallenge} into the {@link IMiniGame}
  * interface so {@code CyberGameScene} can treat CTF challenges uniformly with
  * other mini-games (Adapter Pattern, OCP, LSP).
  *

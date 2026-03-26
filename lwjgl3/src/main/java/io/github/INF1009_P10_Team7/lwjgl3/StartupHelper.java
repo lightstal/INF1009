@@ -67,11 +67,11 @@ public class StartupHelper {
      * </code></pre>
      *
      * @param redirectOutput
-     *            whether the output of the new JVM should be rerouted to the
-     *            old JVM, so it can be accessed in the same place; keeps the
-     *            old JVM running if enabled
+     * whether the output of the new JVM should be rerouted to the
+     * old JVM, so it can be accessed in the same place; keeps the
+     * old JVM running if enabled
      * @return whether a new JVM was started and thus no code should be executed
-     *         in this one
+     * in this one
      */
     public static boolean startNewJvmIfRequired(boolean redirectOutput) {
         String osName = System.getProperty("os.name").toLowerCase(java.util.Locale.ROOT);
@@ -196,7 +196,7 @@ public class StartupHelper {
      * </pre>
      *
      * @return whether a new JVM was started and thus no code should be executed
-     *         in this one
+     * in this one
      */
     public static boolean startNewJvmIfRequired() {
         return startNewJvmIfRequired(true);

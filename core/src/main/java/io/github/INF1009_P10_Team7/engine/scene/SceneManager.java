@@ -124,7 +124,7 @@ public class SceneManager implements SceneNavigator {
     /**
      * <p>Handles window resize for the current scene.</p>
      *
-     * @param width  new width
+     * @param width new width
      * @param height new height
      */
     public void resize(int width, int height) {

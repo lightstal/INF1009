@@ -3,7 +3,7 @@ package io.github.INF1009_P10_Team7.engine.movement;
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 
 /**
- * MovementBehaviour — Strategy interface for entity movement.
+ * MovementBehaviour, Strategy interface for entity movement.
  *
  * <p>Each concrete implementation encapsulates one movement algorithm
  * (e.g. {@link AImovement} for random wandering, {@link FollowMovement}
@@ -15,7 +15,7 @@ import io.github.INF1009_P10_Team7.engine.entity.Entity;
  * <p>Design note (Strategy Pattern + LSP): all implementations are
  * interchangeable at runtime. Swapping a behaviour via
  * {@link MovementManager#setBehavior} does not require any changes to the
- * entity, the manager, or the scene — only the algorithm changes.</p>
+ * entity, the manager, or the scene, only the algorithm changes.</p>
  */
 public interface MovementBehaviour {
 
@@ -25,7 +25,7 @@ public interface MovementBehaviour {
      * {@link io.github.INF1009_P10_Team7.engine.entity.components.TransformComponent}
      * and update it directly.
      *
-     * @param entity    the entity to move
+     * @param entity the entity to move
      * @param deltaTime seconds elapsed since the last frame
      */
     void move(Entity entity, float deltaTime);

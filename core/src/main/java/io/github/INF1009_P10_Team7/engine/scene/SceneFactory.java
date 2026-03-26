@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.scene;
 
 /**
- * SceneFactory — abstract factory interface for creating game scenes.
+ * SceneFactory, abstract factory interface for creating game scenes.
  *
  * <p>Concrete factories (e.g. {@code Part1SceneFactory}, {@code CyberSceneFactory})
  * implement this interface and hold references to all engine interfaces needed
@@ -9,7 +9,7 @@ package io.github.INF1009_P10_Team7.engine.scene;
  * {@code new} directly, keeping them decoupled from concrete scene types (OCP, DIP).</p>
  *
  * <p>To add a new scene type, create a new {@code createXxx()} method in the
- * concrete factory — no changes to this interface or to existing scenes are
+ * concrete factory, no changes to this interface or to existing scenes are
  * required.</p>
  */
 public interface SceneFactory {

@@ -12,7 +12,7 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
  * </p>
  */
 /**
- * InputDrivenMovement — {@link MovementBehaviour} that delegates to a
+ * InputDrivenMovement, {@link MovementBehaviour} that delegates to a
  * {@link MovementHandler} each frame.
  *
  * <p>Serves as the glue between the input subsystem and the movement

@@ -4,11 +4,11 @@ import io.github.INF1009_P10_Team7.engine.collision.IWorldCollisionQuery;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
- * DroneAI  -  Context class for the State Pattern.
+ * DroneAI is the context class for the State Pattern.
  * Delegates all behaviour to the current DroneState.
  *
- * Now accepts per-drone waypoints, speed and sight configuration so each
- * level can tune drone difficulty independently (Bug-4 fix, Improvement-6).
+ * Accepts per drone waypoints, speed, and sight configuration so each
+ * level can tune drone difficulty independently.
  */
 public class DroneAI {
 
@@ -29,11 +29,11 @@ public class DroneAI {
     private DroneState currentState;
     private float alertLevel = 0f;
     private float stateTime  = 0f;
-    /**
+    /*
      * Accumulated rotor spin angle (degrees) used for future drone spin animation.
-     * <p><b>NOTE:</b> Not currently exposed via a getter or passed to any renderer.
-     * Kept as a placeholder — wire to {@code CyberWorldRenderer} when drone
-     * spin animation is implemented.</p>
+     * Not currently exposed via a getter or passed to any renderer.
+     * Kept as a placeholder, wire to CyberWorldRenderer when drone
+     * spin animation is implemented.
      */
     private float rotorAngle = 0f;
     private float detectionSuppressedTimer = 0f;

@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.UIManagement;
 
 /**
- * iUIElement — root interface for all engine UI elements.
+ * iUIElement, root interface for all engine UI elements.
  *
  * <p>Defines the minimal render contract that every UI widget must satisfy.
  * Naming follows the lower-case 'i' convention used elsewhere in this

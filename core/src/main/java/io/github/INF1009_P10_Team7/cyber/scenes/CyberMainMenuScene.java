@@ -9,7 +9,7 @@ import io.github.INF1009_P10_Team7.engine.scene.Scene;
 import io.github.INF1009_P10_Team7.engine.scene.SceneNavigator;
 
 /**
- * CyberMainMenuScene — main menu screen delegating all LibGDX rendering
+ * CyberMainMenuScene, main menu screen delegating all LibGDX rendering
  * to {@link CyberMainMenuRenderer} so this class has no LibGDX imports.
  */
 public class CyberMainMenuScene extends Scene {
@@ -57,7 +57,7 @@ public class CyberMainMenuScene extends Scene {
             return;
         }
 
-        // Mouse click — hover decides start vs exit
+        // Mouse click, hover decides start vs exit
         if (input.isActionJustPressed("MENU_CLICK")) {
             if (renderer.isStartHover()) {
                 nav.requestScene(factory.createLevelSelectScene());

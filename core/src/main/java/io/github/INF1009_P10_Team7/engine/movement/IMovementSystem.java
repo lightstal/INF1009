@@ -3,7 +3,7 @@ package io.github.INF1009_P10_Team7.engine.movement;
 import io.github.INF1009_P10_Team7.engine.entity.Entity;
 
 /**
- * IMovementSystem — public contract for the movement subsystem.
+ * IMovementSystem, public contract for the movement subsystem.
  *
  * <p>Scenes depend on this interface rather than the concrete
  * {@link MovementManager} (DIP). This allows movement behaviour to be
@@ -12,9 +12,9 @@ import io.github.INF1009_P10_Team7.engine.entity.Entity;
  *
  * <p>Key runtime operations exposed:</p>
  * <ul>
- *   <li>{@link #setBehavior} — hot-swap a movement algorithm (Strategy Pattern, LSP)</li>
- *   <li>{@link #getBehavior} — read current algorithm (used before a swap)</li>
- *   <li>{@link #hasEntity}   — guard check before operating on an entity</li>
+ * <li>{@link #setBehavior}, hot-swap a movement algorithm (Strategy Pattern, LSP)</li>
+ * <li>{@link #getBehavior}, read current algorithm (used before a swap)</li>
+ * <li>{@link #hasEntity} , guard check before operating on an entity</li>
  * </ul>
  */
 public interface IMovementSystem {
@@ -23,7 +23,7 @@ public interface IMovementSystem {
      * Registers an entity with an initial movement behaviour.
      * If {@code behavior} is {@code null}, only physics integration is applied.
      *
-     * @param entity   the entity to register
+     * @param entity the entity to register
      * @param behavior the initial movement behaviour, or {@code null}
      */
     void addEntity(Entity entity, MovementBehaviour behavior);
@@ -73,7 +73,7 @@ public interface IMovementSystem {
      * Used to implement runtime strategy swaps (e.g. follower switching from
      * {@link FollowMovement} to {@link AImovement}).
      *
-     * @param entity   the entity whose behaviour to replace
+     * @param entity the entity whose behaviour to replace
      * @param behavior the new behaviour to assign
      */
     void setBehavior(Entity entity, MovementBehaviour behavior);

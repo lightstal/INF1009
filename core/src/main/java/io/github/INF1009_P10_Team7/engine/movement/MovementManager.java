@@ -77,7 +77,7 @@ public class MovementManager implements IMovementSystem {
 
             if (!entity.isActive()) continue;
 
-            // ---- A) Physics Integration ----
+            // A) Physics Integration
             PhysicComponent pc = entity.getComponent(PhysicComponent.class);
             TransformComponent tc = entity.getComponent(TransformComponent.class);
 
@@ -89,7 +89,7 @@ public class MovementManager implements IMovementSystem {
                 pos.y += vel.y * deltaTime;
             }
 
-            // ---- B) Behaviour Movement ----
+            // B) Behaviour Movement
             if (behavior != null) {
                 behavior.move(entity, deltaTime);
             }

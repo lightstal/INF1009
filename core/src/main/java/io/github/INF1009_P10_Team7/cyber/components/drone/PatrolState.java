@@ -5,27 +5,25 @@ import io.github.INF1009_P10_Team7.engine.collision.IWorldCollisionQuery;
 import io.github.INF1009_P10_Team7.engine.utils.Vector2;
 
 /**
- * PatrolState: the drone follows a waypoint circuit.
+ * PatrolState: the drone follows a waypoint circuit with natural, organic movement.
  *
- * FIX (Issue 3) - Randomised movement so drones never look like they are
- * going in predictable circles:
+ * Several randomisation layers ensure that drones never appear to move
+ * in predictable, synchronised loops:
  *
- *  1. RANDOM DWELL TIME   - each waypoint pause is independently randomised
- *     between PAUSE_MIN and PAUSE_MAX so no two stops feel the same.
+ * 1) Random dwell time. Each waypoint pause is independently randomised
+ * so no two stops feel the same.
  *
- *  2. RANDOM SPEED VARIATION - while travelling between waypoints the drone's
- *     effective speed is perturbed by +/-SPEED_JITTER every SPEED_CHANGE
- *     seconds, so consecutive legs feel different in pace.
+ * 2) Speed variation. While travelling between waypoints the drone's
+ * effective speed changes periodically, giving each leg a different pace.
  *
- *  3. RANDOM LOOK-AROUND - while dwelling the drone occasionally snaps to a
- *     random "glance angle" for a short random hold before resuming its sweep.
- *     This breaks the robotic constant-rotation feel.
+ * 3) Random look around. While dwelling the drone occasionally snaps to a
+ * random glance angle for a short hold before resuming its sweep.
  *
- *  4. WAYPOINT DIRECTION SHUFFLE - on entry there is a 20% chance the circuit
- *     is reversed, so two drones with identical waypoints can orbit in
- *     opposite directions and desynchronise naturally.
+ * 4) Waypoint direction shuffle. On entry there is a 20% chance the circuit
+ * is reversed, so two drones sharing identical waypoints can orbit in
+ * opposite directions and desynchronise naturally.
  *
- * Transitions to ChaseState when the player enters its sight cone.
+ * Transitions to ChaseState when the player enters the drone's sight cone.
  */
 public class PatrolState implements DroneState {
 
@@ -43,19 +41,19 @@ public class PatrolState implements DroneState {
     private static final float STUCK_TIMEOUT   = 0.35f;
     private static final float STUCK_THRESHOLD = 1.2f;
 
-    // Waypoint dwell - Fix 1
+    // Waypoint dwell, random pause at each waypoint
     private float waypointPauseTimer = 0f;
     private static final float PAUSE_MIN = 3f;
     private static final float PAUSE_MAX = 14f;
     private boolean dwelling = false;
 
-    // Speed variation - Fix 2
+    // Speed variation, periodic perturbation between waypoints
     private float speedMult        = 1.0f;
     private float speedChangeTimer = 0f;
     private static final float SPEED_CHANGE = 2.8f;
     private static final float SPEED_JITTER = 0.28f;
 
-    // Look-around during dwell - Fix 3
+    // Look around during dwell, random glance angles while paused
     private float   glanceAngle       = 0f;
     private boolean useGlance         = false;
     private float   glanceHoldTimer   = 0f;
@@ -88,8 +86,8 @@ public class PatrolState implements DroneState {
             waypoints[i][1] = TileMap.tileCentreY((int) patrolTiles[i][1]);
         }
 
-        // Fix 4: 20% chance to reverse circuit so two identical-waypoint drones
-        // orbit in opposite directions
+        // 20% chance to reverse the circuit so drones with identical waypoints
+        // can orbit in opposite directions, preventing synchronised movement
         reverseOrder = (Math.random() < 0.20);
 
         // Pick nearest waypoint as start
@@ -118,7 +116,7 @@ public class PatrolState implements DroneState {
     public void update(DroneAI ai, IWorldCollisionQuery map, Vector2 playerPos, float dt) {
         Vector2 pos = ai.getPosition();
 
-        // Fix 2: periodic speed perturbation
+        // Apply periodic speed perturbation for natural movement variation
         speedChangeTimer -= dt;
         if (speedChangeTimer <= 0f) {
             speedMult        = 1.0f + (float)(Math.random() * 2.0 - 1.0) * SPEED_JITTER;
@@ -226,9 +224,8 @@ public class PatrolState implements DroneState {
         }
     }
 
-    /**
-     * Fix 3: Randomised look-around while dwelling.
-     *
+    /*
+     * Handles randomised look around behaviour while the drone is dwelling at a waypoint.
      * The drone sweeps toward the next waypoint direction but periodically
      * interrupts that sweep with a random glance at a nearby angle. Each
      * glance lasts a short random duration before the sweep resumes.
@@ -277,7 +274,7 @@ public class PatrolState implements DroneState {
         }
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
+    // Helpers
 
     private int nextWaypointIndex() {
         if (reverseOrder) {

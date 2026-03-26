@@ -4,7 +4,7 @@ import io.github.INF1009_P10_Team7.engine.entity.components.PhysicComponent;
 import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 
 /**
- * MovementHandler — bridge between raw device input and physics velocity.
+ * MovementHandler, bridge between raw device input and physics velocity.
  *
  * <p>Implementations translate player key/button presses into a velocity
  * vector that is written directly to the entity's {@link PhysicComponent}.
@@ -14,10 +14,10 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
  *
  * <p>Example implementations:</p>
  * <ul>
- *   <li>{@link io.github.INF1009_P10_Team7.simulation.PlayerMovement}
- *       — WASD for the Part 1 demo scene</li>
- *   <li>{@link io.github.INF1009_P10_Team7.cyber.CyberPlayerMovement}
- *       — WASD with diagonal normalisation for Cyber Maze Escape</li>
+ * <li>{@link io.github.INF1009_P10_Team7.simulation.PlayerMovement}
+ * , WASD for the Part 1 demo scene</li>
+ * <li>{@link io.github.INF1009_P10_Team7.cyber.CyberPlayerMovement}
+ * , WASD with diagonal normalisation for Cyber Maze Escape</li>
  * </ul>
  */
 public interface MovementHandler {
@@ -28,7 +28,7 @@ public interface MovementHandler {
      * the direction of each pressed key.
      *
      * @param physics the physics component whose velocity will be set
-     * @param input   the input controller to poll for key/button state
+     * @param input the input controller to poll for key/button state
      */
     void handle(PhysicComponent physics, IInputController input);
 }

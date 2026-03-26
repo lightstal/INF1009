@@ -13,7 +13,7 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
  * all devices uniformly (Polymorphism).
  */
 /**
- * DeviceInput — abstract base for a single input hardware device.
+ * DeviceInput, abstract base for a single input hardware device.
  *
  * <p>Concrete subclasses ({@link KeyboardDevice}, {@link MouseDevice}) implement
  * the actual LibGDX polling. Each device occupies a contiguous range of global
@@ -25,17 +25,17 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
  * coexist in a single bindings map without code collision.</p>
  */
 public abstract class DeviceInput {
-	/** * Unique integer identifier for the device (e.g., 0 for Keyboard, 1 for Mouse). 
+	/** * Unique integer identifier for the device (e.g., 0 for Keyboard, 1 for Mouse).
      */
     protected int deviceID;
     
-    /** * Human-readable name of the device (e.g., "Keyboard", "Mouse"). 
+    /** * Human-readable name of the device (e.g., "Keyboard", "Mouse").
      */
     protected String deviceName;
     
     /** * The starting integer code for this specific device in the global binding map.
      * <p>
-     * For example, if a Keyboard starts at 0 and a Mouse starts at 300, a global code 
+     * For example, if a Keyboard starts at 0 and a Mouse starts at 300, a global code
      * of 302 represents local button 2 on the Mouse.
      */
     protected int baseOffset;
@@ -51,7 +51,7 @@ public abstract class DeviceInput {
     /**
      * Retrieves the unique identifier for this hardware device.
      * <p>
-     * This ID is used by the engine to dynamically route input bindings to the 
+     * This ID is used by the engine to dynamically route input bindings to the
      * correct device without relying on hardcoded method names.
      * * @return The integer device ID (e.g., 0 for Keyboard, 1 for Mouse, 2 for Gamepad).
      */

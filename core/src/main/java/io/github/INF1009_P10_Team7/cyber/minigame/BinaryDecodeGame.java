@@ -8,17 +8,17 @@ import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 /**
  * BINARY DECODER
  *
- * Pass any uppercase word into the constructor — the game auto-calculates
+ * Pass any uppercase word into the constructor, the game auto-calculates
  * every 8-bit binary string from the ASCII value of each character.
  *
  * To change the secret word, update only the string in LevelConfig:
- *   Level 1 (easy) : new BinaryDecodeGame("FLAGS")
- *   Level 2 (hard) : new BinaryDecodeGame("CRYPT")
+ * Level 1 (easy) : new BinaryDecodeGame("FLAGS")
+ * Level 2 (hard) : new BinaryDecodeGame("CRYPT")
  *
- * Any word of any length works — the UI adapts automatically.
+ * Any word of any length works, the UI adapts automatically.
  */
 /**
- * BinaryDecodeGame — mini-game where the player decodes a word from binary.
+ * BinaryDecodeGame, mini-game where the player decodes a word from binary.
  *
  * <p>The target word is configurable at construction time (passed from
  * {@link io.github.INF1009_P10_Team7.cyber.Level1Config} /
@@ -27,7 +27,7 @@ import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
  * the decoded ASCII string to solve the challenge.</p>
  *
  * <p>Implements {@link IMiniGame} so it is handled uniformly by
- * {@code CyberGameScene} (OCP, LSP). Relies on the engine's text input 
+ * {@code CyberGameScene} (OCP, LSP). Relies on the engine's text input
  * listener for abstract OS-level character typing.</p>
  */
 public class BinaryDecodeGame implements IMiniGame {
@@ -36,11 +36,11 @@ public class BinaryDecodeGame implements IMiniGame {
     private static final float WX = 140f, WY = 50f, WW = 1000f, WH = 600f;
     private static final float TITLE_H = 40f;
 
-    // ── Only thing you ever need to change ───────────────────────────────────
+    // Only thing you ever need to change
     // Edit the string passed to the constructor inside LevelConfig.
     // Binary strings and answer chars are derived automatically.
     private final String secretWord;
-    // ─────────────────────────────────────────────────────────────────────────
+    //
 
     private boolean open, solved, panicked;
     private float   stateTime, wrongFlash, solveTimer;
@@ -50,14 +50,14 @@ public class BinaryDecodeGame implements IMiniGame {
     private final StringBuilder inputBuf = new StringBuilder();
 
     /**
-     * @param word  The secret word to decode (any length, e.g. "FLAGS" or "CRYPT").
-     *              The game converts each character to its 8-bit binary automatically.
+     * @param word The secret word to decode (any length, e.g. "FLAGS" or "CRYPT").
+     * The game converts each character to its 8-bit binary automatically.
      */
     public BinaryDecodeGame(String word) {
         this.secretWord = word.toUpperCase();
     }
 
-    // ── Helper: char → 8-bit binary string ───────────────────────────────────
+    // Helper: char → 8-bit binary string
     /** Converts any ASCII character to its 8-bit binary string. e.g. 'F' -> "01000110" */
     private static String toBinary(char c) {
         String raw = Integer.toBinaryString(c);
@@ -67,7 +67,7 @@ public class BinaryDecodeGame implements IMiniGame {
         return sb.toString();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    //
 
     @Override
     public void open() {
@@ -107,7 +107,7 @@ public class BinaryDecodeGame implements IMiniGame {
         float pulse = 0.5f + 0.5f * (float) Math.sin(stateTime * 4f);
         boolean blink = ((int)(stateTime * 2)) % 2 == 0;
 
-        // ── Progress box layout — adapts to any word length ──────────────────
+        // Progress box layout, adapts to any word length
         float boxW   = 110f;
         float boxGap = 30f;
         float totalBoxRow = wordLen * boxW + (wordLen - 1) * boxGap;
@@ -119,14 +119,14 @@ public class BinaryDecodeGame implements IMiniGame {
         }
         float boxStartX = WX + (WW - totalBoxRow) / 2f; // centred in panel
 
-        // ── Background ───────────────────────────────────────────────────────
+        // Background
         sr.beginFilled();
         sr.setColor(0f, 0f, 0f, 0.90f);           sr.rect(0, 0, W, H);
         sr.setColor(0.02f, 0.03f, 0.04f, 1f);     sr.rect(WX, WY, WW, WH);
         sr.setColor(0.03f, 0.10f, 0.03f, 1f);     sr.rect(WX, WY + WH - TITLE_H, WW, TITLE_H);
         sr.setColor(0f, pulse * 0.4f, 0f, 0.22f); sr.rect(WX - 5, WY - 5, WW + 10, WH + 10);
 
-        // Signal display area — one slot per letter
+        // Signal display area, one slot per letter
         float sigY = WY + WH - 200f, sigH = 140f;
         float slotW = (WW - 60f) / wordLen;
         sr.setColor(0.01f, 0.03f, 0.01f, 1f); sr.rect(WX + 30, sigY, WW - 60, sigH);
@@ -172,7 +172,7 @@ public class BinaryDecodeGame implements IMiniGame {
         if (wrongFlash > 0) { sr.setColor(0.6f, 0f, 0f, wrongFlash * 0.35f); sr.rect(WX, WY, WW, WH); }
         sr.end();
 
-        // ── Borders ──────────────────────────────────────────────────────────
+        // Borders
         sr.beginLine();
         sr.setColor(0f, 0.75f, 0.35f, 0.9f); sr.rect(WX, WY, WW, WH);
         sr.line(WX, WY + WH - TITLE_H, WX + WW, WY + WH - TITLE_H);
@@ -184,12 +184,12 @@ public class BinaryDecodeGame implements IMiniGame {
         sr.rect(WX + 40, inputY, WW - 80, 38f);
         sr.end();
 
-        // ── Text ─────────────────────────────────────────────────────────────
+        // Text
         med.begin();
 
         // Title bar
         title.setColor(0f, 0.9f, 0.45f, 1f);
-        title.draw("  [ BINARY DECODER // INTERCEPTED SIGNAL ]    [ESC/TAB CLOSE]",
+        title.draw("  [ BINARY DECODER // INTERCEPTED SIGNAL ] [ESC/TAB CLOSE]",
             WX + 10, WY + WH - 13f);
 
         // All binary strings in the signal display panel
@@ -240,7 +240,7 @@ public class BinaryDecodeGame implements IMiniGame {
             }
         }
 
-        // Progress label — centred
+        // Progress label, centred
         small.setColor(0.38f, 0.38f, 0.38f, 1f);
         String progressLabel = "DECODED PROGRESS:";
         float plw = small.measureWidth(progressLabel);
@@ -281,7 +281,7 @@ public class BinaryDecodeGame implements IMiniGame {
         med.end();
     }
 
-    // ── Engine-Driven Input Callbacks ────────────────────────────────────────
+    // Engine-Driven Input Callbacks
 
     @Override
     public void onCharTyped(char c) {

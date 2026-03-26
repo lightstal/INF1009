@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.collision;
 
 /**
- * ICollisionSystem — public contract for the collision subsystem.
+ * ICollisionSystem, public contract for the collision subsystem.
  *
  * <p>Scenes depend on this narrow interface rather than the concrete
  * {@link CollisionManager} (DIP). This ensures scenes can register
@@ -15,9 +15,9 @@ public interface ICollisionSystem {
      * Duplicate registrations (same object) are silently ignored.
      *
      * @param collidable the object to register
-     * @param response   the collision response to use when this object collides;
-     *                   a {@code null} response falls back to
-     *                   {@link CollisionResolution#PASS_THROUGH}
+     * @param response the collision response to use when this object collides;
+     * a {@code null} response falls back to
+     * {@link CollisionResolution#PASS_THROUGH}
      */
     void registerCollidable(ICollidable collidable, ICollisionResponse response);
 

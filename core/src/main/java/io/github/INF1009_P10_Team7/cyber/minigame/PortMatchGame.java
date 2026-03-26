@@ -9,27 +9,27 @@ import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
  * CHALLENGE: PORT MAPPER
  *
  * Students must match 5 network ports to their corresponding services.
- * Left column : ports  (numbered 1-5)
+ * Left column : ports (numbered 1-5)
  * Right column: services in scrambled order (lettered A-E)
  *
  * INPUT: Press 1-5 to select a port, then A-E to match it to a service.
  * Correct pairs turn green; wrong pairs flash red. All 5 matched = solved.
  *
  * To change the port/service data per level, pass different arrays into the
- * constructor from LevelConfig.  The game logic never needs to change.
+ * constructor from LevelConfig. The game logic never needs to change.
  *
- * Level 1 (easy)  — common ports: 22/SSH, 80/HTTP, 443/HTTPS, 3306/MySQL, 21/FTP
- * Level 2 (hard)  — obscure ports: 25/SMTP, 110/POP3, 143/IMAP, 3389/RDP, 5432/PostgreSQL
+ * Level 1 (easy) , common ports: 22/SSH, 80/HTTP, 443/HTTPS, 3306/MySQL, 21/FTP
+ * Level 2 (hard) , obscure ports: 25/SMTP, 110/POP3, 143/IMAP, 3389/RDP, 5432/PostgreSQL
  */
 /**
- * PortMatchGame — mini-game where the player matches network port numbers to
+ * PortMatchGame, mini-game where the player matches network port numbers to
  * their corresponding services.
  *
  * <p>The ports, service names, and correct answer indices are all configurable
  * at construction time. Level 1 uses well-known ports (22, 80, 443 …);
  * Level 2 uses less common protocols (SMTP, POP3, IMAP …).</p>
  *
- * <p>Implements {@link IMiniGame} (OCP, LSP). Receives input directly from 
+ * <p>Implements {@link IMiniGame} (OCP, LSP). Receives input directly from
  * the Scene via inherited listener methods.</p>
  */
 public class PortMatchGame implements IMiniGame {
@@ -37,11 +37,11 @@ public class PortMatchGame implements IMiniGame {
     private static final float W = 1280f;
     private static final float H = 704f;
 
-    // ── Port / service data injected via constructor ───────────────────────────
+    // Port / service data injected via constructor
     private final String[] ports;
     private final String[] services;
     private final int[]    correct;
-    // ─────────────────────────────────────────────────────────────────────────
+    //
 
     private boolean open     = false;
     private boolean solved   = false;
@@ -57,11 +57,11 @@ public class PortMatchGame implements IMiniGame {
     private int    selectedPort = -1;   // 0-4, -1 = none selected yet
     private String wrongMsg     = "";
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // Constructor
     /**
-     * @param ports    Port number strings shown on the left, one per row.
+     * @param ports Port number strings shown on the left, one per row.
      * @param services Service names shown on the right (scrambled), one per letter A-E.
-     * @param correct  correct[i] = index into services[] that ports[i] maps to.
+     * @param correct correct[i] = index into services[] that ports[i] maps to.
      */
     public PortMatchGame(String[] ports, String[] services, int[] correct) {
         this.ports    = ports;
@@ -69,7 +69,7 @@ public class PortMatchGame implements IMiniGame {
         this.correct  = correct;
     }
 
-    // ── IMiniGame ─────────────────────────────────────────────────────────────
+    // IMiniGame
     @Override
     public void open() {
         open         = true;
@@ -107,7 +107,7 @@ public class PortMatchGame implements IMiniGame {
         }
     }
 
-    // ── Render ────────────────────────────────────────────────────────────────
+    // Render
     @Override
     public void render(MiniGameRenderContext context) {
         if (!open) return;
@@ -193,7 +193,7 @@ public class PortMatchGame implements IMiniGame {
         // --- Text ---
         med.begin();
         title.setColor(1f, 0.6f, 0.1f, 1f);
-        title.draw("  [ NETWORK CONFIG // PORT MAPPER ]    [ESC/TAB=CLOSE]",
+        title.draw("  [ NETWORK CONFIG // PORT MAPPER ] [ESC/TAB=CLOSE]",
             wx + 10, wy + wh - 13f);
 
         // Column headers
@@ -262,11 +262,11 @@ public class PortMatchGame implements IMiniGame {
         med.end();
     }
 
-    // ── Input Handling (Inherited from ITextInputListener) ────────────────────
+    // Input Handling (Inherited from ITextInputListener)
 
     @Override
     public void onCharTyped(char c) {
-        // Not used, parsing keys directly via onControlKeyPressed for matching 
+        // Not used, parsing keys directly via onControlKeyPressed for matching
     }
 
     @Override
@@ -291,7 +291,7 @@ public class PortMatchGame implements IMiniGame {
             return;
         }
 
-        // Select a service (keys A-E) — only active once a port is selected
+        // Select a service (keys A-E), only active once a port is selected
         if (selectedPort >= 0) {
             int svcIdx = -1;
             if (k == KeyCode.A) svcIdx = 0;

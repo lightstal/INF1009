@@ -7,9 +7,9 @@ import io.github.INF1009_P10_Team7.cyber.minigame.IMiniGame;
 /**
  * Strategy interface for per-level configuration.
  *
- * SRP  – all level-specific data lives here, not in CyberGameScene.
- * OCP  – adding a new level only requires a new implementation;
- *        CyberGameScene is never modified.
+ * SRP – all level-specific data lives here, not in CyberGameScene.
+ * OCP – adding a new level only requires a new implementation;
+ * CyberGameScene is never modified.
  */
 public interface LevelConfig {
     /** @return the 1-based level index (e.g. 1, 2, …) */

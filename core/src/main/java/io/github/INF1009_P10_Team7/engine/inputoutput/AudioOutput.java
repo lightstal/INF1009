@@ -10,9 +10,9 @@ import com.badlogic.gdx.audio.Sound;
 /**
  * <p>Handles all audio operations for the engine.</p>
  *
- * <p>This class encapsulates LibGDX's audio system, managing both streamed 
- * background music and cached sound effects. By handling the loading, playback, 
- * and disposal of audio resources internally, it hides the complexity of 
+ * <p>This class encapsulates LibGDX's audio system, managing both streamed
+ * background music and cached sound effects. By handling the loading, playback,
+ * and disposal of audio resources internally, it hides the complexity of
  * hardware audio management from the rest of the game engine.</p>
  * * <ul>
  * <li><b>Background music:</b> Streamed directly from the file (one track at a time).</li>
@@ -32,7 +32,7 @@ public class AudioOutput {
     private final Map<String, Sound> soundCache = new HashMap<>();
 
     /**
-     * <p>Constructs a new AudioOutput manager with no music loaded 
+     * <p>Constructs a new AudioOutput manager with no music loaded
      * and default volume settings.</p>
      */
     public AudioOutput() {
@@ -41,7 +41,7 @@ public class AudioOutput {
 
     /**
      * <p>Loads and starts playing a new background music track.</p>
-     * <p>If a track is already playing, it will be stopped and disposed of 
+     * <p>If a track is already playing, it will be stopped and disposed of
      * before the new track begins. The music will automatically loop.</p>
      *
      * @param audioPath The internal file path to the audio file (e.g., "audio/bgm.mp3").
@@ -88,8 +88,8 @@ public class AudioOutput {
 
     /**
      * <p>Plays a short sound effect (SFX).</p>
-     * <p>If the sound has not been played before, it will be loaded from the disk 
-     * and stored in the {@code soundCache}. Subsequent calls will play the cached 
+     * <p>If the sound has not been played before, it will be loaded from the disk
+     * and stored in the {@code soundCache}. Subsequent calls will play the cached
      * sound instantly. If the SFX volume is set to 0, playback is skipped.</p>
      *
      * @param audioPath The internal file path to the sound file (e.g., "audio/jump.wav").
@@ -152,8 +152,8 @@ public class AudioOutput {
 
     /**
      * <p>Safely disposes of all audio resources currently managed by this class.</p>
-     * <p>Stops and unloads the current music track, and flushes all cached sound 
-     * effects from memory. This must be called when the application is shutting down 
+     * <p>Stops and unloads the current music track, and flushes all cached sound
+     * effects from memory. This must be called when the application is shutting down
      * to prevent memory leaks.</p>
      */
     public void dispose() {

@@ -4,19 +4,19 @@ import io.github.INF1009_P10_Team7.engine.inputoutput.IInputController;
 import io.github.INF1009_P10_Team7.engine.render.MiniGameRenderContext;
 
 /**
- * IMiniGame — interface for all in-game interactive challenge puzzles.
+ * IMiniGame, interface for all in-game interactive challenge puzzles.
  *
- * <p>{@code CyberGameScene} only ever talks to this interface — it does not
+ * <p>{@code CyberGameScene} only ever talks to this interface, it does not
  * care whether the active challenge is a {@link BinaryDecodeGame},
  * {@link CaesarCipherGame}, {@link PortMatchGame}, or any other type (LSP, OCP).
  * New mini-game types can be added without touching the scene.</p>
  *
  * <p>Lifecycle:</p>
  * <ol>
- *   <li>{@link #open()}   — called when the player interacts with a terminal</li>
- *   <li>{@link #update}   — called every frame while the game is open</li>
- *   <li>{@link #render}   — called every frame to draw the UI</li>
- *   <li>{@link #close()}  — called when the player exits or the challenge ends</li>
+ * <li>{@link #open()} , called when the player interacts with a terminal</li>
+ * <li>{@link #update} , called every frame while the game is open</li>
+ * <li>{@link #render} , called every frame to draw the UI</li>
+ * <li>{@link #close()} , called when the player exits or the challenge ends</li>
  * </ol>
  */
 public interface IMiniGame extends IInputController.ITextInputListener {
@@ -53,7 +53,7 @@ public interface IMiniGame extends IInputController.ITextInputListener {
 
     /**
      * @return {@code true} if the challenge was force-closed due to
-     *         drone detection (panic exit) rather than a normal exit
+     * drone detection (panic exit) rather than a normal exit
      */
     boolean wasPanicked();
 }

@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.inputoutput;
 
 /**
- * IAudioController — narrow interface for audio playback operations.
+ * IAudioController, narrow interface for audio playback operations.
  *
  * <p>Scenes depend on this interface (via the {@link Scene} base class)
  * rather than the concrete {@link AudioOutput} or {@link InputOutputManager}
@@ -10,10 +10,10 @@ package io.github.INF1009_P10_Team7.engine.inputoutput;
  *
  * <p>Two categories of audio are managed:</p>
  * <ul>
- *   <li><b>Music</b> — one streamed background track at a time;
- *       supports play, stop, pause, resume, and volume control.</li>
- *   <li><b>Sound effects (SFX)</b> — short cached clips played on demand;
- *       volume controlled independently from music.</li>
+ * <li><b>Music</b>, one streamed background track at a time;
+ * supports play, stop, pause, resume, and volume control.</li>
+ * <li><b>Sound effects (SFX)</b>, short cached clips played on demand;
+ * volume controlled independently from music.</li>
  * </ul>
  */
 public interface IAudioController {

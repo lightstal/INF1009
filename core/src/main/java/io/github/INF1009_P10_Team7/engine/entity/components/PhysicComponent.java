@@ -14,21 +14,21 @@ public class PhysicComponent implements IComponent {
     private Entity owner;
 
 
-//    Creating a physicscomponent with default values i.e. 0 velocity and mass of 1.0
+// Creating a physicscomponent with default values i.e. 0 velocity and mass of 1.0
     public PhysicComponent() {
         this.velocity = new Vector2();
         this.mass = 1.0f;
     }
 
 
-    //    Creating a physicscomponent with specified mass
+    // Creating a physicscomponent with specified mass
 
     public PhysicComponent(float mass) {
         this.velocity = new Vector2();
         this.mass = mass;
     }
 
-    //    Creating a physicscomponent with specified mass and velocity
+    // Creating a physicscomponent with specified mass and velocity
     public PhysicComponent(Vector2 velocity, float mass) {
         this.velocity = new Vector2(velocity);
         this.mass = mass;

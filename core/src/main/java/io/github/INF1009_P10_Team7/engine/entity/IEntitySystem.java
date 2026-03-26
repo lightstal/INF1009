@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.entity;
 
 /**
- * IEntitySystem — write interface for managing the entity lifecycle.
+ * IEntitySystem, write interface for managing the entity lifecycle.
  *
  * <p>Scenes that create or destroy entities should depend on this interface
  * rather than the full {@link EntityManager} (ISP / DIP). Separating read

@@ -1,7 +1,7 @@
 package io.github.INF1009_P10_Team7.engine.collision;
 
 /**
- * CollisionInfo — immutable value object describing a detected collision.
+ * CollisionInfo, immutable value object describing a detected collision.
  *
  * <p>Created by {@link CollisionDetection#getCollisionInfo} and passed to
  * {@link ICollisionResponse#resolve}. Contains everything a resolver needs
@@ -9,9 +9,9 @@ package io.github.INF1009_P10_Team7.engine.collision;
  *
  * <p>Fields:</p>
  * <ul>
- *   <li>{@code objectId1} / {@code objectId2} — IDs of the two colliding objects</li>
- *   <li>{@code penetrationDepth} — how far the two circles overlap (pixels)</li>
- *   <li>{@code collisionNormal}  — unit vector pointing from object 1 toward object 2</li>
+ * <li>{@code objectId1} / {@code objectId2}, IDs of the two colliding objects</li>
+ * <li>{@code penetrationDepth}, how far the two circles overlap (pixels)</li>
+ * <li>{@code collisionNormal} , unit vector pointing from object 1 toward object 2</li>
  * </ul>
  */
 
@@ -32,10 +32,10 @@ public final class CollisionInfo {
     /**
      * <p>Creates a new CollisionInfo. A copy of the collision normal is stored.</p>
      *
-     * @param objectId1        ID of the first object
-     * @param objectId2        ID of the second object
+     * @param objectId1 ID of the first object
+     * @param objectId2 ID of the second object
      * @param penetrationDepth how far the two objects overlap
-     * @param collisionNormal  direction of the collision
+     * @param collisionNormal direction of the collision
      */
     public CollisionInfo(String objectId1, String objectId2, float penetrationDepth, Vector2 collisionNormal) {
         this.objectId1 = objectId1;

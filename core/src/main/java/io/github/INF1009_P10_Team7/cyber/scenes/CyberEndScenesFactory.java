@@ -13,7 +13,7 @@ import io.github.INF1009_P10_Team7.cyber.CyberSceneFactory;
  * Demonstrates the Factory Method pattern.
  */
 /**
- * CyberEndScenesFactory — factory helper for creating victory and game-over scenes.
+ * CyberEndScenesFactory, factory helper for creating victory and game-over scenes.
  *
  * <p>Exists as a focused helper so {@link io.github.INF1009_P10_Team7.cyber.CyberSceneFactory}
  * can delegate end-screen creation without growing its own responsibility (SRP).</p>

@@ -24,24 +24,24 @@ public class Level2Config implements LevelConfig {
     @Override
     public IMiniGame[] createChallenges(TerminalEmulator terminal) {
 
-        // ── PortMatchGame — Level 2 (hard, less common protocols) ────────────
+        // PortMatchGame, Level 2 (hard, less common protocols)
         // ports[i] maps to services[correct[i]]
-        //   25   -> SMTP       (index 3 = D)
-        //   110  -> POP3       (index 4 = E)
-        //   143  -> IMAP       (index 1 = B)
-        //   3389 -> RDP        (index 2 = C)
-        //   5432 -> PostgreSQL (index 0 = A)
+        // 25 -> SMTP (index 3 = D)
+        // 110 -> POP3 (index 4 = E)
+        // 143 -> IMAP (index 1 = B)
+        // 3389 -> RDP (index 2 = C)
+        // 5432 -> PostgreSQL (index 0 = A)
         String[] pmPorts    = { "25",         "110",  "143",  "3389", "5432"       };
         String[] pmServices = { "PostgreSQL", "IMAP", "RDP",  "SMTP", "POP3"       };
         int[]    pmCorrect  = {  3,            4,      1,      2,      0            };
 
-        // ── LogAnalysisGame — Level 2 (Atbash cipher) ────────────────────────
+        // LogAnalysisGame, Level 2 (Atbash cipher)
         // The override code is encoded with Atbash (A<->Z mirror cipher).
         // Ciphertext in email : ZXXVHH_9182_WVOGZ
-        // Plaintext answer    : access_9182_delta
+        // Plaintext answer : access_9182_delta
         // Hints woven in:
-        //   Email 2 — "mirror encoding", "first letter becomes last, last becomes first"
-        //   Email 3 — "Z is A and A is Z"
+        // Email 2, "mirror encoding", "first letter becomes last, last becomes first"
+        // Email 3, "Z is A and A is Z"
         // To change: update lgAnswer, lgHighlight, and the matching line in lgDocument.
         String lgAnswer    = "access_9182_delta";
         String lgHighlight = "ZXXVHH_9182_WVOGZ";   // line containing this gets highlighted green
