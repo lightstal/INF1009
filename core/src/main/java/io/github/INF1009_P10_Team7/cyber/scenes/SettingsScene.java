@@ -1,4 +1,4 @@
-package io.github.INF1009_P10_Team7.simulation;
+package io.github.INF1009_P10_Team7.cyber.scenes;
 
 import java.util.List;
 
@@ -30,14 +30,7 @@ import io.github.INF1009_P10_Team7.engine.render.FontManager;
  * SettingsScene — in-game settings overlay for adjusting audio volumes
  * and rebinding keyboard/mouse controls.
  *
- * <p>Pushed on top of the current scene (not replacing it) so the game
- * world is preserved underneath. Overrides {@link #blocksWorldUpdate()}
- * to pause movement and collision while the settings are open.</p>
- *
- * <p>Uses {@link io.github.INF1009_P10_Team7.engine.UIManagement.KeyBindingButton}
- * widgets to allow interactive key rebinding. Carefully manages the LibGDX 
- * InputProcessor to ensure control is returned to the global input manager 
- * upon closing.</p>
+ * <p>Owned by the cyber game so it can run without the simulation package.</p>
  */
 public class SettingsScene extends Scene {
 
@@ -53,7 +46,6 @@ public class SettingsScene extends Scene {
     private BitmapFont volFont;
     private BitmapFont sectionFont;
 
-    /** FreeType font injected into the skin to replace the pixelated bitmap font. */
     private BitmapFont skinFont;
 
     private float   stateTime     = 0f;
@@ -74,10 +66,6 @@ public class SettingsScene extends Scene {
     private UIElement uiElement;
     private List<KeyBindingButton> keyBindingButtons;
 
-    /** 
-     * Stores the global input processor before Settings steals it, 
-     * so it can be restored when the menu closes. 
-     */
     private com.badlogic.gdx.InputProcessor previousProcessor;
 
     private static final float ACTION_BUTTON_WIDTH  = 280f;
@@ -88,11 +76,6 @@ public class SettingsScene extends Scene {
     private static final float KEY_HORIZONTAL_GAP = 10f;
     private static final float KEY_VERTICAL_GAP = 82f;
 
-    /**
-     * Font scale for key binding labels on the skin font.
-     * Skin font is generated at 72 px (same base as old PressStart2P).
-     * 0.15 × 72 = ~10.8 virtual px per glyph height.
-     */
     private static final float KEY_FONT_SCALE = 0.15f;
 
     private static final float KEY_MARGIN = 50f;
@@ -183,10 +166,6 @@ public class SettingsScene extends Scene {
         quitBtnY   = resumeBtnY;
     }
 
-    /**
-     * Initializes the LibGDX Stage and temporarily stores the global input
-     * processor before overtaking the input stream.
-     */
     private void initializeStage() {
         stage = new Stage(viewport);
         previousProcessor = Gdx.input.getInputProcessor();
@@ -197,23 +176,17 @@ public class SettingsScene extends Scene {
         try {
             skin = new Skin(Gdx.files.internal("buttons/name2d.json"));
 
-            // Replace the pixelated PressStart2P bitmap font with a crisp
-            // FreeType font at the same 72 px base size.
             skinFont = FontManager.createForSkin(72);
-
-            // Must update the actual TextButtonStyle font reference —
-            // skin.add() alone won't retroactively update loaded styles.
             com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle style =
                 skin.get("default", com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle.class);
             style.font = skinFont;
-            style.fontColor      = new com.badlogic.gdx.graphics.Color(0f,    0.82f, 0.42f, 1f); // normal: cyber green
-            style.overFontColor  = new com.badlogic.gdx.graphics.Color(0.78f, 1f,    0.86f, 1f); // hover:  bright mint
-            style.downFontColor  = new com.badlogic.gdx.graphics.Color(0.03f, 0.07f, 0.04f, 1f); // press:  near-black
+            style.fontColor      = new com.badlogic.gdx.graphics.Color(0f,    0.82f, 0.42f, 1f);
+            style.overFontColor  = new com.badlogic.gdx.graphics.Color(0.78f, 1f,    0.86f, 1f);
+            style.downFontColor  = new com.badlogic.gdx.graphics.Color(0.03f, 0.07f, 0.04f, 1f);
 
             uiElement = new UIElement(skin, true);
             createActionButtons();
             createKeyBindings();
-            Gdx.app.log("SettingsScene", "UI initialized with FreeType skin font");
         } catch (Exception e) {
             Gdx.app.error("SettingsScene", "UI Load Error", e);
         }
@@ -311,7 +284,6 @@ public class SettingsScene extends Scene {
         }
     }
 
-    /** Restores the global input processor that was active before Settings opened. */
     private void restoreInputProcessor() {
         if (previousProcessor != null) {
             Gdx.input.setInputProcessor(previousProcessor);
@@ -346,7 +318,6 @@ public class SettingsScene extends Scene {
 
         shape.begin(ShapeRenderer.ShapeType.Filled);
 
-        // ── Background dot grid ──────────────────────────────────────────────
         shape.setColor(0.07f, 0.10f, 0.15f, 1f);
         for (float gx = 0; gx <= VW; gx += 40f) {
             for (float gy = 0; gy <= VH; gy += 40f) {
@@ -354,7 +325,6 @@ public class SettingsScene extends Scene {
             }
         }
 
-        // ── Panel outer glow (multi-layer) ───────────────────────────────────
         shape.setColor(0f, 0.78f, 0.40f, 0.10f + 0.05f * pulse);
         shape.rect(panelX - 8, panelY - 8, panelW + 16, panelH + 16);
         shape.setColor(0f, 0.68f, 0.34f, 0.20f + 0.06f * pulse);
@@ -362,11 +332,9 @@ public class SettingsScene extends Scene {
         shape.setColor(0f, 0.58f, 0.28f, 0.32f);
         shape.rect(panelX - 2, panelY - 2, panelW + 4, panelH + 4);
 
-        // ── Panel body ───────────────────────────────────────────────────────
         shape.setColor(0.07f, 0.09f, 0.13f, 1f);
         shape.rect(panelX, panelY, panelW, panelH);
 
-        // ── Title bar ────────────────────────────────────────────────────────
         shape.setColor(0f, 0.16f, 0.10f, 1f);
         shape.rect(panelX, panelY + panelH - 80f, panelW, 80f);
         shape.setColor(0f, 0.82f, 0.42f, 0.90f);
@@ -374,35 +342,27 @@ public class SettingsScene extends Scene {
         shape.setColor(0f, 0.82f, 0.42f, 0.55f + 0.20f * pulse);
         shape.rect(panelX, panelY + panelH - 2f, panelW, 2f);
 
-        // ── Panel side borders ───────────────────────────────────────────────
         shape.setColor(0f, 0.52f, 0.26f, 0.48f);
         shape.rect(panelX, panelY, 2f, panelH - 80f);
         shape.rect(panelX + panelW - 2f, panelY, 2f, panelH - 80f);
         shape.setColor(0f, 0.42f, 0.20f, 0.40f);
         shape.rect(panelX, panelY, panelW, 2f);
 
-        // ── Decorative corner brackets ───────────────────────────────────────
         float br = 14f, bt = 2f;
         float bAlpha = 0.55f + 0.20f * pulse;
         shape.setColor(0f, 0.82f, 0.42f, bAlpha);
-        // content top-left
         shape.rect(panelX + 10f, panelY + panelH - 88f - br, bt, br);
         shape.rect(panelX + 10f, panelY + panelH - 88f - bt, br, bt);
-        // content bottom-right
         shape.rect(panelX + panelW - 10f - bt, panelY + 10f, bt, br);
         shape.rect(panelX + panelW - 10f - br, panelY + 10f, br, bt);
-        // title top-left
         shape.rect(panelX + 10f, panelY + panelH - 10f - br, bt, br);
         shape.rect(panelX + 10f, panelY + panelH - 10f - bt, br, bt);
-        // title top-right
         shape.rect(panelX + panelW - 10f - bt, panelY + panelH - 10f - br, bt, br);
         shape.rect(panelX + panelW - 10f - br, panelY + panelH - 10f - bt, br, bt);
 
-        // ── Volume section label accent bar ──────────────────────────────────
         shape.setColor(0f, 0.82f, 0.42f, 0.80f);
         shape.rect(panelX + 40f, sliderY + 22f, 3f, 14f);
 
-        // ── Volume slider (redesigned) ───────────────────────────────────────
         shape.setColor(0.04f, 0.07f, 0.10f, 1f);
         shape.rect(sliderX, sliderY - 1f, sliderW, sliderH + 2f);
         shape.setColor(0.08f, 0.12f, 0.17f, 1f);
@@ -429,11 +389,9 @@ public class SettingsScene extends Scene {
         shape.setColor(0.80f, 1f, 0.88f, 0.85f);
         shape.circle(knobX, knobCY, 3f, 12);
 
-        // ── Section separator after slider ───────────────────────────────────
         shape.setColor(0f, 0.38f, 0.20f, 0.40f);
         shape.rect(panelX + 40f, sliderY - 20f, panelW - 80f, 1f);
 
-        // ── Section accent bars + separators (keybinding rows) ───────────────
         float movLabelY = rowMovementY + KEY_BUTTON_HEIGHT;
         shape.setColor(0f, 0.82f, 0.42f, 0.80f);
         shape.rect(panelX + 40f, movLabelY + 8f, 3f, 14f);
@@ -446,7 +404,6 @@ public class SettingsScene extends Scene {
         shape.setColor(0f, 0.38f, 0.20f, 0.40f);
         shape.rect(panelX + 40f, gpLabelY + 36f, panelW - 80f, 1f);
 
-        // ── Separator above action buttons ───────────────────────────────────
         shape.setColor(0f, 0.38f, 0.20f, 0.40f);
         shape.rect(panelX + 40f, panelY + 104f, panelW - 80f, 1f);
 
@@ -456,14 +413,12 @@ public class SettingsScene extends Scene {
     private void renderText() {
         batch.begin();
 
-        // ── Title ─────────────────────────────────────────────────────────────
         titleFont.setColor(0f, 0.88f, 0.48f, 1f);
         layout.setText(titleFont, "SETTINGS");
         titleFont.draw(batch, layout,
             panelX + (panelW - layout.width) / 2f,
             panelY + panelH - 26f);
 
-        // ── Volume ────────────────────────────────────────────────────────────
         volFont.setColor(0.78f, 0.94f, 0.84f, 1f);
         layout.setText(volFont, "MASTER VOLUME");
         volFont.draw(batch, layout, sliderX + 12f, sliderY + 36f);
@@ -473,7 +428,6 @@ public class SettingsScene extends Scene {
         layout.setText(volFont, percent);
         volFont.draw(batch, layout, sliderX + sliderW - layout.width, sliderY + 36f);
 
-        // ── Section labels ────────────────────────────────────────────────────
         sectionFont.setColor(0.72f, 0.92f, 0.80f, 1f);
         sectionFont.draw(batch, "MOVEMENT",
             panelX + 52f, rowMovementY + KEY_BUTTON_HEIGHT + 22f);
@@ -515,3 +469,4 @@ public class SettingsScene extends Scene {
         if (stage != null) stage.dispose();
     }
 }
+

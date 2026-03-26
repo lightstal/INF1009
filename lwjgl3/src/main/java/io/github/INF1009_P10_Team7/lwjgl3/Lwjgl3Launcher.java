@@ -1,12 +1,13 @@
 package io.github.INF1009_P10_Team7.lwjgl3;
 
+import org.lwjgl.glfw.GLFW;
+
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Window;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowAdapter;
-import org.lwjgl.glfw.GLFW;
 
-import io.github.INF1009_P10_Team7.simulation.Part1SimulationApp;
+import io.github.INF1009_P10_Team7.cyber.CyberApp;
 
 
 /**
@@ -18,7 +19,7 @@ import io.github.INF1009_P10_Team7.simulation.Part1SimulationApp;
  * needed for macOS ARM support.</p>
  */
 public class Lwjgl3Launcher {
-    public static void main(String[] args) {
+                 public static void main(String[] args) {
         if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.
 
 
@@ -57,6 +58,8 @@ public class Lwjgl3Launcher {
             }
         });
 
-        new Lwjgl3Application(new Part1SimulationApp(), configuration);
+        // Keep a reference to satisfy static analysis; LibGDX owns lifecycle.
+        Lwjgl3Application app = new Lwjgl3Application(new CyberApp(), configuration);
+        if (app == null) throw new IllegalStateException("Failed to start application");
     }
 }
