@@ -41,17 +41,4 @@ public class GameEventSystem {
         for (IGameEventObserver o : observers) o.onKeyCollected(total, required);
     }
 
-    /** Notifies all observers that the exit door has been unlocked. */
-    public void notifyExitUnlocked() {
-        for (IGameEventObserver o : observers) o.onExitUnlocked();
-    }
-
-    /**
-     * Notifies all observers of a change in the drone alert level.
-     *
-     * @param level the new alert level in the range [0.0, 1.0]
-     */
-    public void notifyAlertChanged(float level) {
-        for (IGameEventObserver o : observers) o.onAlertLevelChanged(level);
-    }
 }
