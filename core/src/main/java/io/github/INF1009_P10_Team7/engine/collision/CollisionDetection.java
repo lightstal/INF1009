@@ -6,8 +6,8 @@ import io.github.INF1009_P10_Team7.engine.utils.Vector2;
  * <p>Default collision detection. Checks if two collidable
  * objects are overlapping</p>
  *
- * <p>If subclasses has other methoods for alternative algorithms,
- * they can be ooverridden</p>
+ * <p>If subclasses has other methods for alternative algorithms,
+ * they can be overridden</p>
  */
 public class CollisionDetection {
 
