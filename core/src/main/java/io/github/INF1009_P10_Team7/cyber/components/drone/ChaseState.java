@@ -39,7 +39,7 @@ public class ChaseState implements DroneState {
         float dx = playerPos.x - pos.x;
         float dy = playerPos.y - pos.y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
-        if (dist < 0.001f) return;
+        if (dist < 0.001f) { return; }
 
         float dirX = dx / dist;
         float dirY = dy / dist;
@@ -63,29 +63,45 @@ public class ChaseState implements DroneState {
         float[] resolved = map.resolveCircleVsWalls(nextX, nextY, ai.getRadius());
         float moved = Math.abs(resolved[0] - pos.x) + Math.abs(resolved[1] - pos.y);
 
-        if (moved < 0.5f) {
-            // Try both sidestep directions before giving up
-            float sideX = -dirY;
-            float sideY = dirX;
+        float minMove = speed * dt * 0.01f;
+        if (moved < minMove) {
+            // if stuck use x only first then y only (if and only if stuck)
+            float[] slideX = map.resolveCircleVsWalls(
+                pos.x + dirX * speed * dt, pos.y, ai.getRadius());
+            float movedX = Math.abs(slideX[0] - pos.x) + Math.abs(slideX[1] - pos.y);
 
-            float[] sideA = map.resolveCircleVsWalls(
-                pos.x + sideX * speed * 0.82f * dt,
-                pos.y + sideY * speed * 0.82f * dt,
-                ai.getRadius());
-            float movedA = Math.abs(sideA[0] - pos.x) + Math.abs(sideA[1] - pos.y);
+            float[] slideY = map.resolveCircleVsWalls(
+                pos.x, pos.y + dirY * speed * dt, ai.getRadius());
+            float movedY = Math.abs(slideY[0] - pos.x) + Math.abs(slideY[1] - pos.y);
 
-            float[] sideB = map.resolveCircleVsWalls(
-                pos.x - sideX * speed * 0.82f * dt,
-                pos.y - sideY * speed * 0.82f * dt,
-                ai.getRadius());
-            float movedB = Math.abs(sideB[0] - pos.x) + Math.abs(sideB[1] - pos.y);
-
-            if (movedA >= movedB && movedA > moved) {
-                pos.x = sideA[0]; pos.y = sideA[1];
-            } else if (movedB > moved) {
-                pos.x = sideB[0]; pos.y = sideB[1];
+            if (movedX >= movedY && movedX > moved) {
+                pos.x = slideX[0]; pos.y = slideX[1];
+            } else if (movedY > moved) {
+                pos.x = slideY[0]; pos.y = slideY[1];
             } else {
-                lostSightTimer += dt;
+                // 45 degree walk last attempt
+                float sideX = -dirY;
+                float sideY = dirX;
+
+                float[] sideA = map.resolveCircleVsWalls(
+                    pos.x + sideX * speed * 0.82f * dt,
+                    pos.y + sideY * speed * 0.82f * dt,
+                    ai.getRadius());
+                float movedA = Math.abs(sideA[0] - pos.x) + Math.abs(sideA[1] - pos.y);
+
+                float[] sideB = map.resolveCircleVsWalls(
+                    pos.x - sideX * speed * 0.82f * dt,
+                    pos.y - sideY * speed * 0.82f * dt,
+                    ai.getRadius());
+                float movedB = Math.abs(sideB[0] - pos.x) + Math.abs(sideB[1] - pos.y);
+
+                if (movedA >= movedB && movedA > moved) {
+                    pos.x = sideA[0]; pos.y = sideA[1];
+                } else if (movedB > moved) {
+                    pos.x = sideB[0]; pos.y = sideB[1];
+                } else {
+                    lostSightTimer += dt;
+                }
             }
         } else {
             pos.x = resolved[0];

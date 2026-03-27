@@ -98,7 +98,8 @@ public class SearchState implements DroneState {
 
         // Stuck detection: if the drone barely moved this frame, increment stuck timer
         float moved = Math.abs(pos.x - lastX) + Math.abs(pos.y - lastY);
-        if (moved < STUCK_THRESHOLD) {
+        float minMove = ai.getPatrolSpeed() * 0.95f * dt * 0.01f;
+        if (moved < minMove) {
             stuckTimer += dt;
             if (stuckTimer >= STUCK_TIMEOUT) {
                 // Can't reach target, give up and return to patrol

@@ -33,13 +33,13 @@ public class DroneAIMovementBehaviour implements MovementBehaviour {
 
     @Override
     public void move(Entity entity, float deltaTime) {
-        if (entity == null) return;
+        if (entity == null) { return; }
 
         DroneComponent droneComponent = entity.getComponent(DroneComponent.class);
-        if (droneComponent == null) return;
+        if (droneComponent == null) { return; }
 
         DroneAI drone = droneComponent.getDrone();
-        if (drone == null) return;
+        if (drone == null) { return; }
 
         boolean wasChasing = "CHASE".equals(drone.getStateName());
         drone.update(mapCollision, playerPosSnapshot, deltaTime);
@@ -56,4 +56,3 @@ public class DroneAIMovementBehaviour implements MovementBehaviour {
         }
     }
 }
-
