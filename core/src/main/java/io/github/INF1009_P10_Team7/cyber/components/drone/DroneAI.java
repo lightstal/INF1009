@@ -32,8 +32,7 @@ public class DroneAI {
     /*
      * Accumulated rotor spin angle (degrees) used for future drone spin animation.
      * Not currently exposed via a getter or passed to any renderer.
-     * Kept as a placeholder, wire to CyberWorldRenderer when drone
-     * spin animation is implemented.
+     * Drone spin animation is implemented in CyberWorldRenderer.
      */
     private float rotorAngle = 0f;
     private float detectionSuppressedTimer = 0f;

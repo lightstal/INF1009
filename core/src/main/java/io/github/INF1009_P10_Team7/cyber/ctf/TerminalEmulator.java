@@ -109,7 +109,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         for (TerminalLine l : c.getWelcomeLines()) addLine(l);
         addLine(TerminalLine.blank());
         
-        // Note: The parent TerminalMiniGame routes the engine input to us automatically!
+        // Input is routed here by TerminalMiniGame via the engine text input listener.
     }
 
     /** Closes the terminal and cleans up resources. */
@@ -121,10 +121,8 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
     public boolean wasPanicked(){ return panicked; }
     public boolean isSolved()   { return challenge != null && challenge.isSolved(); }
 
-    // =========================================================================
-    // UPDATE
-    // =========================================================================
 
+    // UPDATE
     public void update(float dt) {
         if (!open) return;
         stateTime  += dt;
@@ -152,10 +150,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         }
     }
 
-    // =========================================================================
     // RENDER
-    // =========================================================================
-
     public void render(MiniGameRenderContext context) {
         if (!open) return;
         IShapeDraw sr = context.shape();
@@ -285,10 +280,6 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         mono.end();
     }
 
-    // =========================================================================
-    // ITextInputListener IMPLEMENTATION
-    // =========================================================================
-
     @Override
     public void onCharTyped(char c) {
         if (!open || !waitingForInput) return;
@@ -368,10 +359,7 @@ public class TerminalEmulator implements IInputController.ITextInputListener {
         if (keycode == KeyCode.END)       { scrollOffset = 0; }
     }
 
-    // =========================================================================
-    // HELPERS
-    // =========================================================================
-
+    // helper methods
     private void deleteLastChar() {
         if (inputBuffer.length() > 0) {
             inputBuffer.deleteCharAt(inputBuffer.length() - 1);

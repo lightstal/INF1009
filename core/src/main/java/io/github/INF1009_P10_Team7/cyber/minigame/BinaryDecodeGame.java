@@ -36,11 +36,8 @@ public class BinaryDecodeGame implements IMiniGame {
     private static final float WX = 140f, WY = 50f, WW = 1000f, WH = 600f;
     private static final float TITLE_H = 40f;
 
-    // Only thing you ever need to change
-    // Edit the string passed to the constructor inside LevelConfig.
-    // Binary strings and answer chars are derived automatically.
+    // Binary strings and answer chars are derived automatically based on the secret word
     private final String secretWord;
-    //
 
     private boolean open, solved, panicked;
     private float   stateTime, wrongFlash, solveTimer;
