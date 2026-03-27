@@ -209,14 +209,13 @@ public class CyberGameRenderer {
         mapRuntime.render(camera);
 
         renderExitDoorFromMap(tmxExitX, tmxExitY, exitUnlocked);
-        worldRenderer.renderRoomProps(stateTime, terminalTiles,
-            cameraPositions, drones, cctvAlerted,
-            playerEntity, collisionMgr);
+        worldRenderer.renderRoomProps(cameraPositions, drones, cctvAlerted,
+            playerEntity, collisionMgr, stateTime);
 
         worldRenderer.renderCheckpointBeacon(stateTime, checkpointX, checkpointY);
         worldRenderer.renderTerminalGlow(terminalTiles, terminalSolved);
-        worldRenderer.renderClueObjects(stateTime, clueSystem,
-            terminalTiles, terminalSolved, playerEntity, terminalPingTimer);
+        worldRenderer.renderClueObjects(clueSystem,
+            terminalTiles, terminalSolved, playerEntity);
         worldRenderer.renderTerminalHints(stateTime, terminalPingTimer,
             terminalTiles, terminalSolved, clueSystem,
             playerEntity, PING_REVEAL_RADIUS);

@@ -46,17 +46,12 @@ public class CyberWorldRenderer {
         this.input       = input;
     }
 
-    /**
-     * Renders all in-world room props: ceiling lights, security cameras,
-     * and drone sprites. Called every frame by {@code CyberGameScene.onRender()}.
-     */
-    public void renderRoomProps(float stateTime, int[][] terminalTiles,
-                                 int[][] camPositions, DroneAI[] drones,
+    public void renderRoomProps(int[][] camPositions, DroneAI[] drones,
                                  boolean[] cctvAlerted, GameEntity playerEntity,
-                                 IWorldCollisionQuery collisionMgr) {
+                                 IWorldCollisionQuery collisionMgr, float stateTime) {
         float ts = TileMap.TILE_SIZE;
         renderSecurityCameras(ts, stateTime, camPositions, cctvAlerted, playerEntity, collisionMgr);
-        renderDroneSprites(ts, stateTime, drones);
+        renderDroneSprites(ts, drones);
     }
 
     public void renderTerminalGlow(int[][] terminalTiles, boolean[] terminalSolved) {
@@ -75,9 +70,9 @@ public class CyberWorldRenderer {
         }
     }
 
-    public void renderClueObjects(float stateTime, ClueSystem clueSystem,
+    public void renderClueObjects(ClueSystem clueSystem,
                                    int[][] terminalTiles, boolean[] terminalSolved,
-                                   GameEntity playerEntity, float terminalPingTimer) {
+                                   GameEntity playerEntity) {
         float ts = TileMap.TILE_SIZE;
         TransformComponent tc = playerEntity != null
             ? playerEntity.getComponent(TransformComponent.class) : null;
@@ -92,9 +87,9 @@ public class CyberWorldRenderer {
             float cy = TileMap.tileCentreY(clue.tileRow);
             ColorValue accent = getClueAccent(clue.objectName);
 
-            drawSpriteCenteredPreserveAspect(getClueSpriteKey(clue.objectName), cx, cy, ts * 0.72f, 0.92f);
+            drawSpriteCenteredPreserveAspect(getClueSpriteKey(clue.objectName), cx, cy, ts * 0.72f);
 
-            if (pp != null && dist(pp.x, pp.y, cx, cy) < ts * 2.0f) {
+            if (dist(pp.x, pp.y, cx, cy) < ts * 2.0f) {
                 drawWorldPromptCard(cx, cy + ts * 0.46f,
                     getCluePromptTitle(clue.objectName), buildClueAction(clue.objectName), accent);
             }
@@ -115,7 +110,7 @@ public class CyberWorldRenderer {
                             "LOCKED", status, new ColorValue(1f, 0.34f, 0.24f, 1f));
                     } else {
                         drawWorldPromptCard(tx, ty + ts * 0.52f,
-                            "TERMINAL", buildPrompt("INTERACT", "JACK IN"),
+                            "TERMINAL", buildPrompt("JACK IN"),
                             new ColorValue(0.10f, 0.90f, 0.55f, 1f));
                     }
                     break;
@@ -127,7 +122,7 @@ public class CyberWorldRenderer {
     public void renderTerminalHints(float stateTime, float terminalPingTimer,
                                      int[][] terminalTiles, boolean[] terminalSolved,
                                      ClueSystem clueSystem, GameEntity playerEntity,
-                                     float PING_REVEAL_RADIUS) {
+                                     float pingRevealRadius) {
         if (terminalPingTimer <= 0f) return;
         TransformComponent tc = playerEntity != null
             ? playerEntity.getComponent(TransformComponent.class) : null;
@@ -137,7 +132,7 @@ public class CyberWorldRenderer {
         float pulse = 0.55f + 0.45f * (float)Math.sin(stateTime * 7.5f);
 
         int nearestTerminal = -1;
-        float best = PING_REVEAL_RADIUS;
+        float best = pingRevealRadius;
         for (int i = 0; i < terminalTiles.length; i++) {
             if (terminalSolved[i]) continue;
             float tx = TileMap.tileCentreX(terminalTiles[i][0]);
@@ -192,15 +187,6 @@ public class CyberWorldRenderer {
         sr.triangle(checkpointX, checkpointY + s, checkpointX - s, checkpointY, checkpointX + s, checkpointY);
         sr.triangle(checkpointX, checkpointY - s, checkpointX - s, checkpointY, checkpointX + s, checkpointY);
         sr.end();
-    }
-
-    /**
-     * Renders the exit door sprite (closed or open) at its world position.
-     * Switches to the open texture once {@code exitUnlocked} is {@code true}.
-     */
-    public void renderTmxExitDoor(float tmxExitX, float tmxExitY, boolean exitUnlocked) {
-        // Door sprite is now rendered from TMX TextureRegion in CyberGameRenderer.
-        // Intentionally left as a no-op.
     }
 
     public void renderExitGuidance(float stateTime, boolean exitUnlocked,
@@ -261,7 +247,7 @@ public class CyberWorldRenderer {
             if (visionState >= 2)     coneColor = new ColorValue(1.00f, 0.18f, 0.15f, 0.11f * pulse);
             else if (visionState == 1) coneColor = new ColorValue(1.00f, 0.58f, 0.16f, 0.09f * pulse);
             else                       coneColor = new ColorValue(1.00f, 0.92f, 0.20f, 0.06f * pulse);
-            drawSoftCone(sr, cx, cy, totalAng, 58f, ts * 2.4f, coneColor, 18);
+            drawSoftCone(sr, cx, cy, totalAng, 58f, ts * 2.4f, coneColor);
         }
         sr.end();
 
@@ -282,7 +268,7 @@ public class CyberWorldRenderer {
         spriteDraw.end();
     }
 
-    private void renderDroneSprites(float ts, float stateTime, DroneAI[] drones) {
+    private void renderDroneSprites(float ts, DroneAI[] drones) {
         if (drones == null || drones.length == 0) return;
 
         sr.beginFilled();
@@ -295,7 +281,7 @@ public class CyberWorldRenderer {
                                                            coneColor = new ColorValue(1.00f, 0.58f, 0.14f, 0.095f);
             else                                           coneColor = new ColorValue(1.00f, 0.92f, 0.20f, 0.065f);
             drawSoftCone(sr, dx, dy, drone.getFacingAngle(), drone.getSightAngle(),
-                drone.getSightRange() * 0.78f, coneColor, 18);
+                drone.getSightRange(), coneColor);
             sr.setColor(0f, 0f, 0f, 0.10f);
             sr.rect(dx - ts * 0.22f, dy - ts * 0.06f, ts * 0.44f, ts * 0.12f);
         }
@@ -330,11 +316,11 @@ public class CyberWorldRenderer {
     }
 
     private void drawSoftCone(IShapeDraw renderer, float ox, float oy, float facingDeg,
-                               float coneAngleDeg, float length, ColorValue color, int segments) {
+                               float coneAngleDeg, float length, ColorValue color) {
         renderer.setColor(color.r, color.g, color.b, color.a);
         float start = facingDeg - coneAngleDeg * 0.5f;
-        float step  = coneAngleDeg / Math.max(1, segments);
-        for (int i = 0; i < segments; i++) {
+        float step  = coneAngleDeg / 18f;
+        for (int i = 0; i < 18; i++) {
             float a1 = (float)Math.toRadians(start + step * i);
             float a2 = (float)Math.toRadians(start + step * (i + 1));
             renderer.triangle(ox, oy,
@@ -343,9 +329,9 @@ public class CyberWorldRenderer {
         }
     }
 
-    private String buildPrompt(String actionName, String verb) {
-        String key = input.getKeyName(actionName);
-        if (key == null || key.trim().isEmpty() || "UNKNOWN".equalsIgnoreCase(key)) key = actionName;
+    private String buildPrompt(String verb) {
+        String key = input.getKeyName("INTERACT");
+        if (key == null || key.trim().isEmpty() || "UNKNOWN".equalsIgnoreCase(key)) key = "INTERACT";
         return "[" + key.toUpperCase() + "] " + verb;
     }
 
@@ -373,9 +359,9 @@ public class CyberWorldRenderer {
 
     private String buildClueAction(String objectName) {
         String n = objectName == null ? "INTEL" : objectName.trim().toUpperCase();
-        if (n.contains("KEY") || n.contains("USB")) return buildPrompt("INTERACT", "TAKE");
-        if (n.contains("LOG"))                       return buildPrompt("INTERACT", "READ");
-        return buildPrompt("INTERACT", "COLLECT");
+        if (n.contains("KEY") || n.contains("USB")) return buildPrompt("TAKE");
+        if (n.contains("LOG"))                       return buildPrompt("READ");
+        return buildPrompt("COLLECT");
     }
 
     private void drawWorldPromptCard(float centerX, float baselineY,
@@ -408,13 +394,13 @@ public class CyberWorldRenderer {
     }
 
     private void drawSpriteCenteredPreserveAspect(String spriteKey, float cx, float cy,
-                                                   float maxSize, float alpha) {
+                                                   float maxSize) {
         if (!sprites.has(spriteKey)) return;
         float aspect = sprites.getAspectRatio(spriteKey);
         float drawW  = aspect >= 1f ? maxSize : maxSize * aspect;
         float drawH  = aspect >= 1f ? maxSize / aspect : maxSize;
         spriteDraw.begin();
-        spriteDraw.setTint(1f, 1f, 1f, alpha);
+        spriteDraw.setTint(1f, 1f, 1f, 0.92f);
         spriteDraw.draw(spriteKey, cx - drawW / 2f, cy - drawH / 2f, drawW, drawH);
         spriteDraw.resetTint();
         spriteDraw.end();
