@@ -30,3 +30,6 @@ public final class TileMap {
     /** @return the tile row index for world Y {@code wy}, clamped to valid range */
     public static int   worldToRow (float wy) { return Math.max(0, Math.min(ROWS - 1, ROWS - 1 - (int)(wy / TILE_SIZE))); }
 }
+
+
+//define libary
